@@ -129,7 +129,3 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 		Controller->SetControlRotation(Rotation);
 	}
 }
-
-
-
-
