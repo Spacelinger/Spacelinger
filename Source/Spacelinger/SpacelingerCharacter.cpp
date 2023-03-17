@@ -125,7 +125,7 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 		// NOTE(Sergi): Clamp camera value
 		FRotator Rotation = Controller->GetControlRotation();
 		if (Rotation.Pitch < 180 && Rotation.Pitch > MaxCameraPitch)     { Rotation.Pitch = MaxCameraPitch; }
-		if (Rotation.Pitch > 180 && Rotation.Pitch < 360-MaxCameraPitch) { Rotation.Pitch = 360-MaxCameraPitch; }
+		if (Rotation.Pitch > 180 && Rotation.Pitch < 360-MinCameraPitch) { Rotation.Pitch = 360-MinCameraPitch; }
 		Controller->SetControlRotation(Rotation);
 	}
 }
