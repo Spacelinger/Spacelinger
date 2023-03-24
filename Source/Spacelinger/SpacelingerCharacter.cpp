@@ -123,9 +123,11 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+
+		// NOTE(Sergi): Clamp camera value
+		FRotator Rotation = Controller->GetControlRotation();
+		if (Rotation.Pitch < 180 && Rotation.Pitch > MaxCameraPitch)     { Rotation.Pitch = MaxCameraPitch; }
+		if (Rotation.Pitch > 180 && Rotation.Pitch < 360-MinCameraPitch) { Rotation.Pitch = 360-MinCameraPitch; }
+		Controller->SetControlRotation(Rotation);
 	}
 }
-
-
-
-
