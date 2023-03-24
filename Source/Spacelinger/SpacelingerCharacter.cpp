@@ -90,6 +90,7 @@ void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 {
+	
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -109,6 +110,7 @@ void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
+	
 }
 
 void ASpacelingerCharacter::Look(const FInputActionValue& Value)
@@ -121,9 +123,11 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+
+		// NOTE(Sergi): Clamp camera value
+		FRotator Rotation = Controller->GetControlRotation();
+		if (Rotation.Pitch < 180 && Rotation.Pitch > MaxCameraPitch)     { Rotation.Pitch = MaxCameraPitch; }
+		if (Rotation.Pitch > 180 && Rotation.Pitch < 360-MinCameraPitch) { Rotation.Pitch = 360-MinCameraPitch; }
+		Controller->SetControlRotation(Rotation);
 	}
 }
-
-
-
-
