@@ -76,3 +76,6 @@ DerivedDataCache/*
 # JetBrains Rider config files
 Plugins/Developer/RiderLink/
 .idea/
+
+# Generated files by Unreal which we don't need for SpaceLinger
+Platforms/HoloLens/*
