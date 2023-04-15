@@ -4,6 +4,8 @@
 #include "SLFunctionLibrary.h"
 #include "Kismet/GameplayStaticsTypes.h"
 
+// NOTE(Sergi): This can be deleted, but I'm leaving it up so it
+// can be used as a reference on how to get the UWorld
 void USLFunctionLibrary::DrawDebugPredictionPath(
 	const UObject* WorldContextObject,
 	const TArray<FPredictProjectilePathPointData> PathPoints,
@@ -15,6 +17,7 @@ void USLFunctionLibrary::DrawDebugPredictionPath(
 {
 	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
 
+	return;
 	for (int i = 0; i < PathPoints.Num() - 1; ++i)
 	{
 		FVector P0 = PathPoints[i]  .Location;
