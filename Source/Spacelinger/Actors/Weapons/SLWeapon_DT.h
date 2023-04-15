@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
+#include "SpacelingerCharacter.h"
 #include "SLWeapon_DT.generated.h"
 
 class ASLProjectile;
@@ -12,37 +13,14 @@ struct FSLWeapon_DT : public FTableRowBase
 	GENERATED_BODY();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		int Slot = -1;
+	TEnumAsByte<SLHumanoidAbility> HumanoidAbility = SLHumanoidAbility::StickyPuddle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FText DisplayName;
+	FVector2D AimingOffset = FVector2D::ZeroVector;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FVector2D AimingOffset = FVector2D::ZeroVector;
+	float Speed = 700.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float Speed = 700.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float Damage = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSoftClassPtr<ASLProjectile> ProjectileToSpawn;
-
-	/*
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		FLinearColor Color;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		UTexture2D* TextureHard = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSoftObjectPtr<UTexture2D> Icon;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSoftObjectPtr<UStaticMesh> StaticMesh;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		TSoftClassPtr<AActor> ClassToSpawn;
-		*/
+	TSoftClassPtr<ASLProjectile> ProjectileToSpawn;
 };

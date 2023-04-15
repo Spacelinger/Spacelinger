@@ -11,6 +11,8 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UDataTable;
+struct FSLWeapon_DT;
 
 UENUM()
 enum SLHumanoidAbility {
@@ -44,6 +46,8 @@ class ASpacelingerCharacter : public ACharacter
 	UClass* StickyPuddleProjectileClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
 	UClass* CorrosiveSpitClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
+	UDataTable* AbilitiesDataTable;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* ParabollicStartPosition;
 
@@ -79,4 +83,6 @@ public:
 private:
 	// Set while drawing the trajectory, used when the player uses an ability
 	FVector ThrowableDirection = FVector::Zero();
+
+	FSLWeapon_DT* GetAbilityRow(SLHumanoidAbility Ability);
 };

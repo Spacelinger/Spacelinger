@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 
 #include "Actors/Weapons/SLProjectile.h"
+#include "Actors/Weapons/SLWeapon_DT.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -52,6 +53,9 @@ ASpacelingerCharacter::ASpacelingerCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	ParabollicStartPosition = CreateDefaultSubobject<USceneComponent>(TEXT("ParabollicStartPosition"));
+	ParabollicStartPosition->SetupAttachment(RootComponent);
 }
 
 void ASpacelingerCharacter::BeginPlay()
@@ -140,51 +144,58 @@ void ASpacelingerCharacter::SwitchAbility(const FInputActionValue& Value)
 }
 
 void ASpacelingerCharacter::ThrowAbility(FTransform SpawnTransform) {
+	FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
+
 	FActorSpawnParameters SpawnParameters;
-	UClass* ClassToSpawn = (SelectedHumanoidAbility == SLHumanoidAbility::StickyPuddle) ? StickyPuddleProjectileClass : CorrosiveSpitClass;
+	UClass* ClassToSpawn = WeaponDT->ProjectileToSpawn.Get();
 	ASLProjectile* ActorSpawned = GetWorld()->SpawnActor<ASLProjectile>(ClassToSpawn, SpawnTransform, SpawnParameters);
 	if (ActorSpawned) {
 		UProjectileMovementComponent* MC = ActorSpawned->MovementComponent;
-		float ProjectileSpeed = 1000.0f; // TODO! Obtain from data table
-		MC->MaxSpeed = ProjectileSpeed;
-		MC->Velocity = ThrowableDirection * ProjectileSpeed;
+		MC->MaxSpeed = WeaponDT->Speed;
+		MC->Velocity = ThrowableDirection * WeaponDT->Speed;
 	}
 }
 
 void ASpacelingerCharacter::DrawThrowTrajectory() {
 	ensure(Controller);
+	FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
+
 	FRotator PlayerRotation = GetControlRotation();
 	FVector PlayerForward = PlayerRotation.Vector();
 	FVector PlayerUp      = FRotationMatrix(PlayerRotation).GetScaledAxis(EAxis::Z);
+	FVector PlayerRight   = FRotationMatrix(PlayerRotation).GetScaledAxis(EAxis::Y);
 
-	float AmountUp = 0.5f; // TODO! Obtain from Data table
-	ThrowableDirection = PlayerUp*AmountUp + PlayerForward*(1-AmountUp);
+	FVector2D AimingOffset = WeaponDT->AimingOffset;
+	FVector DirRight = PlayerRight*AimingOffset.X + PlayerForward*(1-AimingOffset.X);
+	FVector DirUp    = PlayerUp   *AimingOffset.Y + PlayerForward*(1-AimingOffset.Y);
+	ThrowableDirection = DirUp + DirRight;
 	ThrowableDirection.Normalize();
 
-	float ProjectileSpeed = 1000.0f; // TODO! Obtain from data table
-	float ProjectileRadius = 25.0f;  // TODO!
-	FVector StartLocation  = FVector(0.0f, 40.0f, 60.0f); // TODO!
+	float ProjectileSpeed  = WeaponDT->Speed;
+	float ProjectileRadius = 25.0f;
+	//FVector StartLocation  = GetTransform().GetLocation() + FVector(0.0f, 40.0f, 60.0f);
+	FVector StartLocation = ParabollicStartPosition->GetComponentLocation();
 
 	FPredictProjectilePathParams PredictParams = {};
-	PredictParams.StartLocation       = GetTransform().GetLocation() + StartLocation;
+	PredictParams.StartLocation       = StartLocation;
 	PredictParams.LaunchVelocity      = ThrowableDirection*ProjectileSpeed;
 	PredictParams.bTraceWithCollision = true;
-	PredictParams.MaxSimTime          = 3.0f; // TODO! A constant
+	PredictParams.MaxSimTime          = 3.0f;
 	PredictParams.bTraceWithChannel   = true;
 	PredictParams.TraceChannel        = ECollisionChannel::ECC_WorldDynamic;
+	PredictParams.SimFrequency        = 25.0f;
+	PredictParams.DrawDebugTime       = 1.0f;
 	PredictParams.ActorsToIgnore.Add(this);
-	PredictParams.SimFrequency        = 25.0f; // TODO! A constant
-	PredictParams.DrawDebugTime       = 1.0f;  // TODO! A constant
 
 	FPredictProjectilePathResult PredictResult;
 	bool IsHit = UGameplayStatics::PredictProjectilePath(GetWorld(), PredictParams, PredictResult);
+
+	// Draw line
 	TArray<FPredictProjectilePathPointData> PathPoints = PredictResult.PathData;
 	FVector HitPoint = PredictResult.LastTraceDestination.Location;
-
-
-	FColor Color       = FColor::Cyan; // TODO! A constant
-	float Thickness    = 2.0f;         // TODO! A constant
-	float SphereRadius = 20.0f;        // TODO! A constant
+	FColor Color       = FColor::Cyan;
+	float Thickness    = 2.0f;
+	float SphereRadius = 20.0f;
 
 	for (int i = 0; i < PathPoints.Num() - 1; ++i)
 	{
@@ -197,4 +208,18 @@ void ASpacelingerCharacter::DrawThrowTrajectory() {
 		DrawDebugLine(GetWorld(), P0, HitPoint, Color, false, -1, 0, Thickness);
 		DrawDebugSphere(GetWorld(), HitPoint, SphereRadius, 12, Color, false, -1.0f, 0U, Thickness);
 	}
+}
+
+FSLWeapon_DT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
+	FName AbilityName;
+	switch(Ability) {
+		case StickyPuddle:  { AbilityName = TEXT("StickyPuddle");  } break;
+		case CorrosiveSpit: { AbilityName = TEXT("CorrosiveSpit"); } break;
+		case COUNT:
+		default:
+			ensure(false);
+	}
+
+	FString Context;
+	return AbilitiesDataTable->FindRow<FSLWeapon_DT>(AbilityName, Context); // If null, FindRow() should warn us
 }
