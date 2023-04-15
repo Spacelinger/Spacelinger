@@ -6,6 +6,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
+#include "Interact_Luis/Interfaces/InteractInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -18,7 +19,7 @@ ASpacelingerCharacter::ASpacelingerCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -73,7 +74,7 @@ void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -84,13 +85,45 @@ void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Look);
 
+		//Interact
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Interact);
+
 	}
 
 }
 
+void ASpacelingerCharacter::Interact(const FInputActionValue& Value)
+{
+	TArray<AActor*> OverlappingActors;
+	GetOverlappingActors(OverlappingActors);
+
+	IInteractInterface* BestCandidate = nullptr;
+	int BestCandidatePrio = 100;
+
+	for (AActor* Actor : OverlappingActors) {
+		if (IInteractInterface* Candidate = Cast<IInteractInterface>(Actor))
+		{
+			// Check for priority
+			int CandPrio = Candidate->GetInteractPriority();
+			if (CandPrio == BestCandidatePrio)
+			{
+				// What to do in the case we have two overlapping interacting candidates with same priority?
+			}
+			else if (CandPrio < BestCandidatePrio)
+			{
+				BestCandidatePrio = CandPrio;
+				BestCandidate = Candidate;
+			}
+		}
+	}
+	if (BestCandidate)
+		BestCandidate->Interact(this);
+}
+
+
 void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 {
-	
+
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -102,7 +135,7 @@ void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -110,7 +143,7 @@ void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
-	
+
 }
 
 void ASpacelingerCharacter::Look(const FInputActionValue& Value)
@@ -126,8 +159,8 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 
 		// NOTE(Sergi): Clamp camera value
 		FRotator Rotation = Controller->GetControlRotation();
-		if (Rotation.Pitch < 180 && Rotation.Pitch > MaxCameraPitch)     { Rotation.Pitch = MaxCameraPitch; }
-		if (Rotation.Pitch > 180 && Rotation.Pitch < 360-MinCameraPitch) { Rotation.Pitch = 360-MinCameraPitch; }
+		if (Rotation.Pitch < 180 && Rotation.Pitch > MaxCameraPitch) { Rotation.Pitch = MaxCameraPitch; }
+		if (Rotation.Pitch > 180 && Rotation.Pitch < 360 - MinCameraPitch) { Rotation.Pitch = 360 - MinCameraPitch; }
 		Controller->SetControlRotation(Rotation);
 	}
 }
