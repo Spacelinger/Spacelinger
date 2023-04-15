@@ -12,6 +12,13 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 
+UENUM()
+enum SLHumanoidAbility {
+	StickyPuddle = 0,
+	CorrosiveSpit,
+	COUNT UMETA(Hidden),
+};
+
 UCLASS(config=Game)
 class ASpacelingerCharacter : public ACharacter
 {
@@ -30,9 +37,13 @@ class ASpacelingerCharacter : public ACharacter
 	UInputAction* MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchAbilityAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
-	UClass* AbilityProjectileClass;
+	UClass* StickyPuddleProjectileClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
+	UClass* CorrosiveSpitClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* ParabollicStartPosition;
 
@@ -40,9 +51,10 @@ public:
 	ASpacelingerCharacter();
 
 protected:
-
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+	void SwitchAbility(const FInputActionValue& Value);
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -57,6 +69,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
 	float MinCameraPitch = 60.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ability)
+	TEnumAsByte<SLHumanoidAbility> SelectedHumanoidAbility = SLHumanoidAbility::StickyPuddle;
 	UFUNCTION(BlueprintCallable)
 	void ThrowAbility(FTransform SpawnTransform);
 	UFUNCTION(BlueprintCallable)

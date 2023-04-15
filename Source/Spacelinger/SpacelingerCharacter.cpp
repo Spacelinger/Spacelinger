@@ -82,6 +82,8 @@ void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Move);
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Look);
+
+		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASpacelingerCharacter::SwitchAbility);
 	}
 }
 
@@ -129,9 +131,18 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ASpacelingerCharacter::SwitchAbility(const FInputActionValue& Value)
+{
+	int ActionValue = Value.GetMagnitude();
+	int CurrentAbility = SelectedHumanoidAbility.GetValue();
+	CurrentAbility = (ActionValue + CurrentAbility + SLHumanoidAbility::COUNT) % SLHumanoidAbility::COUNT;
+	SelectedHumanoidAbility = static_cast<SLHumanoidAbility>(CurrentAbility);
+}
+
 void ASpacelingerCharacter::ThrowAbility(FTransform SpawnTransform) {
 	FActorSpawnParameters SpawnParameters;
-	ASLProjectile* ActorSpawned = GetWorld()->SpawnActor<ASLProjectile>(AbilityProjectileClass, SpawnTransform, SpawnParameters );
+	UClass* ClassToSpawn = (SelectedHumanoidAbility == SLHumanoidAbility::StickyPuddle) ? StickyPuddleProjectileClass : CorrosiveSpitClass;
+	ASLProjectile* ActorSpawned = GetWorld()->SpawnActor<ASLProjectile>(ClassToSpawn, SpawnTransform, SpawnParameters);
 	if (ActorSpawned) {
 		UProjectileMovementComponent* MC = ActorSpawned->MovementComponent;
 		float ProjectileSpeed = 1000.0f; // TODO! Obtain from data table
