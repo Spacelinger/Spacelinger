@@ -10,6 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 
+#include "Actors/Weapons/SLProjectile.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ASpacelingerCharacter
@@ -73,19 +76,13 @@ void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
-		//Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Move);
 
-		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Look);
-
 	}
-
 }
 
 void ASpacelingerCharacter::Move(const FInputActionValue& Value)
@@ -129,5 +126,64 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 		if (Rotation.Pitch < 180 && Rotation.Pitch > MaxCameraPitch)     { Rotation.Pitch = MaxCameraPitch; }
 		if (Rotation.Pitch > 180 && Rotation.Pitch < 360-MinCameraPitch) { Rotation.Pitch = 360-MinCameraPitch; }
 		Controller->SetControlRotation(Rotation);
+	}
+}
+
+void ASpacelingerCharacter::ThrowAbility(FTransform SpawnTransform) {
+	FActorSpawnParameters SpawnParameters;
+	ASLProjectile* ActorSpawned = GetWorld()->SpawnActor<ASLProjectile>(AbilityProjectileClass, SpawnTransform, SpawnParameters );
+	if (ActorSpawned) {
+		UProjectileMovementComponent* MC = ActorSpawned->MovementComponent;
+		float ProjectileSpeed = 1000.0f; // TODO! Obtain from data table
+		MC->MaxSpeed = ProjectileSpeed;
+		MC->Velocity = ThrowableDirection * ProjectileSpeed;
+	}
+}
+
+void ASpacelingerCharacter::DrawThrowTrajectory() {
+	ensure(Controller);
+	FRotator PlayerRotation = GetControlRotation();
+	FVector PlayerForward = PlayerRotation.Vector();
+	FVector PlayerUp      = FRotationMatrix(PlayerRotation).GetScaledAxis(EAxis::Z);
+
+	float AmountUp = 0.5f; // TODO! Obtain from Data table
+	ThrowableDirection = PlayerUp*AmountUp + PlayerForward*(1-AmountUp);
+	ThrowableDirection.Normalize();
+
+	float ProjectileSpeed = 1000.0f; // TODO! Obtain from data table
+	float ProjectileRadius = 25.0f;  // TODO!
+	FVector StartLocation  = FVector(0.0f, 40.0f, 60.0f); // TODO!
+
+	FPredictProjectilePathParams PredictParams = {};
+	PredictParams.StartLocation       = GetTransform().GetLocation() + StartLocation;
+	PredictParams.LaunchVelocity      = ThrowableDirection*ProjectileSpeed;
+	PredictParams.bTraceWithCollision = true;
+	PredictParams.MaxSimTime          = 3.0f; // TODO! A constant
+	PredictParams.bTraceWithChannel   = true;
+	PredictParams.TraceChannel        = ECollisionChannel::ECC_WorldDynamic;
+	PredictParams.ActorsToIgnore.Add(this);
+	PredictParams.SimFrequency        = 25.0f; // TODO! A constant
+	PredictParams.DrawDebugTime       = 1.0f;  // TODO! A constant
+
+	FPredictProjectilePathResult PredictResult;
+	bool IsHit = UGameplayStatics::PredictProjectilePath(GetWorld(), PredictParams, PredictResult);
+	TArray<FPredictProjectilePathPointData> PathPoints = PredictResult.PathData;
+	FVector HitPoint = PredictResult.LastTraceDestination.Location;
+
+
+	FColor Color       = FColor::Cyan; // TODO! A constant
+	float Thickness    = 2.0f;         // TODO! A constant
+	float SphereRadius = 20.0f;        // TODO! A constant
+
+	for (int i = 0; i < PathPoints.Num() - 1; ++i)
+	{
+		FVector P0 = PathPoints[i]  .Location;
+		FVector P1 = PathPoints[i+1].Location;
+		DrawDebugLine(GetWorld(), P0, P1, Color, false, -1, 0, Thickness);
+	}
+	if (IsHit) {
+		FVector P0 = PathPoints[PathPoints.Num()-1].Location;
+		DrawDebugLine(GetWorld(), P0, HitPoint, Color, false, -1, 0, Thickness);
+		DrawDebugSphere(GetWorld(), HitPoint, SphereRadius, 12, Color, false, -1.0f, 0U, Thickness);
 	}
 }
