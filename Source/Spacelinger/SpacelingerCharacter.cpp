@@ -187,6 +187,7 @@ void ASpacelingerCharacter::SwitchAbility(const FInputActionValue& Value)
 void ASpacelingerCharacter::DrawThrowTrajectory() {
 	ensure(Controller);
 	FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
+	ensure (WeaponDT);
 
 	FRotator PlayerRotation = GetControlRotation();
 	FVector PlayerForward = PlayerRotation.Vector();

@@ -14,7 +14,7 @@ class UInputAction;
 class UDataTable;
 struct FSLWeapon_DT;
 
-UENUM()
+UENUM(BlueprintType)
 enum SLHumanoidAbility {
 	StickyPuddle = 0,
 	CorrosiveSpit,
