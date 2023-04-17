@@ -30,6 +30,8 @@ class ASpacelingerCharacter : public ACharacter
 	USpringArmComponent* CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	USceneComponent* AimCameraPosition;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -48,7 +50,7 @@ class ASpacelingerCharacter : public ACharacter
 	UClass* CorrosiveSpitClass;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
 	UDataTable* AbilitiesDataTable;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
 	USceneComponent* ParabollicStartPosition;
 
 public:
@@ -63,15 +65,21 @@ protected:
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void BeginPlay();
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SpaceLinger, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
 	float MaxCameraPitch = 40.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SpaceLinger, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
 	float MinCameraPitch = 60.0f;
+
+	UFUNCTION(BlueprintCallable)
+	void LockCameraAiming();
+	UFUNCTION(BlueprintCallable)
+	void UnlockCameraAiming();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ability)
 	TEnumAsByte<SLHumanoidAbility> SelectedHumanoidAbility = SLHumanoidAbility::StickyPuddle;
@@ -81,6 +89,12 @@ public:
 	void DrawThrowTrajectory();
 
 private:
+	float DefaultTargetArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SpaceLinger, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
+	float AimTargetArmLength;
+	FVector DefaultCameraLocation; 
+	FVector AimCameraLocation; 
+
 	// Set while drawing the trajectory, used when the player uses an ability
 	FVector ThrowableDirection = FVector::Zero();
 

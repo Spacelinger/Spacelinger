@@ -56,14 +56,15 @@ ASpacelingerCharacter::ASpacelingerCharacter()
 
 	ParabollicStartPosition = CreateDefaultSubobject<USceneComponent>(TEXT("ParabollicStartPosition"));
 	ParabollicStartPosition->SetupAttachment(RootComponent);
+
+	AimCameraPosition= CreateDefaultSubobject<USceneComponent>(TEXT("AimCameraPosition"));
+	AimCameraPosition->SetupAttachment(RootComponent);
 }
 
 void ASpacelingerCharacter::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 
-	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -71,6 +72,16 @@ void ASpacelingerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+}
+
+// Equivalent of Blueprint's Construction Script
+void ASpacelingerCharacter::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	DefaultTargetArmLength = CameraBoom->TargetArmLength;
+	DefaultCameraLocation = CameraBoom->GetRelativeLocation();
+	AimCameraLocation = AimCameraPosition->GetRelativeLocation();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,6 +222,8 @@ void ASpacelingerCharacter::DrawThrowTrajectory() {
 }
 
 FSLWeapon_DT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
+	ensure(AbilitiesDataTable);
+
 	FName AbilityName;
 	switch(Ability) {
 		case StickyPuddle:  { AbilityName = TEXT("StickyPuddle");  } break;
@@ -222,4 +235,15 @@ FSLWeapon_DT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
 
 	FString Context;
 	return AbilitiesDataTable->FindRow<FSLWeapon_DT>(AbilityName, Context); // If null, FindRow() should warn us
+}
+
+void ASpacelingerCharacter::LockCameraAiming() {
+	CameraBoom->TargetArmLength = AimTargetArmLength;
+	CameraBoom->SetRelativeLocation(AimCameraLocation);
+	bUseControllerRotationYaw = true;
+}
+void ASpacelingerCharacter::UnlockCameraAiming() {
+	CameraBoom->TargetArmLength = DefaultTargetArmLength;
+	CameraBoom->SetRelativeLocation(DefaultCameraLocation);
+	bUseControllerRotationYaw = false;
 }
