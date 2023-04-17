@@ -12,7 +12,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class UDataTable;
-struct FSLWeapon_DT;
+struct FSLAbilityDT;
 
 UENUM(BlueprintType)
 enum SLHumanoidAbility {
@@ -106,5 +106,5 @@ private:
 	// Set while drawing the trajectory, used when the player uses an ability
 	FVector ThrowableDirection = FVector::Zero();
 
-	FSLWeapon_DT* GetAbilityRow(SLHumanoidAbility Ability);
+	FSLAbilityDT* GetAbilityRow(SLHumanoidAbility Ability);
 };

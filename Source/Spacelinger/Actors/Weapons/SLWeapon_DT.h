@@ -8,7 +8,7 @@
 class ASLProjectile;
 
 USTRUCT(BlueprintType)
-struct FSLWeapon_DT : public FTableRowBase
+struct FSLAbilityDT : public FTableRowBase
 {
 	GENERATED_BODY();
 
@@ -23,4 +23,7 @@ struct FSLWeapon_DT : public FTableRowBase
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSoftClassPtr<ASLProjectile> ProjectileToSpawn;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D *AbilityIcon;
 };

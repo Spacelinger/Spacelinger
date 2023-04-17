@@ -161,7 +161,7 @@ void ASpacelingerCharacter::ShootAbility_Completed(const FInputActionValue& Valu
 			UnlockCameraAiming();
 		}
 
-		FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
+		FSLAbilityDT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
 
 		UClass* ClassToSpawn = WeaponDT->ProjectileToSpawn.Get();
 		FTransform SpawnTransform = ParabollicStartPosition->GetComponentTransform();
@@ -186,7 +186,7 @@ void ASpacelingerCharacter::SwitchAbility(const FInputActionValue& Value)
 
 void ASpacelingerCharacter::DrawThrowTrajectory() {
 	ensure(Controller);
-	FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
+	FSLAbilityDT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
 	ensure (WeaponDT);
 
 	FRotator PlayerRotation = GetControlRotation();
@@ -239,7 +239,7 @@ void ASpacelingerCharacter::DrawThrowTrajectory() {
 	}
 }
 
-FSLWeapon_DT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
+FSLAbilityDT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
 	ensure(AbilitiesDataTable);
 
 	FName AbilityName;
@@ -252,7 +252,7 @@ FSLWeapon_DT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
 	}
 
 	FString Context;
-	return AbilitiesDataTable->FindRow<FSLWeapon_DT>(AbilityName, Context); // If null, FindRow() should warn us
+	return AbilitiesDataTable->FindRow<FSLAbilityDT>(AbilityName, Context); // If null, FindRow() should warn us
 }
 
 void ASpacelingerCharacter::LockCameraAiming() {
