@@ -89,7 +89,6 @@ void ASpacelingerCharacter::OnConstruction(const FTransform& Transform)
 
 void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -98,14 +97,15 @@ void ASpacelingerCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::Look);
 
+		EnhancedInputComponent->BindAction(ShootAbilityAction, ETriggerEvent::Started,   this, &ASpacelingerCharacter::ShootAbility_Started);
+		EnhancedInputComponent->BindAction(ShootAbilityAction, ETriggerEvent::Triggered, this, &ASpacelingerCharacter::ShootAbility_Triggered);
+		EnhancedInputComponent->BindAction(ShootAbilityAction, ETriggerEvent::Completed, this, &ASpacelingerCharacter::ShootAbility_Completed);
 		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASpacelingerCharacter::SwitchAbility);
 	}
 }
 
 void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 {
-	
-	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -124,7 +124,6 @@ void ASpacelingerCharacter::Move(const FInputActionValue& Value)
 		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
-	
 }
 
 void ASpacelingerCharacter::Look(const FInputActionValue& Value)
@@ -146,25 +145,43 @@ void ASpacelingerCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ASpacelingerCharacter::ShootAbility_Started(const FInputActionValue& Value) {
+	bIsAimingAbility = true;
+	LockCameraAiming();
+}
+void ASpacelingerCharacter::ShootAbility_Triggered(const FInputActionValue& Value) {
+	if (bIsAimingAbility) {
+		DrawThrowTrajectory();
+	}
+}
+void ASpacelingerCharacter::ShootAbility_Completed(const FInputActionValue& Value) {
+	if (bIsAimingAbility) {
+		bIsAimingAbility = false;
+		if (!bIsAiming) { // If player is holding aim button we won't reset camera
+			UnlockCameraAiming();
+		}
+
+		FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
+
+		UClass* ClassToSpawn = WeaponDT->ProjectileToSpawn.Get();
+		FTransform SpawnTransform = ParabollicStartPosition->GetComponentTransform();
+		FActorSpawnParameters SpawnParameters;
+		ASLProjectile* ActorSpawned = GetWorld()->SpawnActor<ASLProjectile>(ClassToSpawn, SpawnTransform, SpawnParameters);
+		if (ActorSpawned) {
+			UProjectileMovementComponent* MC = ActorSpawned->MovementComponent;
+			MC->MaxSpeed = WeaponDT->Speed;
+			MC->Velocity = ThrowableDirection * WeaponDT->Speed;
+		}
+	}
+}
+
 void ASpacelingerCharacter::SwitchAbility(const FInputActionValue& Value)
 {
 	int ActionValue = Value.GetMagnitude();
 	int CurrentAbility = SelectedHumanoidAbility.GetValue();
 	CurrentAbility = (ActionValue + CurrentAbility + SLHumanoidAbility::COUNT) % SLHumanoidAbility::COUNT;
 	SelectedHumanoidAbility = static_cast<SLHumanoidAbility>(CurrentAbility);
-}
-
-void ASpacelingerCharacter::ThrowAbility(FTransform SpawnTransform) {
-	FSLWeapon_DT* WeaponDT = GetAbilityRow(SelectedHumanoidAbility);
-
-	FActorSpawnParameters SpawnParameters;
-	UClass* ClassToSpawn = WeaponDT->ProjectileToSpawn.Get();
-	ASLProjectile* ActorSpawned = GetWorld()->SpawnActor<ASLProjectile>(ClassToSpawn, SpawnTransform, SpawnParameters);
-	if (ActorSpawned) {
-		UProjectileMovementComponent* MC = ActorSpawned->MovementComponent;
-		MC->MaxSpeed = WeaponDT->Speed;
-		MC->Velocity = ThrowableDirection * WeaponDT->Speed;
-	}
+	bIsAimingAbility = false;
 }
 
 void ASpacelingerCharacter::DrawThrowTrajectory() {

@@ -35,13 +35,15 @@ class ASpacelingerCharacter : public ACharacter
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|Movement", meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|Movement", meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|Movement", meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|Ability", meta = (AllowPrivateAccess = "true"))
+	UInputAction* ShootAbilityAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input|Ability", meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchAbilityAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Ability, meta = (AllowPrivateAccess = "true"))
@@ -60,6 +62,9 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
+	void ShootAbility_Started(const FInputActionValue& Value);
+	void ShootAbility_Triggered(const FInputActionValue& Value);
+	void ShootAbility_Completed(const FInputActionValue& Value);
 	void SwitchAbility(const FInputActionValue& Value);
 
 protected:
@@ -84,17 +89,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ability)
 	TEnumAsByte<SLHumanoidAbility> SelectedHumanoidAbility = SLHumanoidAbility::StickyPuddle;
 	UFUNCTION(BlueprintCallable)
-	void ThrowAbility(FTransform SpawnTransform);
-	UFUNCTION(BlueprintCallable)
 	void DrawThrowTrajectory();
 
 private:
 	float DefaultTargetArmLength;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SpaceLinger, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SpaceLinger, meta = (AllowPrivateAccess = "true"))
 	float AimTargetArmLength;
 	FVector DefaultCameraLocation; 
 	FVector AimCameraLocation; 
 
+	// TODO: These shouldn't be UPROPERTY. They're for now because we need to call them from Blueprint
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpaceLinger|TempExposed", meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SpaceLinger|TempExposed", meta = (AllowPrivateAccess = "true"))
+	bool bIsAimingAbility = false;
 	// Set while drawing the trajectory, used when the player uses an ability
 	FVector ThrowableDirection = FVector::Zero();
 
