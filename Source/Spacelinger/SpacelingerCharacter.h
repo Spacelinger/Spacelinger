@@ -8,6 +8,9 @@
 #include "SpacelingerCharacter.generated.h"
 
 
+class IInteractInterface;
+
+
 UCLASS(config=Game)
 class ASpacelingerCharacter : public ACharacter
 {
@@ -37,6 +40,10 @@ class ASpacelingerCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* InteractAction;
+
 public:
 	ASpacelingerCharacter();
 	
@@ -48,7 +55,11 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
-			
+
+	/** Called for interact input */
+	void Interact(const FInputActionValue& Value);
+
+	IInteractInterface* InteractCandidate = nullptr;
 
 protected:
 	// APawn interface
