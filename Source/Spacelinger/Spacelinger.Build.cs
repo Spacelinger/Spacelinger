@@ -16,6 +16,7 @@ public class Spacelinger : ModuleRules
 			"HeadMountedDisplay",
 			"EnhancedInput",
 			"UMG",
+			"AIModule",
 			"CableComponent"
 		});
 		PublicIncludePaths.Add("Spacelinger");
