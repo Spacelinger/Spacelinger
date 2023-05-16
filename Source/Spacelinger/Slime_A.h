@@ -121,9 +121,6 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
 	
-
-
-
 	// ============== Slow Time Ability
 public:
 

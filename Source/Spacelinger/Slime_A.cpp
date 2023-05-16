@@ -253,9 +253,6 @@ void ASlime_A::UpdateRotation(FVector planeNormal)
 	}
 }
 
-
-
-
 void ASlime_A::AlignToPlane(FVector planeNormal)
 {
 	// NOTE(Sergi): Wizardry I found online
@@ -267,7 +264,6 @@ void ASlime_A::AlignToPlane(FVector planeNormal)
 	FTransform newTransform(newForward, newRight, planeNormal, GetActorLocation());
 	SetActorRotation(newTransform.Rotator());
 }
-
 
 void ASlime_A::BeginPlay()
 {
@@ -296,7 +292,6 @@ void ASlime_A::BeginPlay()
 	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
-
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -327,7 +322,6 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 	}
 }
 
-
 void ASlime_A::LockSpiderWeb(const FInputActionValue& Value) {
 	//Enable physics simulation
     //GetCapsuleComponent()->SetSimulatePhysics(true);
@@ -335,7 +329,6 @@ void ASlime_A::LockSpiderWeb(const FInputActionValue& Value) {
 	// Reactivate the constraint
 	//spiderWebReference->ConstraintComp->Activate();
 }
-
 
 void ASlime_A::ModifySpiderWeb(const FInputActionValue& Value)
 {
@@ -369,9 +362,6 @@ void ASlime_A::ModifySpiderWeb(const FInputActionValue& Value)
 		}
 	}
 }
-
-
-
 
 void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 {
@@ -409,9 +399,7 @@ void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 			{
 				// Detach the cable from the spider web
 				spiderWebReference->CableComponent->bAttachEnd = false;
-
 			}
-			
 		}
 		attached = false;
 		attachedAtCeiling = false;
@@ -503,13 +491,8 @@ void ASlime_A::Move(const FInputActionValue& Value)
 		{
 			AddMovementInput(MovementDirection);
 		}
-
 	}
 }
-
-
-
-
 
 void ASlime_A::StartClimbing() {
 	bIsClimbing = true;
@@ -554,7 +537,6 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 }
 
 // ============== Slow Time Ability
-
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
 
 	bIsTimeSlowing = true;
@@ -562,7 +544,6 @@ void ASlime_A::SlowTime(const FInputActionValue& Value) {
 }
 
 void ASlime_A::SlowTimeFunc(float DeltaTime) {
-
 	// Fade in function to smooth slowing time ability
 	UWorld* World = GetWorld();
 	AWorldSettings* const WorldSettings = World->GetWorldSettings();
@@ -585,7 +566,6 @@ void ASlime_A::SlowTimeFunc(float DeltaTime) {
 }
 
 void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
-
 	UWorld* World = GetWorld();
 
 	AWorldSettings* const WorldSettings = World->GetWorldSettings();

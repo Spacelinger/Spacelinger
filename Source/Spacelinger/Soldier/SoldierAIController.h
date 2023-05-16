@@ -20,7 +20,6 @@ class SPACELINGER_API ASoldierAIController : public AAIController
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
 	UAIPerceptionComponent *AIPerceptionComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
 	UAISenseConfig_Sight *AISenseConfigSight;
 
 protected:

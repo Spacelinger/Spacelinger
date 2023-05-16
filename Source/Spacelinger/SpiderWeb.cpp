@@ -13,7 +13,6 @@ ASpiderWeb::ASpiderWeb()
 
 	CableComponent->SetSimulatePhysics(true);
 
-
 	CableComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	CableComponent->SetCollisionObjectType(ECC_PhysicsBody); // Changed from ECC_WorldDynamic
 	CableComponent->SetCollisionResponseToAllChannels(ECR_Overlap); // Changed from ECR_Block
@@ -27,21 +26,12 @@ ASpiderWeb::ASpiderWeb()
 	ConstraintComp = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("ConstraintComp"));
 	ConstraintComp->AttachToComponent(StartLocationCable, FAttachmentTransformRules::KeepRelativeTransform);
 
-
-	// In your constructor or BeginPlay function, create a material instance 
-	
-
 	static ConstructorHelpers::FObjectFinder<UMaterial> FoundMaterial(TEXT("/Game/Characters/Spider/SpiderWeb/M_SpiderWeb"));
 	if (FoundMaterial.Succeeded())
 	{
 		StoredMaterial = FoundMaterial.Object;
 		CableComponent->SetMaterial(0, StoredMaterial);
-
 	}
-
-
-
-
 }
 
 void ASpiderWeb::BeginPlay()
@@ -54,6 +44,3 @@ void ASpiderWeb::BeginPlay()
 		StartLocationCable->SetWorldLocation(CableComponent->GetComponentLocation());
 	}
 }
-
-
-

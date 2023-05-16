@@ -16,7 +16,6 @@ UCLASS(config = Game)
 class SPACELINGER_API ASpiderWeb : public AActor
 {
 	GENERATED_BODY()
-
 		
 public:	
 	// Sets default values for this actor's properties
@@ -36,8 +35,4 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-public:	
-	
-
 };

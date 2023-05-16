@@ -17,7 +17,8 @@ public class Spacelinger : ModuleRules
 			"EnhancedInput",
 			"UMG",
 			"AIModule",
-			"CableComponent"
+			"CableComponent",
+			"NavigationSystem"
 		});
 		PublicIncludePaths.Add("Spacelinger");
 	}
