@@ -44,7 +44,7 @@ void ASpiderWeb::Tick(float DeltaTime)
 
 	if (bSetPosition) {
 		FVector CurrentLocation = GetActorLocation();
-		FVector NewLocation = FMath::Lerp(CurrentLocation, initialPosition, DeltaTime * 100.0f);
+		FVector NewLocation = FMath::Lerp(CurrentLocation, initialPosition, 0.5f);
 		SetActorLocation(NewLocation);
 
 		// Check if the actor has reached the final position
@@ -54,7 +54,6 @@ void ASpiderWeb::Tick(float DeltaTime)
 		}
 	}
 }
-
 
 void ASpiderWeb::BeginPlay()
 {
