@@ -42,11 +42,14 @@ class ASlime_A : public ACharacter
 		UInputAction* putSpiderWebAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* increaseSpiderWebAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* throwSpiderWebAction;
 
 public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Landed(const FHitResult& Hit) override;
+	void JumpToPosition();
 
 protected:
 	// Input callbacks
@@ -58,7 +61,8 @@ protected:
 	void PutSpiderWeb(const FInputActionValue& Value);
 	void ModifySpiderWeb(const FInputActionValue& Value);
 	void LockSpiderWeb(const FInputActionValue& Value);
-
+	void ThrowSpiderWeb(const FInputActionValue& Value);
+	void StopJumpToPosition();
 
 	// Helpers
 	void keepClimbing();
@@ -118,6 +122,8 @@ public:
 	bool attachedAtCeiling = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool isHanging = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bJumpToLocation = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
 	

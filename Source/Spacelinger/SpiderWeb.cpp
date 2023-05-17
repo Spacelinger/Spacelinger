@@ -1,11 +1,15 @@
 // Without Copyright. Project SpaceLinger, Master en Creacion de Videojuegos (MCV) at Universitat Pompeu Fabra (UPF)
 
-
 #include "SpiderWeb.h"
+#include "Math/UnrealMathUtility.h"
+#include "Slime_A.h"
+
 
 // Sets default values
 ASpiderWeb::ASpiderWeb()
 {
+	PrimaryActorTick.bCanEverTick = true;
+
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	// Create and attach the cable component
 	CableComponent = CreateDefaultSubobject<UCableComponent>(TEXT("CableComponent"));
@@ -34,6 +38,24 @@ ASpiderWeb::ASpiderWeb()
 	}
 }
 
+void ASpiderWeb::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bSetPosition) {
+		FVector CurrentLocation = GetActorLocation();
+		FVector NewLocation = FMath::Lerp(CurrentLocation, initialPosition, DeltaTime * 100.0f);
+		SetActorLocation(NewLocation);
+
+		// Check if the actor has reached the final position
+		if (FVector::DistSquared(CurrentLocation, initialPosition) <= FMath::Square(0.1f)) {
+			bSetPosition = false; // Stop updating the position
+			spider->JumpToPosition();
+		}
+	}
+}
+
+
 void ASpiderWeb::BeginPlay()
 {
 	Super::BeginPlay();
@@ -43,4 +65,10 @@ void ASpiderWeb::BeginPlay()
 		// Set the StartLocationCable's position to match the CableComponent's position
 		StartLocationCable->SetWorldLocation(CableComponent->GetComponentLocation());
 	}
+}
+
+void ASpiderWeb::setFuturePosition(FVector futurePosition, ASlime_A* spiderRef) {
+	bSetPosition = true;
+	initialPosition = futurePosition;
+	spider = spiderRef;
 }

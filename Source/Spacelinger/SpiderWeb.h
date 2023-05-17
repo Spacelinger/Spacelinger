@@ -11,6 +11,7 @@
 #include "PhysicsEngine/PhysicsConstraintComponent.h"
 #include "SpiderWeb.generated.h"
 
+class ASlime_A;
 
 UCLASS(config = Game)
 class SPACELINGER_API ASpiderWeb : public AActor
@@ -20,6 +21,7 @@ class SPACELINGER_API ASpiderWeb : public AActor
 public:	
 	// Sets default values for this actor's properties
 	ASpiderWeb();
+	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere)
 		UCableComponent* CableComponent;
@@ -29,6 +31,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		UPhysicsConstraintComponent* ConstraintComp;
+
+
+	void setFuturePosition(FVector futurePosition, ASlime_A* spider);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		FVector initialPosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bSetPosition = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		ASlime_A* spider;
 
 	UMaterial* StoredMaterial;
 

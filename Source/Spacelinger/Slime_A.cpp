@@ -9,7 +9,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "DrawDebugHelpers.h" // Include this header file for the DrawDebugLine function
+#include "Kismet/GameplayStatics.h"
+#include "DrawDebugHelpers.h" 
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -202,29 +203,52 @@ void ASlime_A::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	if (!isHanging && canTrace) {
-		keepClimbing();
+	if (!bJumpToLocation) {
+		if (!isHanging && canTrace) {
+			keepClimbing();
+		}
+
+		if (bIsClimbing && !isHanging) {
+			UpdateRotation(previousNormal);
+		}
+
+
+		if (attached) {
+			spiderWebReference->CableComponent->EndLocation = GetMesh()->GetSocketLocation("SpiderWebPoint") - spiderWebReference->CableComponent->GetComponentLocation();
+			spiderWebReference->CableComponent->CableLength = spiderWebReference->CableComponent->EndLocation.Length() * 0.80f;
+		}
+
+		if (isHanging) {
+			FVector Direction = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
+			FRotator NewRotation = Direction.Rotation();
+			spiderWebReference->ConstraintComp->SetWorldRotation(NewRotation);
+		}
+		// Slow Time Ability
+		if (bIsTimeSlowing)
+			SlowTimeFunc(DeltaTime);
+	}
+	else{
+		FVector TargetLocation = spiderWebReference->CableComponent->GetComponentLocation();
+		FVector CurrentLocation = GetMesh()->GetSocketLocation("Mouth");
+		FVector Direction = TargetLocation - CurrentLocation;
+		Direction.Normalize();
+
+		// Apply force to move the character
+		FVector Force = Direction * 20000.0f;
+		GetCapsuleComponent()->AddForce(Force);
+
+		// Rotate the character towards the target location
+		FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+		SetActorRotation(TargetRotation);
+
+		// Check if the character has reached the destination
+		float DistanceThreshold = 30.0f; // Adjust this value as needed
+		float DistanceToTarget = FVector::Dist(CurrentLocation, TargetLocation);
+		if (DistanceToTarget <= DistanceThreshold) {
+			StopJumpToPosition();
+		}
 	}
 
-	if (bIsClimbing && !isHanging) {
-		UpdateRotation(previousNormal);
-	}
-	
-	
-	if (attached) {
-		spiderWebReference->CableComponent->EndLocation = GetMesh()->GetSocketLocation("SpiderWebPoint") - spiderWebReference->CableComponent->GetComponentLocation();
-		spiderWebReference->CableComponent->CableLength = spiderWebReference->CableComponent->EndLocation.Length() * 0.80f;
-	}
-
-	if (isHanging) {
-		FVector Direction = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
-		FRotator NewRotation = Direction.Rotation();
-		spiderWebReference->ConstraintComp->SetWorldRotation(NewRotation);
-	}
-
-	// Slow Time Ability
-	if (bIsTimeSlowing)
-		SlowTimeFunc(DeltaTime);
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
@@ -311,6 +335,8 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 
 		EnhancedInputComponent->BindAction(putSpiderWebAction, ETriggerEvent::Started, this, &ASlime_A::PutSpiderWeb);
 
+		EnhancedInputComponent->BindAction(throwSpiderWebAction, ETriggerEvent::Started, this, &ASlime_A::ThrowSpiderWeb);
+
 		EnhancedInputComponent->BindAction(increaseSpiderWebAction, ETriggerEvent::Started,   this, &ASlime_A::ModifySpiderWeb);
 		EnhancedInputComponent->BindAction(increaseSpiderWebAction, ETriggerEvent::Completed, this, &ASlime_A::LockSpiderWeb);
 
@@ -320,6 +346,58 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(SlowTimeAction, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
 		EnhancedInputComponent->BindAction(SlowTimeAction, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
 	}
+}
+
+void ASlime_A::ThrowSpiderWeb(const FInputActionValue& Value) {
+	// Get the player controller
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+
+	if (PlayerController) {
+		// Get the size of the viewport
+		int32 ViewportSizeX, ViewportSizeY;
+		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+
+		// Calculate the center of the viewport
+		FVector2D ScreenLocation(ViewportSizeX / 2, ViewportSizeY / 2);
+
+		// Deproject the screen position of the crosshair to a world direction
+		FVector LookDirection;
+		FVector WorldLocation; // Not used, but required for deproject function
+		if (PlayerController->DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, LookDirection)) {
+			// Get the start position (the actor's location)
+			FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
+
+			// Calculate the end position
+			float LineTraceDistance = 1000.0f; // Set this to your desired distance
+			FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
+
+			// Perform the line trace
+			FHitResult HitResult;
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility)) {
+				spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), GetMesh()->GetSocketLocation("Mouth"), FRotator::ZeroRotator);
+				spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
+				spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
+				spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
+				spiderWebReference->setFuturePosition(HitResult.Location, this);
+			}
+		}
+	}
+}
+
+void ASlime_A::JumpToPosition() {
+	bJumpToLocation = true;
+	GetCapsuleComponent()->SetSimulatePhysics(true);
+	GetCapsuleComponent()->SetEnableGravity(false);
+
+}
+
+void ASlime_A::StopJumpToPosition() {
+	bJumpToLocation = false;
+	GetCapsuleComponent()->SetSimulatePhysics(false);
+	GetCapsuleComponent()->SetEnableGravity(true);
+	spiderWebReference->CableComponent->SetAttachEndToComponent(nullptr, NAME_None);
+	spiderWebReference->CableComponent->bAttachEnd = false; // Attach the end of the cable to the spider web
+	spiderWebReference = nullptr;
 }
 
 void ASlime_A::LockSpiderWeb(const FInputActionValue& Value) {
