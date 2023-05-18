@@ -64,7 +64,30 @@ protected:
 	void ThrowSpiderWeb(const FInputActionValue& Value);
 	void StopJumpToPosition();
 
+	//Handlers
+	void HandleClimbingBehaviour();
+	void HandleAttachedBehaviour();
+	void HandleHangingBehaviour();
+	void HandleSlowTimeBehaviour(float DeltaTime);
+	void HandleJumpToLocationBehaviour();
+
+
+	//ThrowSpiderWeb
+	FVector2D GetViewportCenter();
+	FVector GetLookDirection(FVector2D ScreenLocation);
+	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
+	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached);
+
 	// Helpers
+	void PerformClimbingBehaviour(FVector ActorLocation);
+	TMap<FVector, FHitResult> GenerateHitNormals(FVector ActorLocation);
+	FHitResult ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQueryParams& Params);
+	void HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params);
+	FVector CalculateAverageNormal(TMap<FVector, FHitResult>& HitNormals);
+	void HandleFloorAndCeiling();
+	void PerformGroundBehaviour(FVector ActorLocation);
+	bool ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation, FCollisionQueryParams& Params, FHitResult& HitResult);
+	void DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation);
 	void keepClimbing();
 	void UpdateRotation(FVector planeNormal);
 	void StartClimbing();
@@ -124,8 +147,11 @@ public:
 		bool isHanging = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool bJumpToLocation = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bHasTrownSpiderWeb = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
+	FCollisionQueryParams TraceParams;
 	
 	// ============== Slow Time Ability
 public:
