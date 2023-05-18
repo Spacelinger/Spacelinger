@@ -38,10 +38,11 @@ void ASoldierAIController::ResumePatrol()
 	}
 }
 
+#pragma optimize("", off)
 void ASoldierAIController::OnActorDetected() {
 	ensure(DetectedActor.IsValid());
 
-	float Distance = DetectedActor.Get()->GetDistanceTo(this);
+	float Distance = DetectedActor.Get()->GetDistanceTo(GetInstigator());
 	if (Distance <= DistanceInstantDetection) {
 		// Immediately detect player, arbitrary number to indicate detection
 		CurrentAwareness = 999.0f;
@@ -63,6 +64,7 @@ void ASoldierAIController::OnActorDetected() {
 
 	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
 }
+#pragma optimize("", on)
 void ASoldierAIController::OnActorUndetected() {
 	float TimeSecondsElapsed = GetWorld()->GetTimeSeconds() - LastTimeSecondsTimer;
 
