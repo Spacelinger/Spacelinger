@@ -45,6 +45,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	bool bCanPatrol = true;
 
+	// AI Guarding
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	FTransform InitialTransform;
+
 	// AI Patrol
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TArray<AActor*> PatrolPoints; // To be used in the future
