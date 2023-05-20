@@ -49,6 +49,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	FTransform InitialTransform;
 
+	// AI Shooting
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	float ShootingAcceptanceRadius = 100.0f;
+
 	// AI Patrol
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TArray<AActor*> PatrolPoints; // To be used in the future
