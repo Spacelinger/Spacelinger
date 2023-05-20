@@ -48,6 +48,54 @@ ASlime_A::ASlime_A()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	TraceParams.AddIgnoredActor(this);
+
+}
+
+void ASlime_A::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//Add Input Mapping Context
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+
+	// Init climbing stuff
+	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
+	DiagonalDirections.Reserve(8);
+	DiagonalDirections.Add(FVector(.5, .5, .5));
+	DiagonalDirections.Add(FVector(-.5, .5, .5));
+	DiagonalDirections.Add(FVector(.5, -.5, .5));
+	DiagonalDirections.Add(FVector(-.5, -.5, .5));
+	DiagonalDirections.Add(FVector(.5, .5, -.5));
+	DiagonalDirections.Add(FVector(-.5, .5, -.5));
+	DiagonalDirections.Add(FVector(.5, -.5, -.5));
+	DiagonalDirections.Add(FVector(-.5, -.5, -.5));
+	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
+		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
+	}
+}
+
+void ASlime_A::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (!bJumpToLocation)
+	{
+		HandleClimbingBehaviour();
+		HandleAttachedBehaviour();
+		HandleHangingBehaviour();
+		HandleSlowTimeBehaviour(DeltaTime);
+	}
+	else
+	{
+		HandleJumpToLocationBehaviour();
+	}
 }
 
 void ASlime_A::keepClimbing()
@@ -56,199 +104,238 @@ void ASlime_A::keepClimbing()
 
 	if (bIsClimbing)
 	{
-		ensure(TraceDistance > 0);
-
-		TMap<FVector, FHitResult> HitNormals;
-		FCollisionQueryParams Params2;
-		Params2.AddIgnoredActor(this);
-
-		for (const FVector& DiagonalDirection : DiagonalDirections)
-		{
-			FHitResult CurrentHitResult;
-			FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
-			if (bDrawDebugLines) DrawDebugLine(GetWorld(), ActorLocation + GetActorUpVector(), EndRayLocation, FColor::Red, false, 0.2f, 0, 1.0f);
-
-			bool bHit2 = GetWorld()->LineTraceSingleByChannel(CurrentHitResult, ActorLocation, EndRayLocation, ECC_Visibility, Params2);
-			if (bHit2)
-			{
-				HitNormals.Add(CurrentHitResult.Normal, CurrentHitResult);
-			}
-		}
-
-		FHitResult HitDirectionDiagonal;
-		FCollisionQueryParams Params3;
-		Params3.AddIgnoredActor(this);
-		bool bHit3 = GetWorld()->LineTraceSingleByChannel(HitDirectionDiagonal, ActorLocation + MovementDirection * TraceDistance * 2, ActorLocation - GetActorUpVector() * TraceDistance, ECC_Visibility, Params3);
-
-		if (HitNormals.Num() > 0)
-		{
-			if (GetCapsuleComponent()->IsSimulatingPhysics())
-				GetCapsuleComponent()->SetSimulatePhysics(false);
-
-			FVector AverageNormal = HitNormals.Array()[0].Key;
-
-			if (HitNormals.Num() > 1)
-			{
-				AverageNormal = FVector::ZeroVector;
-				for (const auto& Pair : HitNormals.Array())
-				{
-					FHitResult HitResult = Pair.Value;
-					AverageNormal += HitResult.Normal * (1 - HitResult.Distance / TraceDistance);
-				}
-				AverageNormal.Normalize();
-			}
-
-			previousNormal = AverageNormal;
-
-			FHitResult HitDirection;
-			FCollisionQueryParams Params4;
-			Params4.AddIgnoredActor(this);
-			bool bHit4 = GetWorld()->LineTraceSingleByChannel(HitDirection, ActorLocation, ActorLocation + MovementDirection * TraceDistance * 2 - GetActorUpVector() * TraceDistance, ECC_Visibility, Params3);
-
-			if (bHit4)
-			{
-				previousLocation = HitDirection.Location;
-			}
-		}
-		else if (bHit3)
-		{
-			previousLocation = HitDirectionDiagonal.Location;
-		}
-		else {
-			StopClimbing();
-		}
-
-		if (IsFloor(previousNormal))
-		{
-			StopClimbing();
-		}
-
-		if (IsCeiling(previousNormal)) {
-			AtCeiling = true;
-		}
-		else {
-			AtCeiling = false;
-		}
+		PerformClimbingBehaviour(ActorLocation);
 	}
 	else
 	{
-
-		/*
-		// Get the actor's location and forward vector
-		ActorLocation = GetActorLocation();
-		FVector ActorForwardVector = GetActorForwardVector();
-
-		// Calculate the end point of the ray
-		FVector RayEnd = ActorLocation + ActorForwardVector* TraceDistance;  // Change 1000.0f to the desired length of the ray
-
-		// Get the height of the character's step
-		float StepMaxHeight = GetCharacterMovement()->MaxStepHeight/4.f;
-
-		// Offset the end point of the ray by the step max height
-		RayEnd.Z += StepMaxHeight;
-
-		// Setup the trace parameters
-		FCollisionQueryParams Params;
-		Params.bTraceComplex = true; // Enable tracing against complex collision geometry
-		Params.bReturnPhysicalMaterial = true; // Return information about the physical material of the hit object
-
-		// Perform the line trace
-		FHitResult HitResult;
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, ActorLocation, RayEnd, ECC_Visibility, Params);
-		*/
-
-		FCollisionQueryParams Params;
-		bool bHitSurface = false;
-		FVector SurfaceNormal;
-
-		for (const FVector& DiagonalDirection : DiagonalDirections)
-		{
-			FHitResult HitResult;
-			FVector UpwardsDirection = FVector::UpVector * GetCharacterMovement()->MaxStepHeight;
-			FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
-			Params.AddIgnoredActor(this);
-			float bHit = GetWorld()->LineTraceSingleByChannel(HitResult, ActorLocation, EndRayLocation, ECC_Visibility, Params);
-			if (bHit && GetCapsuleComponent()->IsSimulatingPhysics()) {
-				GetCapsuleComponent()->SetSimulatePhysics(false);
-				UpdateRotation(HitResult.Normal);
-			}
-			if (bHit && !IsFloor(HitResult.Normal))
-			{
-				bHitSurface = true;
-				SurfaceNormal = HitResult.Normal;
-				if (bDrawDebugLines) DrawDebugLine(GetWorld(), HitResult.Location, HitResult.Location + HitResult.Normal * TraceDistance, FColor::Red, false, 0.2f, 0, 1.0f);
-				break;
-			}
-		}
-
-		if (bHitSurface)
-		{
-			StartClimbing();
-
-			if (previousNormal != SurfaceNormal) {
-				previousNormal = SurfaceNormal;
-				AlignToPlane(SurfaceNormal);
-			}
-
-			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-			GetCharacterMovement()->bOrientRotationToMovement = false;
-		}
-		else {
-			StopClimbing();
-		}
+		PerformGroundBehaviour(ActorLocation);
 	}
 }
 
-void ASlime_A::Tick(float DeltaTime)
+void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 {
-	Super::Tick(DeltaTime);
-	
-	if (!bJumpToLocation) {
-		if (!isHanging && canTrace) {
-			keepClimbing();
-		}
+	ensure(TraceDistance > 0);
 
-		if (bIsClimbing && !isHanging) {
-			UpdateRotation(previousNormal);
-		}
+	TMap<FVector, FHitResult> HitNormals = GenerateHitNormals(ActorLocation);
 
+	FHitResult HitDirectionDiagonal = ExecuteDiagonalTrace(ActorLocation, TraceParams);
 
-		if (attached) {
-			spiderWebReference->CableComponent->EndLocation = GetMesh()->GetSocketLocation("SpiderWebPoint") - spiderWebReference->CableComponent->GetComponentLocation();
-			spiderWebReference->CableComponent->CableLength = spiderWebReference->CableComponent->EndLocation.Length() * 0.80f;
-		}
-
-		if (isHanging) {
-			FVector Direction = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
-			FRotator NewRotation = Direction.Rotation();
-			spiderWebReference->ConstraintComp->SetWorldRotation(NewRotation);
-		}
-		// Slow Time Ability
-		if (bIsTimeSlowing)
-			SlowTimeFunc(DeltaTime);
+	if (HitNormals.Num() > 0)
+	{
+		HandleNormalHits(HitNormals, ActorLocation, TraceParams);
 	}
-	else{
-		FVector TargetLocation = spiderWebReference->CableComponent->GetComponentLocation();
-		FVector CurrentLocation = GetMesh()->GetSocketLocation("Mouth");
-		FVector Direction = TargetLocation - CurrentLocation;
-		Direction.Normalize();
-
-		// Apply force to move the character
-		FVector Force = Direction * 20000.0f;
-		GetCapsuleComponent()->AddForce(Force);
-
-		// Rotate the character towards the target location
-		FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-		SetActorRotation(TargetRotation);
-
-		// Check if the character has reached the destination
-		float DistanceThreshold = 30.0f; // Adjust this value as needed
-		float DistanceToTarget = FVector::Dist(CurrentLocation, TargetLocation);
-		if (DistanceToTarget <= DistanceThreshold) {
-			StopJumpToPosition();
-		}
+	else if (HitDirectionDiagonal.IsValidBlockingHit())
+	{
+		previousLocation = HitDirectionDiagonal.Location;
+	}
+	else
+	{
+		StopClimbing();
 	}
 
+	HandleFloorAndCeiling();
+}
+
+TMap<FVector, FHitResult> ASlime_A::GenerateHitNormals(FVector ActorLocation)
+{
+	TMap<FVector, FHitResult> HitNormals;
+
+	for (const FVector& DiagonalDirection : DiagonalDirections)
+	{
+		FHitResult CurrentHitResult;
+		FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
+		DrawDebugLinesIfNeeded(ActorLocation, EndRayLocation);
+
+		bool bHit2 = GetWorld()->LineTraceSingleByChannel(CurrentHitResult, ActorLocation, EndRayLocation, ECC_Visibility, TraceParams);
+		if (bHit2)
+		{
+			HitNormals.Add(CurrentHitResult.Normal, CurrentHitResult);
+		}
+	}
+	return HitNormals;
+}
+
+FHitResult ASlime_A::ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQueryParams& Params)
+{
+	FHitResult HitDirectionDiagonal;
+	GetWorld()->LineTraceSingleByChannel(HitDirectionDiagonal, ActorLocation + MovementDirection * TraceDistance * 2, ActorLocation - GetActorUpVector() * TraceDistance, ECC_Visibility, Params);
+
+	return HitDirectionDiagonal;
+}
+
+
+void ASlime_A::HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params)
+{
+	if (GetCapsuleComponent()->IsSimulatingPhysics())
+		GetCapsuleComponent()->SetSimulatePhysics(false);
+
+	FVector AverageNormal = CalculateAverageNormal(HitNormals);
+
+	previousNormal = AverageNormal;
+
+	FHitResult HitDirection;
+	bool bHit4 = GetWorld()->LineTraceSingleByChannel(HitDirection, ActorLocation, ActorLocation + MovementDirection * TraceDistance * 2 - GetActorUpVector() * TraceDistance, ECC_Visibility, Params);
+
+	if (bHit4)
+	{
+		previousLocation = HitDirection.Location;
+	}
+}
+
+FVector ASlime_A::CalculateAverageNormal(TMap<FVector, FHitResult>& HitNormals)
+{
+	FVector AverageNormal = HitNormals.Array()[0].Key;
+
+	if (HitNormals.Num() > 1)
+	{
+		AverageNormal = FVector::ZeroVector;
+		for (const auto& Pair : HitNormals.Array())
+		{
+			FHitResult HitResult = Pair.Value;
+			AverageNormal += HitResult.Normal * (1 - HitResult.Distance / TraceDistance);
+		}
+		AverageNormal.Normalize();
+	}
+
+	return AverageNormal;
+}
+
+void ASlime_A::HandleFloorAndCeiling()
+{
+	if (IsFloor(previousNormal))
+	{
+		StopClimbing();
+	}
+
+	if (IsCeiling(previousNormal))
+	{
+		AtCeiling = true;
+	}
+	else
+	{
+		AtCeiling = false;
+	}
+}
+
+void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
+{
+	bool bHitSurface = false;
+	FVector SurfaceNormal;
+
+	for (const FVector& DiagonalDirection : DiagonalDirections)
+	{
+		FHitResult HitResult;
+		FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
+		bool bHit = ExecuteGroundTrace(ActorLocation, EndRayLocation, TraceParams, HitResult);
+
+		if (bHit && GetCapsuleComponent()->IsSimulatingPhysics())
+		{
+			GetCapsuleComponent()->SetSimulatePhysics(false);
+			UpdateRotation(HitResult.Normal);
+		}
+
+		if (bHit && !IsFloor(HitResult.Normal))
+		{
+			bHitSurface = true;
+			SurfaceNormal = HitResult.Normal;
+			DrawDebugLinesIfNeeded(HitResult.Location, HitResult.Location + HitResult.Normal * TraceDistance);
+			break;
+		}
+	}
+
+	if (bHitSurface)
+	{
+		StartClimbing();
+
+		if (previousNormal != SurfaceNormal)
+		{
+			previousNormal = SurfaceNormal;
+			AlignToPlane(SurfaceNormal);
+		}
+
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCharacterMovement()->bOrientRotationToMovement = false;
+	}
+	else
+	{
+		StopClimbing();
+	}
+}
+
+bool ASlime_A::ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation, FCollisionQueryParams& Params, FHitResult& HitResult)
+{
+	return GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndRayLocation, ECC_Visibility, Params);
+}
+
+void ASlime_A::DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation)
+{
+	if (bDrawDebugLines)
+		DrawDebugLine(GetWorld(), StartLocation + GetActorUpVector(), EndLocation, FColor::Red, false, 0.2f, 0, 1.0f);
+}
+
+
+
+
+void ASlime_A::HandleClimbingBehaviour()
+{
+	if (!bJumpToLocation && !isHanging && canTrace)
+	{
+		keepClimbing();
+	}
+
+	if (bIsClimbing && !isHanging)
+	{
+		UpdateRotation(previousNormal);
+	}
+}
+
+void ASlime_A::HandleAttachedBehaviour()
+{
+	if (attached)
+	{
+		spiderWebReference->CableComponent->EndLocation = GetMesh()->GetSocketLocation("SpiderWebPoint") - spiderWebReference->CableComponent->GetComponentLocation();
+		spiderWebReference->CableComponent->CableLength = spiderWebReference->CableComponent->EndLocation.Length() * 0.80f;
+	}
+}
+
+void ASlime_A::HandleHangingBehaviour()
+{
+	if (isHanging)
+	{
+		FVector Direction = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
+		FRotator NewRotation = Direction.Rotation();
+		spiderWebReference->ConstraintComp->SetWorldRotation(NewRotation);
+	}
+}
+
+void ASlime_A::HandleSlowTimeBehaviour(float DeltaTime)
+{
+	if (bIsTimeSlowing)
+		SlowTimeFunc(DeltaTime);
+}
+
+void ASlime_A::HandleJumpToLocationBehaviour()
+{
+	FVector TargetLocation = spiderWebReference->CableComponent->GetComponentLocation();
+	FVector CurrentLocation = GetMesh()->GetSocketLocation("Mouth");
+	FVector Direction = TargetLocation - CurrentLocation;
+	Direction.Normalize();
+
+	// Apply force to move the character
+	FVector Force = Direction * 20000.0f;
+	GetCapsuleComponent()->AddForce(Force);
+
+	// Rotate the character towards the target location
+	FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	SetActorRotation(TargetRotation);
+
+	// Check if the character has reached the destination
+	float DistanceThreshold = 20.0f; // Adjust this value as needed
+	float DistanceToTarget = FVector::Dist(CurrentLocation, TargetLocation);
+	if (DistanceToTarget <= DistanceThreshold)
+	{
+		StopJumpToPosition();
+	}
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
@@ -289,34 +376,7 @@ void ASlime_A::AlignToPlane(FVector planeNormal)
 	SetActorRotation(newTransform.Rotator());
 }
 
-void ASlime_A::BeginPlay()
-{
-	Super::BeginPlay();
 
-	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-		}
-	}
-
-	// Init climbing stuff
-	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
-	DiagonalDirections.Reserve(8);
-	DiagonalDirections.Add(FVector( .5,  .5,  .5));
-	DiagonalDirections.Add(FVector(-.5,  .5,  .5));
-	DiagonalDirections.Add(FVector( .5, -.5,  .5));
-	DiagonalDirections.Add(FVector(-.5, -.5,  .5));
-	DiagonalDirections.Add(FVector( .5,  .5, -.5));
-	DiagonalDirections.Add(FVector(-.5,  .5, -.5));
-	DiagonalDirections.Add(FVector( .5, -.5, -.5));
-	DiagonalDirections.Add(FVector(-.5, -.5, -.5));
-	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
-		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
-	}
-}
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -348,41 +408,66 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 	}
 }
 
-void ASlime_A::ThrowSpiderWeb(const FInputActionValue& Value) {
-	// Get the player controller
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+void ASlime_A::ThrowSpiderWeb(const FInputActionValue& Value)
+{
+	if (!bHasTrownSpiderWeb)
+	{
+		bHasTrownSpiderWeb = true;
+		FVector2D ScreenLocation = GetViewportCenter();
+		FVector LookDirection = GetLookDirection(ScreenLocation);
+		FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
+		float LineTraceDistance = 1000.0f;
+		FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
+		FHitResult HitResult = PerformLineTrace(StartPosition, EndPosition);
 
-	if (PlayerController) {
-		// Get the size of the viewport
-		int32 ViewportSizeX, ViewportSizeY;
-		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
-
-		// Calculate the center of the viewport
-		FVector2D ScreenLocation(ViewportSizeX / 2, ViewportSizeY / 2);
-
-		// Deproject the screen position of the crosshair to a world direction
-		FVector LookDirection;
-		FVector WorldLocation; // Not used, but required for deproject function
-		if (PlayerController->DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, LookDirection)) {
-			// Get the start position (the actor's location)
-			FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
-
-			// Calculate the end position
-			float LineTraceDistance = 1000.0f; // Set this to your desired distance
-			FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
-
-			// Perform the line trace
-			FHitResult HitResult;
-			if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility)) {
-				spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), GetMesh()->GetSocketLocation("Mouth"), FRotator::ZeroRotator);
-				spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
-				spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
-				spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
-				spiderWebReference->setFuturePosition(HitResult.Location, this);
-			}
+		if (HitResult.bBlockingHit)
+		{
+			SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true);
+		}
+		else
+		{
+			SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false);
 		}
 	}
 }
+
+
+FVector2D ASlime_A::GetViewportCenter()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	int32 ViewportSizeX, ViewportSizeY;
+	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+	return FVector2D(ViewportSizeX / 2, ViewportSizeY / 2);
+}
+
+FVector ASlime_A::GetLookDirection(FVector2D ScreenLocation)
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	FVector LookDirection;
+	FVector WorldLocation;
+	PlayerController->DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, LookDirection);
+	return LookDirection;
+}
+
+FHitResult ASlime_A::PerformLineTrace(FVector StartPosition, FVector EndPosition)
+{
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility);
+	return HitResult;
+}
+
+void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached)
+{
+	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	spiderWebReference->CableComponent->bAttachEnd = true;
+	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
+	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
+	spiderWebReference->setFuturePosition(HitLocation, this, bAttached);
+}
+
+
+
+
 
 void ASlime_A::JumpToPosition() {
 	bJumpToLocation = true;
@@ -393,6 +478,7 @@ void ASlime_A::JumpToPosition() {
 
 void ASlime_A::StopJumpToPosition() {
 	bJumpToLocation = false;
+	bHasTrownSpiderWeb = false;
 	GetCapsuleComponent()->SetSimulatePhysics(false);
 	GetCapsuleComponent()->SetEnableGravity(true);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(nullptr, NAME_None);
@@ -410,64 +496,56 @@ void ASlime_A::LockSpiderWeb(const FInputActionValue& Value) {
 
 void ASlime_A::ModifySpiderWeb(const FInputActionValue& Value)
 {
-	if (AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
+	// Early return if these conditions are not met
+	if (!AtCeiling || !attachedAtCeiling || spiderWebReference == nullptr) return;
+
+	if (!isHanging)
 	{
-		if (!isHanging) {
-			isHanging = true;
-			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-			GetCapsuleComponent()->SetSimulatePhysics(true);
+		isHanging = true;
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCapsuleComponent()->SetSimulatePhysics(true);
 
-			spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
+		spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
 
-			spiderWebReference->ConstraintComp->SetConstrainedComponents(
-				spiderWebReference->StartLocationCable, NAME_None,
-				GetCapsuleComponent(), NAME_None
-			);
+		spiderWebReference->ConstraintComp->SetConstrainedComponents(
+			spiderWebReference->StartLocationCable, NAME_None,
+			GetCapsuleComponent(), NAME_None
+		);
 
-			// Set the linear motion types to 'limited'
-			spiderWebReference->ConstraintComp->SetLinearXLimit(ELinearConstraintMotion::LCM_Limited, 0.0f);
-			spiderWebReference->ConstraintComp->SetLinearYLimit(ELinearConstraintMotion::LCM_Limited, 0.0f);
-			spiderWebReference->ConstraintComp->SetLinearZLimit(ELinearConstraintMotion::LCM_Limited, 0.0f);
+		// Set the linear motion types to 'limited'
+		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, 0.0f);
+	}
+	else
+	{
+		float LinearLimit = spiderWebReference->ConstraintComp->ConstraintInstance.GetLinearLimit();
+		float newLimit = LinearLimit + Value.GetMagnitude() * 2000.0f * GetWorld()->GetDeltaSeconds();
+		newLimit = FMath::Max(0.0f, newLimit);
 
-		}
-		else {
-			
-			float LinearLimit = spiderWebReference->ConstraintComp->ConstraintInstance.GetLinearLimit();
-			float newLimit = LinearLimit + Value.GetMagnitude() * 2000.0f * GetWorld()->GetDeltaSeconds();
-			newLimit = FMath::Max(0, newLimit);
-			spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(LCM_Limited, LCM_Limited, LCM_Limited, newLimit);
-			spiderWebReference->ConstraintComp->ConstraintInstance.UpdateLinearLimit();
-		}
+		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, newLimit);
+		spiderWebReference->ConstraintComp->ConstraintInstance.UpdateLinearLimit();
 	}
 }
+
 
 void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 {
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
 
-	FHitResult Hit;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
-
 	if (spiderWebReference != nullptr)
 	{
-		if (isHanging) {
+		if (isHanging)
+		{
 			isHanging = false;
 			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-
-			spiderWebReference->ConstraintComp->SetLinearXLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-			spiderWebReference->ConstraintComp->SetLinearYLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-			spiderWebReference->ConstraintComp->SetLinearZLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-	
-			spiderWebReference->ConstraintComp->SetConstrainedComponents(
-				nullptr, NAME_None,
-				nullptr, NAME_None
-			);
-			spiderWebReference->CableComponent->bAttachEnd = false;
-			spiderWebReference->ConstraintComp = nullptr;
+			spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
 		}
-		else {
+		else
+		{
+			FHitResult Hit;
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(this);
+			bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
+
 			if (bHit)
 			{
 				spiderWebReference->CableComponent->EndLocation = Hit.Location - spiderWebReference->CableComponent->GetComponentLocation();
@@ -475,8 +553,7 @@ void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 			}
 			else
 			{
-				// Detach the cable from the spider web
-				spiderWebReference->CableComponent->bAttachEnd = false;
+				spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
 			}
 		}
 		attached = false;
@@ -485,6 +562,11 @@ void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 	}
 	else
 	{
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
+
 		if (bHit)
 		{
 			FVector cablePosition = Hit.Location;
@@ -492,16 +574,11 @@ void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 			spiderWebReference->CableComponent->EndLocation = spiderPoint - spiderWebReference->CableComponent->GetComponentLocation();
 			spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
 			attached = true;
-
-			
-			if (IsCeiling(previousNormal))
-				attachedAtCeiling = true; // Since it's attached to the spider, it's not attached to the ceiling
-			else
-				attachedAtCeiling = false;
-			// Connect the existing physics constraint to the spider and the end of the cable component
+			attachedAtCeiling = IsCeiling(previousNormal);
 		}
 	}
 }
+
 
 
 void ASlime_A::StopMoving(const FInputActionValue& Value) {
@@ -512,57 +589,40 @@ void ASlime_A::StopMoving(const FInputActionValue& Value) {
 
 void ASlime_A::Move(const FInputActionValue& Value)
 {
-	if (!Controller)
-	{
-		return;
-	}
-	if (!canTrace)
-		return;
+	if (!Controller || !canTrace) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
+	if (MovementVector.IsNearlyZero()) return; // No movement input, early return
 
-	FVector RightDirection;
-	FVector ForwardDirection;
 	FRotator Rotation = FollowCamera->GetComponentRotation();
 	FRotator YawRotation(0, Rotation.Yaw, 0);
-	FVector ClimbingDirection;
+	FVector ForwardDirection = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
+	FVector RightDirection = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::Y);
 
-	if (bIsClimbing)
-	{
-		if (FMath::Abs(previousNormal.Z) > 0.9f) // Ceiling or floor
-		{
-			RightDirection = -FVector::CrossProduct(previousNormal, FVector::RightVector).GetSafeNormal();
-		}
-		else // Wall
-		{
-			FVector WorldUpVector = FVector::UpVector;
-			RightDirection = FVector::CrossProduct(previousNormal, WorldUpVector).GetSafeNormal();
-		}
-
-		ClimbingDirection = (previousLocation - GetActorLocation()).GetSafeNormal();
-	}
-
-	ForwardDirection = FRotationMatrix(Rotation).GetScaledAxis(EAxis::X);
-	RightDirection = FRotationMatrix(YawRotation).GetScaledAxis(EAxis::Y);
-
-	MovementDirection.Normalize();
 	MovementDirection = ForwardDirection * MovementVector.Y + RightDirection * MovementVector.X;
+	MovementDirection.Normalize();
 
 	if (isHanging)
 	{
-		// When hanging, apply a force instead of the usual movement.
-		// This is just an example, you'll want to adjust this based on your specific needs.
 		FVector HangingForce = MovementDirection * 3000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
-	else {
-		if (bIsClimbing && !previousNormal.IsNearlyZero())
-		{
-			MovementDirection = FVector::VectorPlaneProject(MovementDirection, previousNormal);
-		}
-
+	else
+	{
 		if (bIsClimbing)
 		{
+			FVector ClimbingDirection;
+			if (FMath::Abs(previousNormal.Z) > 0.9f) // Ceiling or floor
+			{
+				RightDirection = -FVector::CrossProduct(previousNormal, FVector::RightVector).GetSafeNormal();
+			}
+			else // Wall
+			{
+				RightDirection = FVector::CrossProduct(previousNormal, FVector::UpVector).GetSafeNormal();
+			}
+
+			ClimbingDirection = (previousLocation - GetActorLocation()).GetSafeNormal();
+			MovementDirection = FVector::VectorPlaneProject(MovementDirection, previousNormal);
 			AddMovementInput(ClimbingDirection);
 		}
 		else
@@ -571,6 +631,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 		}
 	}
 }
+
 
 void ASlime_A::StartClimbing() {
 	bIsClimbing = true;

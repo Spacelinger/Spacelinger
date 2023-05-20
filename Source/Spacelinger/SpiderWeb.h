@@ -22,6 +22,7 @@ public:
 	// Sets default values for this actor's properties
 	ASpiderWeb();
 	virtual void Tick(float DeltaTime) override;
+	void ResetConstraint();
 
 	UPROPERTY(VisibleAnywhere)
 		UCableComponent* CableComponent;
@@ -33,12 +34,14 @@ public:
 		UPhysicsConstraintComponent* ConstraintComp;
 
 
-	void setFuturePosition(FVector futurePosition, ASlime_A* spider);
+	void setFuturePosition(FVector futurePosition, ASlime_A* spider, bool attached);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		FVector initialPosition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool bSetPosition = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bAttached = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASlime_A* spider;
 
@@ -47,4 +50,5 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 };

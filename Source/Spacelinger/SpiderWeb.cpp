@@ -50,10 +50,30 @@ void ASpiderWeb::Tick(float DeltaTime)
 		// Check if the actor has reached the final position
 		if (FVector::DistSquared(CurrentLocation, initialPosition) <= FMath::Square(0.1f)) {
 			bSetPosition = false; // Stop updating the position
-			spider->JumpToPosition();
+			if(bAttached)
+				spider->JumpToPosition();
+			else {
+				this->CableComponent->bAttachEnd = false;
+				spider->bHasTrownSpiderWeb = false;
+			}
 		}
 	}
 }
+
+void ASpiderWeb::ResetConstraint()
+{
+	ConstraintComp->SetLinearXLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
+	ConstraintComp->SetLinearYLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
+	ConstraintComp->SetLinearZLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
+
+	ConstraintComp->SetConstrainedComponents(
+		nullptr, NAME_None,
+		nullptr, NAME_None
+	);
+	CableComponent->bAttachEnd = false;
+	ConstraintComp = nullptr;
+}
+
 
 void ASpiderWeb::BeginPlay()
 {
@@ -66,8 +86,9 @@ void ASpiderWeb::BeginPlay()
 	}
 }
 
-void ASpiderWeb::setFuturePosition(FVector futurePosition, ASlime_A* spiderRef) {
+void ASpiderWeb::setFuturePosition(FVector futurePosition, ASlime_A* spiderRef, bool attached) {
 	bSetPosition = true;
 	initialPosition = futurePosition;
 	spider = spiderRef;
+	bAttached = attached;
 }
