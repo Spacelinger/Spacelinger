@@ -16,7 +16,6 @@ class UInputAction;
 class UStaticMeshComponent;
 class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
-class UGA_SlowTime;
 
 UCLASS(config = Game)
 class ASlime_A : public ACharacter
@@ -147,7 +146,8 @@ public:
 	float SlowTimeFadeInRate = 0.5;	// Fade in time for the slow time
 
 protected:
-
+	
+	//FTimerHandle SlowTimeTimerHandle;
 	float CurrentSlowTimeDilation = 1;
 	bool bIsTimeSlowing = false;
 	float SlowStep = 0;

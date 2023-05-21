@@ -11,8 +11,6 @@
 #include "EnhancedInputSubsystems.h"
 #include "DrawDebugHelpers.h" // Include this header file for the DrawDebugLine function
 #include "Components/MCV_AbilitySystemComponent.h"
-#include "GameplayAbilities/Public/AbilitySystemGlobals.h"
-#include "GameplayAbilities/Public/AbilitySystemComponent.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -546,10 +544,6 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
-	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
-	
-	//ASC->TryActivateAbilityByClass(SlowTimeAbility);
-
 	bIsTimeSlowing = true;
 	SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
 }
