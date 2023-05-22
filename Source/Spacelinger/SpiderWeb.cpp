@@ -15,12 +15,6 @@ ASpiderWeb::ASpiderWeb()
 	CableComponent = CreateDefaultSubobject<UCableComponent>(TEXT("CableComponent"));
 	RootComponent = CableComponent;
 
-	CableComponent->SetSimulatePhysics(true);
-
-	CableComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	CableComponent->SetCollisionObjectType(ECC_PhysicsBody); // Changed from ECC_WorldDynamic
-	CableComponent->SetCollisionResponseToAllChannels(ECR_Overlap); // Changed from ECR_Block
-
 	// Create and attach the sphere component
 	StartLocationCable = CreateDefaultSubobject<USphereComponent>(TEXT("InvisibleComponent"));
 	StartLocationCable->SetVisibility(true);

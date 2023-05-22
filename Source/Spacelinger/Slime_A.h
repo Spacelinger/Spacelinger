@@ -15,6 +15,15 @@ class UInputMappingContext;
 class UInputAction;
 class UStaticMeshComponent;
 
+
+UENUM(BlueprintType)
+enum SLSpiderAbility {
+	PutSpiderWeb = 0,
+	PutTrap,
+	ThrowSpiderWeb,
+	COUNT UMETA(Hidden),
+};
+
 UCLASS(config = Game)
 class ASlime_A : public ACharacter
 {
@@ -39,17 +48,17 @@ class ASlime_A : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DebugAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* putSpiderWebAction;
+		UInputAction* throwAbilityAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* increaseSpiderWebAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* throwSpiderWebAction;
+		UInputAction* SwitchAbilityAction;
 
 public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Landed(const FHitResult& Hit) override;
 	void JumpToPosition();
+
+
 
 protected:
 	// Input callbacks
@@ -58,11 +67,12 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void Climb(const FInputActionValue& Value);
 	void ToggleDrawDebugLines(const FInputActionValue& Value);
-	void PutSpiderWeb(const FInputActionValue& Value);
-	void ModifySpiderWeb(const FInputActionValue& Value);
-	void LockSpiderWeb(const FInputActionValue& Value);
-	void ThrowSpiderWeb(const FInputActionValue& Value);
+	void ThrowAbility(const FInputActionValue& Value);
+	
+	void SwitchAbility(const FInputActionValue& Value);
 	void StopJumpToPosition();
+
+	void PutTrap();
 
 	//Handlers
 	void HandleClimbingBehaviour();
@@ -70,13 +80,14 @@ protected:
 	void HandleHangingBehaviour();
 	void HandleSlowTimeBehaviour(float DeltaTime);
 	void HandleJumpToLocationBehaviour();
-
+	void ThrowSpiderWeb();
 
 	//ThrowSpiderWeb
 	FVector2D GetViewportCenter();
 	FVector GetLookDirection(FVector2D ScreenLocation);
 	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
 	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached);
+	void PutSpiderWebAbility();
 
 	// Helpers
 	void PerformClimbingBehaviour(FVector ActorLocation);
@@ -93,6 +104,7 @@ protected:
 	void StartClimbing();
 	void StopClimbing();
 	void AlignToPlane(FVector planeNormal);
+	void CutSpiderWeb();
 	double FloorThreshold = 0.9;
 	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
 	FORCEINLINE bool IsCeiling(FVector Normal) {
@@ -103,6 +115,8 @@ private:
 	const float TraceDistance = 50.0f;
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
+	TArray<FVector> InitialDiagonalDirections;
+
 
 	bool bDrawDebugLines = true;
 
@@ -151,6 +165,10 @@ public:
 		bool bHasTrownSpiderWeb = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
+
 	FCollisionQueryParams TraceParams;
 	
 	// ============== Slow Time Ability
