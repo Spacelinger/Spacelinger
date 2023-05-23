@@ -31,10 +31,16 @@ public:
 		USphereComponent* StartLocationCable;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		USphereComponent* EndPoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		UPhysicsConstraintComponent* ConstraintComp;
 
+	UFUNCTION()
+		void OnEndPointCollision(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	void setFuturePosition(FVector futurePosition, ASlime_A* spider, bool attached);
+	void SetTrap();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		FVector initialPosition;

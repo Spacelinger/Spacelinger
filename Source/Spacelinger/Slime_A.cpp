@@ -107,9 +107,9 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
 	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
 	{
-		distanceConstraints = distanceConstraints + Value.GetMagnitude() * 10.0f;
-		if (distanceConstraints < 10)
-			distanceConstraints = 10;
+		distanceConstraints = distanceConstraints + Value.GetMagnitude() * 30.0f;
+		if (distanceConstraints < 30)
+			distanceConstraints = 30;
 		FVector newPosition = FVector(0.0f, 0.0f, distanceConstraints);
 		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newPosition);
 	}
@@ -530,8 +530,8 @@ void ASlime_A::PutTrap()
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
-	bool bHit2 = GetWorld()->LineTraceSingleByChannel(Hit2, spiderPoint, spiderPoint + FVector::UpVector * -300.0f, ECC_Visibility, Params);
-	DrawDebugLine(GetWorld(), spiderPoint + GetActorUpVector(), spiderPoint + FVector::UpVector * -300.0f, FColor::Red, false, 0.2f, 0, 1.0f);
+	bool bHit2 = GetWorld()->LineTraceSingleByChannel(Hit2, spiderPoint, spiderPoint + FVector::UpVector * -3000.0f, ECC_Visibility, Params);
+	DrawDebugLine(GetWorld(), spiderPoint + GetActorUpVector(), spiderPoint + FVector::UpVector * -3000.0f, FColor::Red, false, 0.2f, 0, 1.0f);
 
 	if (bHit)
 	{
@@ -539,9 +539,10 @@ void ASlime_A::PutTrap()
 		ASpiderWeb* spiderWebTrap = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), cablePosition, FRotator::ZeroRotator);
 		spiderWebTrap->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
 		if (bHit2)
-			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() + Hit2.Location;
+			spiderWebTrap->CableComponent->EndLocation = -(spiderWebTrap->CableComponent->GetComponentLocation() - Hit2.Location);
 		else
-			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 300.0f);
+			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
+		spiderWebTrap->SetTrap();
 	}
 }
 

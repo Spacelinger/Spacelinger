@@ -2,7 +2,10 @@
 
 #include "SpiderWeb.h"
 #include "Math/UnrealMathUtility.h"
+#include "Components/CapsuleComponent.h"
 #include "Slime_A.h"
+#include <Soldier/SLSoldier.h>
+
 
 
 // Sets default values
@@ -30,6 +33,14 @@ ASpiderWeb::ASpiderWeb()
 		StoredMaterial = FoundMaterial.Object;
 		CableComponent->SetMaterial(0, StoredMaterial);
 	}
+
+	EndPoint = CreateDefaultSubobject<USphereComponent>(TEXT("EndPoint"));
+	EndPoint->SetVisibility(true);
+	EndPoint->SetSphereRadius(50.f); // Adjust the radius as desired
+	EndPoint->AttachToComponent(CableComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	EndPoint->OnComponentBeginOverlap.AddDynamic(this, &ASpiderWeb::OnEndPointCollision);
+	EndPoint->Deactivate();
+
 }
 
 void ASpiderWeb::Tick(float DeltaTime)
@@ -66,6 +77,32 @@ void ASpiderWeb::ResetConstraint()
 	);
 	CableComponent->bAttachEnd = false;
 	ConstraintComp = nullptr;
+}
+
+void ASpiderWeb::SetTrap()
+{
+	EndPoint->Activate();
+	EndPoint->SetRelativeLocation(CableComponent->EndLocation);
+
+	
+
+	
+}
+
+void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// Handle the collision event for the EndPoint component here
+	// You can add your desired logic or function calls
+
+	// Example: Print the name of the other actor that collided with the EndPoint
+	if (OtherActor && OtherActor->IsA<ASLSoldier>())
+	{
+		ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor);
+		if (Soldier)
+		{
+			Soldier->MoveToCeiling();
+		}
+	}
 }
 
 
