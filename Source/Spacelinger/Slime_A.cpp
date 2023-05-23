@@ -554,10 +554,11 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
-	//ASC->TryActivateAbilityByClass(SlowTimeAbility);
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	asc->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
 
-	bIsTimeSlowing = true;
-	SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
+	//bIsTimeSlowing = true;
+	//SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
 }
 
 void ASlime_A::SlowTimeFunc(float DeltaTime) {
@@ -583,6 +584,11 @@ void ASlime_A::SlowTimeFunc(float DeltaTime) {
 }
 
 void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
+	
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	asc->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
+
+	/*
 	UWorld* World = GetWorld();
 
 	AWorldSettings* const WorldSettings = World->GetWorldSettings();
@@ -594,4 +600,5 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 
 	WorldSettings->SetTimeDilation(1);
 	this->CustomTimeDilation = 1;
+	*/
 }

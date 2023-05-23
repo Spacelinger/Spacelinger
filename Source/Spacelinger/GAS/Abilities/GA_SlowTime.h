@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/MCV_GameplayAbility.h"
+#include "Slime_A.h"
 #include "GA_SlowTime.generated.h"
 
 /**

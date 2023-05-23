@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/GA_SlowTime.h"
+#include "Kismet/GameplayStatics.h"
 
 UGA_SlowTime::UGA_SlowTime() {
 
@@ -20,7 +21,14 @@ void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		if (!WorldSettings)
 			return;
 
-		WorldSettings->SetTimeDilation(0.2f);
+		float TimeDilation = 0.2f;	// TODO: Parameter
+
+		WorldSettings->SetTimeDilation(TimeDilation);
+
+		//GetWorld()->GetFirstPlayerController()->CustomTimeDilation = 1 / TimeDilation;
+
+		ACharacter* Char = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
+		Char->CustomTimeDilation = 1 / TimeDilation;
 
 	}
 	else {

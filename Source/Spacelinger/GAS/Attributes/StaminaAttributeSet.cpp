@@ -7,8 +7,6 @@
 void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) {
 	Super::PreAttributeChange(Attribute, NewValue);
 
-	UE_LOG(LogTemp, Warning, TEXT("Trying to update stamina"));
-
 	if (Attribute == GetStaminaAttribute()) {
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxStamina());
 	}
@@ -16,8 +14,6 @@ void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribut
 
 void UStaminaAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const {
 	Super::PreAttributeBaseChange(Attribute, NewValue);
-
-	UE_LOG(LogTemp, Warning, TEXT("Trying to update stamina Base"));
 
 	if (Attribute == GetStaminaAttribute()) {
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxStamina());
