@@ -146,6 +146,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.01", UIMax = "0.5"))
 	float SlowTimeFadeInRate = 0.5;	// Fade in time for the slow time
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
+	float MaxStamina = 100.0f;
+
 protected:
 
 	float CurrentSlowTimeDilation = 1;

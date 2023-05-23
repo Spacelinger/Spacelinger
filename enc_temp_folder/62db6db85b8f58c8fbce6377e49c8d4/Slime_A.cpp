@@ -11,6 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "DrawDebugHelpers.h" // Include this header file for the DrawDebugLine function
 #include "Components/MCV_AbilitySystemComponent.h"
+#include "GameplayAbilities/Public/AbilitySystemGlobals.h"
+#include "GameplayAbilities/Public/AbilitySystemComponent.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -48,7 +50,7 @@ ASlime_A::ASlime_A()
 
 	// Create GAS' Ability System Component
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
-	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("HealthAttributeSet"));
+	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -297,6 +299,12 @@ void ASlime_A::BeginPlay()
 	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
+
+	//GAS
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
+	if(ensureMsgf(AbilitySystemComponent, TEXT("Warning! Missing Ability System component for %s"), *GetOwner()->GetName())){}
+	//asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(100));
+	//asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(100));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -544,6 +552,11 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
+	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	
+	
+	//ASC->TryActivateAbilityByClass(SlowTimeAbility);
+
 	bIsTimeSlowing = true;
 	SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
 }
