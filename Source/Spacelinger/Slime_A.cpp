@@ -69,16 +69,15 @@ void ASlime_A::BeginPlay()
 	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
 	
 
-	DiagonalDirections.Reserve(9);
+	DiagonalDirections.Reserve(8);
 	DiagonalDirections.Add(FVector(.5, .5, .5));
 	DiagonalDirections.Add(FVector(-.5, .5, .5));
 	DiagonalDirections.Add(FVector(.5, -.5, .5));
 	DiagonalDirections.Add(FVector(-.5, -.5, .5));
-	DiagonalDirections.Add(FVector(.5, .5, 0.0f));
-	DiagonalDirections.Add(FVector(-.5, .5, 0.0f));
-	DiagonalDirections.Add(FVector(.5, -.5, 0.0f));
-	DiagonalDirections.Add(FVector(-.5, -.5, 0.0f));
-	DiagonalDirections.Add(FVector(0.0f, 0.0f, -.5));
+	DiagonalDirections.Add(FVector(.5, .5, -.5));
+	DiagonalDirections.Add(FVector(-.5, .5, -.5));
+	DiagonalDirections.Add(FVector(.5, -.5, -.5));
+	DiagonalDirections.Add(FVector(-.5, -.5, -.5));
 	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
@@ -99,18 +98,20 @@ void ASlime_A::Tick(float DeltaTime)
 	{
 		HandleJumpToLocationBehaviour();
 	}
+
+
+	
 }
 
 void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
 	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
 	{
-		float LinearLimit = spiderWebReference->ConstraintComp->ConstraintInstance.GetLinearLimit();
-		float newLimit = LinearLimit + Value.GetMagnitude() * 2000.0f * GetWorld()->GetDeltaSeconds();
-		newLimit = FMath::Max(0.0f, newLimit);
-
-		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, newLimit);
-		spiderWebReference->ConstraintComp->ConstraintInstance.UpdateLinearLimit();
+		distanceConstraints = distanceConstraints + Value.GetMagnitude() * 10.0f;
+		if (distanceConstraints < 10)
+			distanceConstraints = 10;
+		FVector newPosition = FVector(0.0f, 0.0f, distanceConstraints);
+		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newPosition);
 	}
 	else {
 		int ActionValue = Value.GetMagnitude();
@@ -705,7 +706,9 @@ void ASlime_A::Climb(const FInputActionValue& Value)
 		);
 
 		// Set the linear motion types to 'limited'
-		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, 50.0f);
+		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
+		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
+
 	}
 	else {
 		if (bIsClimbing) {

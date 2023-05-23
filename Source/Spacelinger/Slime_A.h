@@ -165,6 +165,8 @@ public:
 		bool bHasTrownSpiderWeb = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
+		float distanceConstraints ;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;

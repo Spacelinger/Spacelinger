@@ -22,7 +22,7 @@ ASpiderWeb::ASpiderWeb()
 	StartLocationCable->AttachToComponent(CableComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	ConstraintComp = CreateDefaultSubobject<UPhysicsConstraintComponent>(TEXT("ConstraintComp"));
-	ConstraintComp->AttachToComponent(StartLocationCable, FAttachmentTransformRules::KeepRelativeTransform);
+	ConstraintComp->AttachToComponent(CableComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	static ConstructorHelpers::FObjectFinder<UMaterial> FoundMaterial(TEXT("/Game/Characters/Spider/SpiderWeb/M_SpiderWeb"));
 	if (FoundMaterial.Succeeded())
