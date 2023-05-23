@@ -11,8 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "DrawDebugHelpers.h" // Include this header file for the DrawDebugLine function
 #include "Components/MCV_AbilitySystemComponent.h"
-#include "AbilitySystemGlobals.h"
-#include "AbilitySystemComponent.h"
+#include "GameplayAbilities/Public/AbilitySystemGlobals.h"
+#include "GameplayAbilities/Public/AbilitySystemComponent.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
 
 //////////////////////////////////////////////////////////////////////////
@@ -301,12 +301,10 @@ void ASlime_A::BeginPlay()
 	}
 
 	//GAS
-	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
-	
-	if(ensureMsgf(AbilitySystemComponent, TEXT("Warning! Missing Ability System component for %s"), *GetOwner()->GetName())){
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
-	}
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(GetOwner());
+	if(ensureMsgf(AbilitySystemComponent, TEXT("Warning! Missing Ability System component for %s"), *GetOwner()->GetName())){}
+	//asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(100));
+	//asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(100));
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -553,6 +551,9 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
+	
+	UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	
 	
 	//ASC->TryActivateAbilityByClass(SlowTimeAbility);
 
