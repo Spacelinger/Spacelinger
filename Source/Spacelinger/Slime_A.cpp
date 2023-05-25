@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
+#include "Engine/StaticMeshActor.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -49,6 +50,9 @@ ASlime_A::ASlime_A()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 	TraceParams.AddIgnoredActor(this);
+
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
+
 
 }
 
@@ -102,6 +106,14 @@ void ASlime_A::Tick(float DeltaTime)
 
 	
 }
+
+void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
+	AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
+	if (StaticMeshActor && bJumpToLocation) {
+		StopJumpToPosition();
+	}
+}
+
 
 void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
@@ -354,13 +366,6 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 	SetActorRotation(TargetRotation);
 
-	// Check if the character has reached the destination
-	float DistanceThreshold = 20.0f; // Adjust this value as needed
-	float DistanceToTarget = FVector::Dist(CurrentLocation, TargetLocation);
-	if (DistanceToTarget <= DistanceThreshold)
-	{
-		StopJumpToPosition();
-	}
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
@@ -555,6 +560,7 @@ void ASlime_A::JumpToPosition() {
 	bJumpToLocation = true;
 	GetCapsuleComponent()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetEnableGravity(false);
+	GetCapsuleComponent()->SetNotifyRigidBodyCollision(true);
 
 }
 
@@ -563,6 +569,7 @@ void ASlime_A::StopJumpToPosition() {
 	bHasTrownSpiderWeb = false;
 	GetCapsuleComponent()->SetSimulatePhysics(false);
 	GetCapsuleComponent()->SetEnableGravity(true);
+	GetCapsuleComponent()->SetNotifyRigidBodyCollision(false);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(nullptr, NAME_None);
 	spiderWebReference->CableComponent->bAttachEnd = false; // Attach the end of the cable to the spider web
 	spiderWebReference = nullptr;

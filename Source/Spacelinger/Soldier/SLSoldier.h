@@ -21,9 +21,11 @@ public:
 	void Interact(AActor* ActorInteracting);
 	void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
+	void StopMoveToCeiling();
+
 
 	UFUNCTION()
-		void OnEndPointCollision(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+		void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
 		bool bMoveToCeiling = false;

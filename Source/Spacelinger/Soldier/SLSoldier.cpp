@@ -1,10 +1,12 @@
 #include "SLSoldier.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Engine/StaticMeshActor.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
+	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
 }
 
 //------------------------//
@@ -33,11 +35,24 @@ void ASLSoldier::SetAsCandidate(bool IsCandidate) {
 	}
 }
 
-void ASLSoldier::OnEndPointCollision(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	if(bMoveToCeiling)
-		bMoveToCeiling = false;
+void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
+	// Check if OtherActor is a StaticMesh
+	AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
+	if (StaticMeshActor) {
+		if (bMoveToCeiling) {
 
+			FTimerHandle TimerHandle;
+
+			// Start the timer
+			float DelaySeconds = 2.0f; // Delay in seconds before calling the method
+			GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::StopMoveToCeiling, DelaySeconds, false);
+		}
+		
+	}
 }
+
+
+
 
 
 void ASLSoldier::Tick(float DeltaTime) {
@@ -58,13 +73,28 @@ void ASLSoldier::MoveToCeiling() {
 
 	// Ragdoll
 	USkeletalMeshComponent* MeshComp = GetMesh();
-	MeshComp->SetAllBodiesSimulatePhysics(true);
 	MeshComp->SetSimulatePhysics(true);
 	MeshComp->WakeAllRigidBodies();
 	MeshComp->bBlendPhysics = true;
-	GetMesh()->SetEnableGravity(false);
-
+	MeshComp->SetEnableGravity(false);
+	// Enable "Simulation Generates Hit Events"
+	MeshComp->SetNotifyRigidBodyCollision(true);
 	bMoveToCeiling = true;
+}
+
+
+void ASLSoldier::StopMoveToCeiling() {
+	/* Disable all collision on capsule */
+	bMoveToCeiling = false;
+
+	// Disable physics-based movement for the OtherComp
+	GetMesh()->SetSimulatePhysics(false);
+
+	// Optionally, you can also set the component's velocity to zero to stop any residual movement
+	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
+
+	GetCharacterMovement()->Deactivate();
+
 }
 
 

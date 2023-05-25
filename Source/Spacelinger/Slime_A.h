@@ -186,6 +186,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.01", UIMax = "0.5"))
 	float SlowTimeFadeInRate = 0.5;	// Fade in time for the slow time
+	
+	UFUNCTION()
+		void OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
 	
@@ -197,4 +200,6 @@ protected:
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
 	void SlowTimeFunc(float DeltaTime);
+
+	
 };
