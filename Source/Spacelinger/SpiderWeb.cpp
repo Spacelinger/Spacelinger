@@ -46,7 +46,6 @@ ASpiderWeb::ASpiderWeb()
 void ASpiderWeb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 	if (bSetPosition) {
 		FVector CurrentLocation = GetActorLocation();
 		FVector NewLocation = FMath::Lerp(CurrentLocation, initialPosition, 0.5f);
@@ -63,6 +62,15 @@ void ASpiderWeb::Tick(float DeltaTime)
 			}
 		}
 	}
+	else if (bTrapActivated && Soldier) {
+		
+		ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, FVector(0.0f,0.0f,0.0f));
+		
+		
+
+		ConstraintComp->UpdateConstraintFrames();
+
+	}
 }
 
 void ASpiderWeb::ResetConstraint()
@@ -70,7 +78,6 @@ void ASpiderWeb::ResetConstraint()
 	ConstraintComp->SetLinearXLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
 	ConstraintComp->SetLinearYLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
 	ConstraintComp->SetLinearZLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-
 	ConstraintComp->SetConstrainedComponents(
 		nullptr, NAME_None,
 		nullptr, NAME_None
@@ -95,11 +102,27 @@ void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 	// You can add your desired logic or function calls
 
 	// Example: Print the name of the other actor that collided with the EndPoint
-	if (OtherActor && OtherActor->IsA<ASLSoldier>())
+	if (OtherActor && OtherActor->IsA<ASLSoldier>() && EndPoint->IsActive())
 	{
-		ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor);
+		Soldier = Cast<ASLSoldier>(OtherActor);
 		if (Soldier)
 		{
+			ConstraintComp->SetWorldLocation(GetActorLocation());
+
+			ConstraintComp->SetConstrainedComponents(
+				StartLocationCable, NAME_None,
+				Soldier->GetMesh(), "foot_r"
+			);
+
+			// Set the linear motion types to 'limited'
+			ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
+			bTrapActivated = true;
+			distanceTrap = Soldier->GetMesh()->GetBoneLocation("foot_r");
+			// Set angular limits to restrict swinging
+			ConstraintComp->SetAngularSwing1Limit(EAngularConstraintMotion::ACM_Locked,0.0f);
+			ConstraintComp->SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Locked,0.0f);
+			ConstraintComp->SetAngularTwistLimit(EAngularConstraintMotion::ACM_Locked, 0.0f);
+
 			Soldier->MoveToCeiling();
 		}
 	}

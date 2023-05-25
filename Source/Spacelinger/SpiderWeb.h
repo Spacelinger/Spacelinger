@@ -12,6 +12,7 @@
 #include "SpiderWeb.generated.h"
 
 class ASlime_A;
+class ASLSoldier;
 
 UCLASS(config = Game)
 class SPACELINGER_API ASpiderWeb : public AActor
@@ -49,7 +50,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool bAttached = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bTrapActivated = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		FVector distanceTrap;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASlime_A* spider;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		ASLSoldier* Soldier;
 
 	UMaterial* StoredMaterial;
 

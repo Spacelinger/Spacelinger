@@ -37,7 +37,7 @@ void ASLSoldier::SetAsCandidate(bool IsCandidate) {
 
 void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
 	// Check if OtherActor is a StaticMesh
-	AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
+	/*AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
 	if (StaticMeshActor) {
 		if (bMoveToCeiling) {
 
@@ -49,6 +49,7 @@ void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 		}
 		
 	}
+	*/
 }
 
 
@@ -56,12 +57,14 @@ void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 
 
 void ASLSoldier::Tick(float DeltaTime) {
-	if (bMoveToCeiling) {
+	/*if (bMoveToCeiling) {
 		// Apply a constant force to make the ragdoll stick to the ceiling
 		FVector ForceDirection = FVector::UpVector; // Adjust the force direction as desired
-		float ForceMagnitude = 5000.0f; // Adjust the force magnitude as desired
-		GetMesh()->AddForce(ForceDirection * ForceMagnitude, NAME_None, true);
+		float ForceMagnitude = 5000000.0f; // Adjust the force magnitude as desired
+		//GetMesh()->AddForce(ForceDirection * ForceMagnitude, NAME_None, true);
+		GetMesh()->AddForceToAllBodiesBelow(ForceDirection * ForceMagnitude, "ball_r", true, true);
 	}
+	*/
 }
 
 void ASLSoldier::MoveToCeiling() {
@@ -76,7 +79,6 @@ void ASLSoldier::MoveToCeiling() {
 	MeshComp->SetSimulatePhysics(true);
 	MeshComp->WakeAllRigidBodies();
 	MeshComp->bBlendPhysics = true;
-	MeshComp->SetEnableGravity(false);
 	// Enable "Simulation Generates Hit Events"
 	MeshComp->SetNotifyRigidBodyCollision(true);
 	bMoveToCeiling = true;
