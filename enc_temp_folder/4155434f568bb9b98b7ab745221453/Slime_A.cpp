@@ -558,9 +558,8 @@ void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
 	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
 	asc->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
-	
 	FGameplayEventData Payload;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.Test")), Payload);
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime")), Payload);
 
 	//bIsTimeSlowing = true;
 	//SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
@@ -592,10 +591,6 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 	
 	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
 	asc->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
-
-	FGameplayEventData Payload;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("GameplayCue")), Payload);
-
 
 	/*
 	UWorld* World = GetWorld();
