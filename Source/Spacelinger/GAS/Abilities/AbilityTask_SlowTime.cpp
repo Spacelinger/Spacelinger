@@ -4,6 +4,8 @@
 #include "GAS/Abilities/AbilityTask_SlowTime.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Character.h"
 
 
 UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectInitializer)
@@ -14,7 +16,17 @@ UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectIni
 
 void UAbilityTask_SlowTime::TickTask(float DeltaTime)
 {
-	UE_LOG(LogTemp, Warning, TEXT("We inside the SlowTimeTask"));
+	UWorld* World = GetWorld();
+	AWorldSettings* const WorldSettings = World->GetWorldSettings();
+	if (!WorldSettings)
+		return;
+
+	float TimeDilation = 0.2f;	// TODO: Parameter
+
+	WorldSettings->SetTimeDilation(TimeDilation);
+
+	ACharacter* Char = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	Char->CustomTimeDilation = 1 / TimeDilation;
 }
 
 
@@ -76,6 +88,17 @@ void UAbilityTask_SlowTime::SuccessEventCallback(const FGameplayEventData* Paylo
 
 void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
+
+	UWorld* World = GetWorld();
+	AWorldSettings* const WorldSettings = World->GetWorldSettings();
+	if (!WorldSettings)
+		return;
+
+	WorldSettings->SetTimeDilation(1);
+
+	ACharacter* Char = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	Char->CustomTimeDilation = 1;
+
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		FGameplayEventData TempPayload = *Payload;

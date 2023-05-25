@@ -556,7 +556,7 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
-	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);		// consider caching into variable
 	asc->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
 	
 	FGameplayEventData Payload;
@@ -590,7 +590,7 @@ void ASlime_A::SlowTimeFunc(float DeltaTime) {
 
 void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 	
-	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);		// consider caching into variable
 	asc->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
 
 	FGameplayEventData Payload;
