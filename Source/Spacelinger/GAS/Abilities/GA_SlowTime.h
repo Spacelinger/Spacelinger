@@ -18,6 +18,8 @@ class SPACELINGER_API UGA_SlowTime : public UMCV_GameplayAbility
 public:
 
 	UGA_SlowTime();
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UGameplayEffect> GameplayEffectCost;
 
 protected:
 

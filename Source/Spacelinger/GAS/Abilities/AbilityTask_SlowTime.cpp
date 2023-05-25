@@ -16,17 +16,8 @@ UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectIni
 
 void UAbilityTask_SlowTime::TickTask(float DeltaTime)
 {
-	UWorld* World = GetWorld();
-	AWorldSettings* const WorldSettings = World->GetWorldSettings();
-	if (!WorldSettings)
-		return;
-
-	float TimeDilation = 0.2f;	// TODO: Parameter
-
-	WorldSettings->SetTimeDilation(TimeDilation);
-
-	ACharacter* Char = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	Char->CustomTimeDilation = 1 / TimeDilation;
+	if (bSlowingTime)
+		SmoothSlowTime(DeltaTime);
 }
 
 
@@ -78,6 +69,9 @@ void UAbilityTask_SlowTime::Activate()
 		}
 	}
 
+	bSlowingTime = true;
+	SlowStep = (1- CustomTimeDilation) / SlowTimeFadeInRate;
+
 	Super::Activate();
 }
 
@@ -88,16 +82,15 @@ void UAbilityTask_SlowTime::SuccessEventCallback(const FGameplayEventData* Paylo
 
 void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
-
 	UWorld* World = GetWorld();
 	AWorldSettings* const WorldSettings = World->GetWorldSettings();
 	if (!WorldSettings)
 		return;
 
-	WorldSettings->SetTimeDilation(1);
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
-	ACharacter* Char = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	Char->CustomTimeDilation = 1;
+	WorldSettings->SetTimeDilation(1);
+	Player->CustomTimeDilation = 1;
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -111,16 +104,24 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 	}
 }
 
-void UAbilityTask_SlowTime::CanceledEventCallback(const FGameplayEventData* Payload) {}
-void UAbilityTask_SlowTime::CanceledEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload) {}
-
 void UAbilityTask_SlowTime::FailedEventCallback(const FGameplayEventData* Payload)
 {
 	FailedEventContainerCallback(FailedTag, Payload);
-
 }
+
+
 void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
 {
+	UWorld* World = GetWorld();
+	AWorldSettings* const WorldSettings = World->GetWorldSettings();
+	if (!WorldSettings)
+		return;
+
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+
+	WorldSettings->SetTimeDilation(1);
+	Player->CustomTimeDilation = 1;
+
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		FGameplayEventData TempPayload = *Payload;
@@ -130,6 +131,30 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 	if (OnlyTriggerOnce)
 	{
 		EndTask();
+	}
+}
+
+void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
+{
+	UWorld* World = GetWorld();
+	AWorldSettings* const WorldSettings = World->GetWorldSettings();
+	if (!WorldSettings)
+		return;
+
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+
+	CurrentSlowTimeDilation -= SlowStep * DeltaTime;
+
+	if (CurrentSlowTimeDilation <= CustomTimeDilation) {
+		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
+		Player->CustomTimeDilation = 1 / CurrentSlowTimeDilation;
+
+		bSlowingTime = false;
+		CurrentSlowTimeDilation = 0;
+	}
+	else {
+		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
+		Player->CustomTimeDilation = 1 / CurrentSlowTimeDilation;
 	}
 }
 

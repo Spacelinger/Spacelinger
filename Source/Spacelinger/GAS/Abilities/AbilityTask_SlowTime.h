@@ -43,9 +43,6 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	virtual void SuccessEventCallback(const FGameplayEventData* Payload);
 	virtual void SuccessEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
 
-	virtual void CanceledEventCallback(const FGameplayEventData* Payload);
-	virtual void CanceledEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
-
 	virtual void FailedEventCallback(const FGameplayEventData* Payload);
 	virtual void FailedEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
 
@@ -57,7 +54,7 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	FGameplayTag FailedTag;
 
 	UPROPERTY()
-		TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
+	TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
 
 	bool UseExternalTarget;
 	bool OnlyTriggerOnce;
@@ -65,5 +62,19 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 
 	FDelegateHandle SuccessHandle;
 	FDelegateHandle FailedHandle;
+
+	UPROPERTY(EditDefaultsOnly)
+	float CustomTimeDilation = 0.2f;
+
+	UPROPERTY(EditDefaultsOnly)
+	float SlowTimeFadeInRate = 0.5f;
 	
+private:
+
+	void SmoothSlowTime(float DeltaTime);
+	bool bSlowingTime = false;
+
+	float CurrentSlowTimeDilation = 1.0f;
+	float SlowStep = 0.0f;
+
 };

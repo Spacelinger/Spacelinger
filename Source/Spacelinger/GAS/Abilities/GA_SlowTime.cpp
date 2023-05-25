@@ -3,10 +3,10 @@
 
 #include "GAS/Abilities/GA_SlowTime.h"
 #include "Kismet/GameplayStatics.h"
+#include <AbilitySystemGlobals.h>
+#include "AbilitySystemComponent.h"
 
 UGA_SlowTime::UGA_SlowTime() {
-
-	//AbilityTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.Fullbody")));
 
 }
 
@@ -16,20 +16,7 @@ void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	if (CommitAbility(Handle, ActorInfo, ActivationInfo)) {
 
-		UWorld* World = GetWorld();
-		AWorldSettings* const WorldSettings = World->GetWorldSettings();
-		if (!WorldSettings)
-			return;
-
-		float TimeDilation = 0.2f;	// TODO: Parameter
-
-		WorldSettings->SetTimeDilation(TimeDilation);
-
-		//GetWorld()->GetFirstPlayerController()->CustomTimeDilation = 1 / TimeDilation;
-
-		ACharacter* Char = UGameplayStatics::GetPlayerCharacter(GetWorld(),0);
-		Char->CustomTimeDilation = 1 / TimeDilation;
-
+		// Start AbilityTask_SlowTime
 	}
 	else {
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
@@ -37,8 +24,14 @@ void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 }
 void UGA_SlowTime::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
-	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Player);		// consider caching into variable
+	
+	UGameplayEffect* test = GetCostGameplayEffect();
+	
+	// TODO: REMOVE!!
 
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
 bool UGA_SlowTime::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const {
@@ -49,7 +42,7 @@ bool UGA_SlowTime::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 		return false;
 	}
 
-	bool bResult = true;	// TO-DO: Further assessments
+	bool bResult = true;
 
 	return bResult;
 }

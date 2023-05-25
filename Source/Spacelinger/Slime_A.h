@@ -138,24 +138,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SlowTimeAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.1", UIMax = "1.0"))
-	float SlowTimeDilation = .2f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.001", UIMax = "1.0"))
-	float PlayerSlowTimeCompensation = 5;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.01", UIMax = "0.5"))
-	float SlowTimeFadeInRate = 0.5;	// Fade in time for the slow time
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
 	float MaxStamina = 100.0f;
 
 protected:
 
-	float CurrentSlowTimeDilation = 1;
-	bool bIsTimeSlowing = false;
-	float SlowStep = 0;
-
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
-	void SlowTimeFunc(float DeltaTime);
 };

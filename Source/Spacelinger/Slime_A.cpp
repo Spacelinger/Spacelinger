@@ -230,10 +230,6 @@ void ASlime_A::Tick(float DeltaTime)
 		FRotator NewRotation = Direction.Rotation();
 		spiderWebReference->ConstraintComp->SetWorldRotation(NewRotation);
 	}
-
-	// Slow Time Ability
-	if (bIsTimeSlowing)
-		SlowTimeFunc(DeltaTime);
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
@@ -305,7 +301,7 @@ void ASlime_A::BeginPlay()
 	//GAS
 	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
 	
-	if(ensureMsgf(AbilitySystemComponent, TEXT("Warning! Missing Ability System component for %s"), *GetOwner()->GetName())){
+	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 	}
@@ -560,32 +556,7 @@ void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	asc->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
 	
 	FGameplayEventData Payload;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.Test")), Payload);
-
-	//bIsTimeSlowing = true;
-	//SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
-}
-
-void ASlime_A::SlowTimeFunc(float DeltaTime) {
-	// Fade in function to smooth slowing time ability
-	UWorld* World = GetWorld();
-	AWorldSettings* const WorldSettings = World->GetWorldSettings();
-	if (!WorldSettings)
-		return;
-
-	CurrentSlowTimeDilation -= SlowStep * DeltaTime;
-	
-	if (CurrentSlowTimeDilation <= SlowTimeDilation) {
-		WorldSettings->SetTimeDilation(SlowTimeDilation);
-		this->CustomTimeDilation = 1 / SlowTimeDilation;
-
-		bIsTimeSlowing = false;
-		CurrentSlowTimeDilation = 0;
-	}
-	else {
-		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
-		this->CustomTimeDilation = 1/ CurrentSlowTimeDilation;
-	}
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Started")), Payload);
 }
 
 void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
@@ -594,20 +565,5 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 	asc->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
 
 	FGameplayEventData Payload;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("GameplayCue")), Payload);
-
-
-	/*
-	UWorld* World = GetWorld();
-
-	AWorldSettings* const WorldSettings = World->GetWorldSettings();
-	if (!WorldSettings)
-		return;
-
-	bIsTimeSlowing = false;
-	CurrentSlowTimeDilation = 1;
-
-	WorldSettings->SetTimeDilation(1);
-	this->CustomTimeDilation = 1;
-	*/
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 }
