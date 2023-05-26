@@ -273,8 +273,7 @@ bool ASlime_A::ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation,
 	return GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndRayLocation, ECC_Visibility, Params);
 }
 
-void ASlime_A::DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation)
-{
+void ASlime_A::DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation) {
 	if (bDrawDebugLines)
 		DrawDebugLine(GetWorld(), StartLocation + GetActorUpVector(), EndLocation, FColor::Red, false, 0.2f, 0, 1.0f);
 }
@@ -689,7 +688,6 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 	InputRotator.Pitch -= LookAxisVector.Y;
 	if (InputRotator.Pitch >  MaxCameraPitch) { InputRotator.Pitch =  MaxCameraPitch; }
 	if (InputRotator.Pitch < -MinCameraPitch) { InputRotator.Pitch = -MinCameraPitch; }
-	UE_LOG(LogTemp, Display, TEXT("%s"), *InputRotator.ToString());
 
 	UpdateCameraRotation();
 }

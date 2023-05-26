@@ -106,6 +106,7 @@ private:
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 
+public:
 	bool bDrawDebugLines = false;
 
 protected:
