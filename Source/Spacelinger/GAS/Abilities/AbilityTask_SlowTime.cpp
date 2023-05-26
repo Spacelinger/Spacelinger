@@ -71,7 +71,6 @@ void UAbilityTask_SlowTime::Activate()
 
 	bSlowingTime = true;
 	SlowStep = (1- CustomTimeDilation) / SlowTimeFadeInRate;
-
 	Super::Activate();
 }
 
@@ -136,6 +135,7 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 
 void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 {
+
 	UWorld* World = GetWorld();
 	AWorldSettings* const WorldSettings = World->GetWorldSettings();
 	if (!WorldSettings)
