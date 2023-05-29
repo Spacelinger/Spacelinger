@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "DrawDebugHelpers.h" // Include this header file for the DrawDebugLine function
+#include "Components/PostProcessComponent.h"
 #include "Components/MCV_AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
@@ -50,6 +51,10 @@ ASlime_A::ASlime_A()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	// Create Post Process component
+	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcessComponent"));
+	PostProcessComponent->bUnbound = true;	// set to unbound so PPFX take whole map/screen
 
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
@@ -551,6 +556,16 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 
 void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 	bDrawDebugLines = !bDrawDebugLines;
+}
+
+UAbilitySystemComponent* ASlime_A::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+UPostProcessComponent* ASlime_A::GetPostProcessComponent() const 
+{
+	return PostProcessComponent;
 }
 
 // ============== Slow Time Ability

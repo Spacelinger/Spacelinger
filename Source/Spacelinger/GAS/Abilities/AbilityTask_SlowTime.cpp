@@ -6,6 +6,9 @@
 #include "AbilitySystemGlobals.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "Slime_A.h"
+#include "Components/PostProcessComponent.h"
+#include "Kismet/KismetMaterialLibrary.h"
 
 
 UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectInitializer)
@@ -71,6 +74,22 @@ void UAbilityTask_SlowTime::Activate()
 
 	bSlowingTime = true;
 	SlowStep = (1- CustomTimeDilation) / SlowTimeFadeInRate;
+
+	if (PostProcessSpeedLinesMaterial) {
+		DynamicSpeedLinesMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, PostProcessSpeedLinesMaterial);
+		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", 0.35);
+	}
+
+	ASlime_A* Slime = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
+	UPostProcessComponent* PPComp = Slime->GetPostProcessComponent();
+	FPostProcessSettings& PostProcessSettings = PPComp->Settings;
+
+	FWeightedBlendable WeightedBlendable;
+	WeightedBlendable.Object = DynamicSpeedLinesMaterial;
+	WeightedBlendable.Weight = 1;
+
+	PostProcessSettings.WeightedBlendables.Array.Add(WeightedBlendable);
+
 	Super::Activate();
 }
 

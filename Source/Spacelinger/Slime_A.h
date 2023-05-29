@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "CableComponent.h"
 #include "SpiderWeb.h"
+#include "AbilitySystemInterface.h"
 #include "Slime_A.generated.h"
 
 class USpringArmComponent;
@@ -14,12 +15,13 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class UStaticMeshComponent;
+class UPostProcessComponent;
 class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
 class UHealthAttributeSet;
 
 UCLASS(config = Game)
-class ASlime_A : public ACharacter
+class ASlime_A : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -28,6 +30,8 @@ class ASlime_A : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPostProcessComponent* PostProcessComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -69,6 +73,7 @@ public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Landed(const FHitResult& Hit) override;
+	UPostProcessComponent* GetPostProcessComponent() const;
 
 protected:
 	// Input callbacks
@@ -81,6 +86,7 @@ protected:
 	void ModifySpiderWeb(const FInputActionValue& Value);
 	void LockSpiderWeb(const FInputActionValue& Value);
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	// Helpers
 	void keepClimbing();

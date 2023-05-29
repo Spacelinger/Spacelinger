@@ -56,6 +56,7 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	UPROPERTY()
 	TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
 
+
 	bool UseExternalTarget;
 	bool OnlyTriggerOnce;
 	bool OnlyMatchExact;
@@ -63,10 +64,13 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	FDelegateHandle SuccessHandle;
 	FDelegateHandle FailedHandle;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UMaterialInstance* PostProcessSpeedLinesMaterial;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float CustomTimeDilation = 0.2f;
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlowTimeFadeInRate = 0.5f;
 	
 private:
@@ -77,4 +81,5 @@ private:
 	float CurrentSlowTimeDilation = 1.0f;
 	float SlowStep = 0.0f;
 
+	UMaterialInstanceDynamic* DynamicSpeedLinesMaterial = nullptr;
 };
