@@ -13,6 +13,7 @@
 #include "Components/MCV_AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
+#include "GAS/Attributes/HealthAttributeSet.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
 #include "AbilitySystemBlueprintLibrary.h"
 
@@ -50,8 +51,9 @@ ASlime_A::ASlime_A()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
-	// Create GAS' Ability System Component
+	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
+	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("HealthAttributeSet"));
 	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -303,6 +305,8 @@ void ASlime_A::BeginPlay()
 	
 	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 	}
 }
@@ -330,8 +334,8 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
 
 		// Slow Time Ability
-		EnhancedInputComponent->BindAction(SlowTimeAction, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
-		EnhancedInputComponent->BindAction(SlowTimeAction, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
+		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
+		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
 	}
 }
 

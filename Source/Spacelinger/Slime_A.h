@@ -16,7 +16,7 @@ class UInputAction;
 class UStaticMeshComponent;
 class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
-class UGA_SlowTime;
+class UHealthAttributeSet;
 
 UCLASS(config = Game)
 class ASlime_A : public ACharacter
@@ -42,9 +42,11 @@ class ASlime_A : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DebugAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* putSpiderWebAction;
+	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* increaseSpiderWebAction;
+	UInputAction* putSpiderWebAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* increaseSpiderWebAction;
 
 protected:
 	// GAS
@@ -52,7 +54,16 @@ protected:
 	UMCV_AbilitySystemComponent* AbilitySystemComponent = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	UHealthAttributeSet* HealthAttributeSet = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	UStaminaAttributeSet* StaminaAttributeSet = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
+	float MaxStamina = 100.0f;
 
 public:
 	ASlime_A();
@@ -133,13 +144,6 @@ public:
 		bool bInitialForceApplied = false;
 	
 	// ============== Slow Time Ability
-public:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SlowTimeAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
-	float MaxStamina = 100.0f;
 
 protected:
 

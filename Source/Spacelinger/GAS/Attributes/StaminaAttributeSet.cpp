@@ -21,12 +21,10 @@ void UStaminaAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attr
 	}
 }
 
-
 void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) {
 	Super::PostGameplayEffectExecute(Data);
 	
-	if (true) 
-	{
+	
 		if (Data.EvaluatedData.Attribute == GetStaminaAttribute()) 
 		{
 			const float CurrentStamina = GetStamina();
@@ -36,9 +34,8 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 				FGameplayEventData Payload;
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerActor, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.Empty")), Payload);
 			
-				// Here or at the abilities might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0. values of it
+				// Here or at abilities end might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0.x values of it
 			}
-
 		}
-	}
+	
 }
