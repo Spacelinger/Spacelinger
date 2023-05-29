@@ -24,6 +24,10 @@ public:
 	ASpiderWeb();
 	virtual void Tick(float DeltaTime) override;
 	void ResetConstraint();
+	FVector getRelativePositionPhysicsConstraint();
+	FVector getVectorDirectorInConstraintCoordinates();
+	FVector getVectorInConstraintCoordinates(FVector input);
+
 
 	UPROPERTY(VisibleAnywhere)
 		UCableComponent* CableComponent;
@@ -55,7 +59,11 @@ public:
 		FVector distanceTrap;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASlime_A* spider;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		FTransform boneTransform;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bBoneTransformSet = false;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASLSoldier* Soldier;
 

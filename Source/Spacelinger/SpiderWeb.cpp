@@ -43,6 +43,7 @@ ASpiderWeb::ASpiderWeb()
 
 }
 
+#pragma optimize("", off)
 void ASpiderWeb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -63,14 +64,83 @@ void ASpiderWeb::Tick(float DeltaTime)
 		}
 	}
 	else if (bTrapActivated && Soldier) {
-		
-		ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, FVector(0.0f,0.0f,0.0f));
-		
-		
 
-		ConstraintComp->UpdateConstraintFrames();
+
+		
+		FVector relativePosition = getRelativePositionPhysicsConstraint();
+
+		if (relativePosition.Length() > 0) {
+			//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
+			FVector vectorDirection = Soldier->GetMesh()->GetBoneLocation("foot_r") - ConstraintComp->GetComponentLocation();
+			vectorDirection.Normalize();
+			FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * DeltaTime * 1000.0f);
+
+
+			ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newLocation);
+
+
+			ConstraintComp->UpdateConstraintFrames();
+		}
+		
 
 	}
+}
+#pragma optimize("", on)
+
+#pragma optimize("", off)
+
+FVector ASpiderWeb::getVectorInConstraintCoordinates(FVector input) {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldConstraintLocation = ConstraintComp->GetComponentLocation();
+	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation("foot_r");
+
+	// Convert the constraint location to the local space of the bone
+	if (!bBoneTransformSet) {
+		boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex("foot_r"));
+		bBoneTransformSet = true;
+	}
+	FVector LocalConstraintLocation = boneTransform.InverseTransformPosition(WorldConstraintLocation);
+
+	FVector inputAdapted = boneTransform.InverseTransformPosition(WorldConstraintLocation + input);
+
+	return inputAdapted;
+}
+#pragma optimize("", on)
+
+
+FVector ASpiderWeb::getVectorDirectorInConstraintCoordinates() {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldConstraintLocation = ConstraintComp->GetComponentLocation();
+	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation("foot_r");
+
+	// Convert the constraint location to the local space of the bone
+	if (!bBoneTransformSet) {
+		boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex("foot_r"));
+		bBoneTransformSet = true;
+	}
+	FVector LocalConstraintLocation = boneTransform.InverseTransformPosition(WorldConstraintLocation);
+
+	LocalConstraintLocation.Normalize();
+
+	return LocalConstraintLocation;
+}
+
+FVector ASpiderWeb::getRelativePositionPhysicsConstraint() {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldConstraintLocation = ConstraintComp->GetComponentLocation();
+	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation("foot_r");
+
+	// Convert the constraint location to the local space of the bone
+	if (!bBoneTransformSet) {
+		boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex("foot_r"));
+		bBoneTransformSet = true;
+	}
+	FVector LocalConstraintLocation = boneTransform.InverseTransformPosition(WorldConstraintLocation);
+
+	return LocalConstraintLocation;
 }
 
 void ASpiderWeb::ResetConstraint()
