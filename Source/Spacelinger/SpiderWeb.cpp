@@ -70,14 +70,15 @@ void ASpiderWeb::Tick(float DeltaTime)
 			bInitialRelativePositionSet = true;
 		}
 
-		if (initialRelativePosition.Length() < 10) {
+		if (initialRelativePosition.Length() < 20 && !bTrapFinished) {
 			bTrapFinished = true;
+			
 		}
 
 		if (!bTrapFinished) {
 			//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
 			FVector vectorDirection = Soldier->GetMesh()->GetBoneLocation("foot_r") - ConstraintComp->GetComponentLocation();
-			FVector newLocation = getVectorInConstraintCoordinates(vectorDirection, 1000.0f, DeltaTime);
+			FVector newLocation = getVectorInConstraintCoordinates(vectorDirection, 300.0f, DeltaTime);
 			initialRelativePosition = initialRelativePosition + newLocation;
 
 			ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);

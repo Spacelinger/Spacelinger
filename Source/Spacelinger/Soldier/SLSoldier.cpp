@@ -60,9 +60,9 @@ void ASLSoldier::Tick(float DeltaTime) {
 	/*if (bMoveToCeiling) {
 		// Apply a constant force to make the ragdoll stick to the ceiling
 		FVector ForceDirection = FVector::UpVector; // Adjust the force direction as desired
-		float ForceMagnitude = 5000000.0f; // Adjust the force magnitude as desired
+		float ForceMagnitude = 5000.0f; // Adjust the force magnitude as desired
 		//GetMesh()->AddForce(ForceDirection * ForceMagnitude, NAME_None, true);
-		GetMesh()->AddForceToAllBodiesBelow(ForceDirection * ForceMagnitude, "ball_r", true, true);
+		GetMesh()->AddForceToAllBodiesBelow(ForceDirection * ForceMagnitude, FName("pelvis"), false, true);
 	}
 	*/
 }
@@ -81,22 +81,36 @@ void ASLSoldier::MoveToCeiling() {
 	MeshComp->bBlendPhysics = true;
 	// Enable "Simulation Generates Hit Events"
 	MeshComp->SetNotifyRigidBodyCollision(true);
-	bMoveToCeiling = true;
+	
 }
 
-
-void ASLSoldier::StopMoveToCeiling() {
-	/* Disable all collision on capsule */
-	bMoveToCeiling = false;
-
+void ASLSoldier::AdaptToCeiling() {
+	/*
 	// Disable physics-based movement for the OtherComp
 	GetMesh()->SetSimulatePhysics(false);
+	GetMesh()->SetEnableGravity(false);
 
 	// Optionally, you can also set the component's velocity to zero to stop any residual movement
 	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
 
 	GetCharacterMovement()->Deactivate();
+	*/
+}
 
+
+void ASLSoldier::StopAdaptToCeiling() {
+	/* Disable all collision on capsule 
+	bMoveToCeiling = false;
+
+	// Disable physics-based movement for the OtherComp
+	GetMesh()->SetSimulatePhysics(false);
+	GetMesh()->SetEnableGravity(false);
+
+	// Optionally, you can also set the component's velocity to zero to stop any residual movement
+	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
+
+	GetCharacterMovement()->Deactivate();
+	*/
 }
 
 

@@ -21,8 +21,8 @@ public:
 	void Interact(AActor* ActorInteracting);
 	void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
-	void StopMoveToCeiling();
-
+	void StopAdaptToCeiling();
+	void AdaptToCeiling();
 
 	UFUNCTION()
 		void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
