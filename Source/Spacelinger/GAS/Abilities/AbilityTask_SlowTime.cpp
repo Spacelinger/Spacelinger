@@ -9,6 +9,7 @@
 #include "Slime_A.h"
 #include "Components/PostProcessComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
+#include "GameFramework/SpringArmComponent.h"
 
 
 UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectInitializer)
@@ -74,21 +75,24 @@ void UAbilityTask_SlowTime::Activate()
 
 	bSlowingTime = true;
 	SlowStep = (1- CustomTimeDilation) / SlowTimeFadeInRate;
+	LineStep = SlowTimeEffectLineDensity / SlowTimeFadeInRate;
 
 	if (PostProcessSpeedLinesMaterial) {
 		DynamicSpeedLinesMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, PostProcessSpeedLinesMaterial);
-		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", 0.35);
+		//DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", 0.35f);
 	}
 
 	ASlime_A* Slime = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	UPostProcessComponent* PPComp = Slime->GetPostProcessComponent();
-	FPostProcessSettings& PostProcessSettings = PPComp->Settings;
-
-	FWeightedBlendable WeightedBlendable;
-	WeightedBlendable.Object = DynamicSpeedLinesMaterial;
-	WeightedBlendable.Weight = 1;
-
-	PostProcessSettings.WeightedBlendables.Array.Add(WeightedBlendable);
+	PPComp = Slime->GetPostProcessComponent();
+	if (PPComp) {
+		//FPostProcessSettings& PostProcessSettings = PPComp->Settings;
+		
+		WeightedBlendable;
+		WeightedBlendable.Object = DynamicSpeedLinesMaterial;
+		WeightedBlendable.Weight = 1;
+		
+		PPComp->Settings.WeightedBlendables.Array.Add(WeightedBlendable);
+	}
 
 	Super::Activate();
 }
@@ -105,10 +109,15 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 	if (!WorldSettings)
 		return;
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.0f);
 
 	WorldSettings->SetTimeDilation(1);
 	Player->CustomTimeDilation = 1;
+
+	if (PPComp) {
+		FPostProcessSettings* PostProcessSettings = new FPostProcessSettings();
+		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
+	}
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -140,6 +149,11 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 	WorldSettings->SetTimeDilation(1);
 	Player->CustomTimeDilation = 1;
 
+	if (PPComp) {
+		FPostProcessSettings* PostProcessSettings = new FPostProcessSettings();
+		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
+	}
+
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		FGameplayEventData TempPayload = *Payload;
@@ -154,7 +168,6 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 
 void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 {
-
 	UWorld* World = GetWorld();
 	AWorldSettings* const WorldSettings = World->GetWorldSettings();
 	if (!WorldSettings)
@@ -163,17 +176,23 @@ void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
 	CurrentSlowTimeDilation -= SlowStep * DeltaTime;
+	CurrentLineStep += LineStep * DeltaTime;
+
+	USpringArmComponent* CameraBoom;
+	CameraBoom = Cast<ASlime_A>(Player)->GetCameraBoom();
+	CameraBoom->TargetArmLength = 420.0f;
 
 	if (CurrentSlowTimeDilation <= CustomTimeDilation) {
-		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
-		Player->CustomTimeDilation = 1 / CurrentSlowTimeDilation;
-
+		WorldSettings->SetTimeDilation(CustomTimeDilation);
+		Player->CustomTimeDilation = 1 / CustomTimeDilation;
+		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", SlowTimeEffectLineDensity);
 		bSlowingTime = false;
-		CurrentSlowTimeDilation = 0;
+		CurrentSlowTimeDilation = 1;
 	}
 	else {
 		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
 		Player->CustomTimeDilation = 1 / CurrentSlowTimeDilation;
+		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", CurrentLineStep);
 	}
 }
 
@@ -207,4 +226,9 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 	}
 
 	Super::OnDestroy(AbilityEnding);
+}
+
+void UAbilityTask_SlowTime::SetSpeedLinesMaterial(UMaterialInstance* SpeedLinesMaterial)
+{
+	PostProcessSpeedLinesMaterial = SpeedLinesMaterial;
 }

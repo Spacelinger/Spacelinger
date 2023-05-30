@@ -11,6 +11,7 @@
 */
 
 class UAbilitySystemComponent;
+class UPostProcessComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitGameplayEventDelegate, FGameplayEventData, Payload);
 
@@ -64,14 +65,17 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	FDelegateHandle SuccessHandle;
 	FDelegateHandle FailedHandle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UMaterialInstance* PostProcessSpeedLinesMaterial;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float CustomTimeDilation = 0.2f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlowTimeFadeInRate = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float SlowTimeEffectLineDensity = 0.35f;
+
+	void SetSpeedLinesMaterial(UMaterialInstance* SpeedLinesMaterial);
 	
 private:
 
@@ -80,6 +84,11 @@ private:
 
 	float CurrentSlowTimeDilation = 1.0f;
 	float SlowStep = 0.0f;
+	float CurrentLineStep = 0.0f;
+	float LineStep = 0.0f;
 
+	UMaterialInstance* PostProcessSpeedLinesMaterial = nullptr;
 	UMaterialInstanceDynamic* DynamicSpeedLinesMaterial = nullptr;
+	UPostProcessComponent* PPComp = nullptr;
+	FWeightedBlendable WeightedBlendable;
 };

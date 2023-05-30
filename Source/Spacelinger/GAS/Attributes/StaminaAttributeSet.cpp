@@ -37,5 +37,4 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 				// Here or at abilities end might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0.x values of it
 			}
 		}
-	
 }

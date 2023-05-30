@@ -29,6 +29,7 @@ void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 																								FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.Empty")));
 		
 		SlowTimeTask->SuccessEventReceived.AddDynamic(this, &UGA_SlowTime::OnAbilityTaskCompleted);
+		SlowTimeTask->SetSpeedLinesMaterial(PostProcessSpeedLinesMaterial);
 		SlowTimeTask->ReadyForActivation();
 	}
 	else {
@@ -45,7 +46,7 @@ void UGA_SlowTime::OnAbilityTaskCompleted(FGameplayEventData Payload)
 void UGA_SlowTime::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {	
 	
-	// Remove Cost GameplayEffect
+	// Removing Cost GameplayEffect
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Cost.SlowTime")));	// Hardcoded, couldn't find how to link with GetCostGameEffect()
 	ASC->RemoveActiveEffectsWithSourceTags(TagContainer);
