@@ -25,8 +25,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void ResetConstraint();
 	FVector getRelativePositionPhysicsConstraint();
-	FVector getVectorDirectorInConstraintCoordinates();
-	FVector getVectorInConstraintCoordinates(FVector input);
+	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
 
 
 	UPROPERTY(VisibleAnywhere)
@@ -60,9 +59,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASlime_A* spider;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
-		FTransform boneTransform;
+		FVector initialRelativePosition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
-		bool bBoneTransformSet = false;
+		bool bInitialRelativePositionSet = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bTrapFinished = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASLSoldier* Soldier;

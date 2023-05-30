@@ -119,11 +119,18 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
 	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
 	{
-		distanceConstraints = distanceConstraints + Value.GetMagnitude() * 30.0f;
-		if (distanceConstraints < 30)
-			distanceConstraints = 30;
-		FVector newPosition = FVector(0.0f, 0.0f, distanceConstraints);
-		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newPosition);
+		if (!bSetInitialRelativeLocation) {
+			bSetInitialRelativeLocation = true;
+			initialRelativePosition = getRelativePositionPhysicsConstraint();
+		}
+
+		//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
+		FVector vectorDirection = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
+		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 30.0f, 1.0f);
+		initialRelativePosition = initialRelativePosition + newLocation;
+
+		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
+		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
 	}
 	else {
 		int ActionValue = Value.GetMagnitude();
@@ -490,6 +497,7 @@ void ASlime_A::CutSpiderWeb()
 	attached = false;
 	attachedAtCeiling = false;
 	spiderWebReference = nullptr;
+	bSetInitialRelativeLocation = false;
 }
 
 
@@ -550,6 +558,44 @@ void ASlime_A::PutTrap()
 		spiderWebTrap->SetTrap();
 	}
 }
+
+
+FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldBoneLocation = GetCapsuleComponent()->GetComponentLocation();
+
+	// Convert the constraint location to the local space of the bone
+	FTransform boneTransform = GetCapsuleComponent()->GetComponentTransform();
+
+	// Normalize the input vector
+	FVector NormalizedInput = input.GetSafeNormal();
+
+	// Apply speed and DeltaTime to the normalized input vector
+	FVector Velocity = NormalizedInput * Speed * DeltaTime;
+
+	// Update input with velocity
+	FVector inputAdapted = boneTransform.InverseTransformPosition(WorldBoneLocation + Velocity);
+
+	return inputAdapted;
+}
+
+
+
+FVector ASlime_A::getRelativePositionPhysicsConstraint() {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldConstraintLocation = spiderWebReference->ConstraintComp->GetComponentLocation();
+	FVector WorldBoneLocation = GetCapsuleComponent()->GetComponentLocation();
+
+	// Convert the constraint location to the local space of the bone
+	FTransform boneTransform = GetCapsuleComponent()->GetComponentTransform();
+
+	FVector LocalConstraintLocation = boneTransform.InverseTransformPosition(WorldConstraintLocation);
+
+	return LocalConstraintLocation;
+}
+
 
 
 

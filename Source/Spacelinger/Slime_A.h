@@ -105,6 +105,9 @@ protected:
 	void StopClimbing();
 	void AlignToPlane(FVector planeNormal);
 	void CutSpiderWeb();
+	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
+	FVector getRelativePositionPhysicsConstraint();
+
 	double FloorThreshold = 0.9;
 	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
 	FORCEINLINE bool IsCeiling(FVector Normal) {
@@ -167,6 +170,10 @@ public:
 		bool bInitialForceApplied = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		float distanceConstraints ;
+	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
+		float bSetInitialRelativeLocation;
+	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
+		FVector initialRelativePosition;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
