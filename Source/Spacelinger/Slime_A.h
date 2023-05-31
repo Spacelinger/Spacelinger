@@ -89,11 +89,13 @@ protected:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	// Helpers
-	void keepClimbing();
-	void UpdateRotation(FVector planeNormal);
 	void StartClimbing();
+	void keepClimbing();
 	void StopClimbing();
+
+	void UpdateRotation(FVector planeNormal);
 	void AlignToPlane(FVector planeNormal);
+
 	double FloorThreshold = 0.9;
 	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
 	FORCEINLINE bool IsCeiling(FVector Normal) {
@@ -150,7 +152,6 @@ public:
 		bool bInitialForceApplied = false;
 	
 	// ============== Slow Time Ability
-
 protected:
 
 	void SlowTime(const FInputActionValue& Value);

@@ -90,5 +90,5 @@ private:
 	UMaterialInstance* PostProcessSpeedLinesMaterial = nullptr;
 	UMaterialInstanceDynamic* DynamicSpeedLinesMaterial = nullptr;
 	UPostProcessComponent* PPComp = nullptr;
-	FWeightedBlendable WeightedBlendable;
+	FWeightedBlendable WeightedBlendable;	// May be unnecessary
 };

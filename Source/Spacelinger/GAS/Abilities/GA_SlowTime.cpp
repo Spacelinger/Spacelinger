@@ -20,6 +20,9 @@ void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Player);
 
+	GetAbilitySystemComponentFromActorInfo();
+	GetAvatarActorFromActorInfo();
+
 	if (CommitAbility(Handle, ActorInfo, ActivationInfo)) {
 
 		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
@@ -39,8 +42,7 @@ void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 void UGA_SlowTime::OnAbilityTaskCompleted(FGameplayEventData Payload)
 {
-	
-	EndAbility(this->CurrentSpecHandle, this->CurrentActorInfo, this->CurrentActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_SlowTime::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)

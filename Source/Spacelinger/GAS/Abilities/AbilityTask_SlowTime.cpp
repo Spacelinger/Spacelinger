@@ -58,6 +58,8 @@ UAbilitySystemComponent* UAbilityTask_SlowTime::GetTargetASC()
 
 void UAbilityTask_SlowTime::Activate()
 {
+	Super::Activate();
+
 	UAbilitySystemComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
@@ -79,22 +81,25 @@ void UAbilityTask_SlowTime::Activate()
 
 	if (PostProcessSpeedLinesMaterial) {
 		DynamicSpeedLinesMaterial = UKismetMaterialLibrary::CreateDynamicMaterialInstance(this, PostProcessSpeedLinesMaterial);
-		//DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", 0.35f);
 	}
 
 	ASlime_A* Slime = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	PPComp = Slime->GetPostProcessComponent();
 	if (PPComp) {
 		//FPostProcessSettings& PostProcessSettings = PPComp->Settings;
-		
-		WeightedBlendable;
+
 		WeightedBlendable.Object = DynamicSpeedLinesMaterial;
-		WeightedBlendable.Weight = 1;
+		WeightedBlendable.Weight = 1.0f;
 		
 		PPComp->Settings.WeightedBlendables.Array.Add(WeightedBlendable);
 	}
 
-	Super::Activate();
+	/*
+	USpringArmComponent* CameraBoom;
+	CameraBoom = Slime->GetCameraBoom();
+	CameraBoom->TargetArmLength = 420.0f;
+	*/
+
 }
 
 void UAbilityTask_SlowTime::SuccessEventCallback(const FGameplayEventData* Payload)
@@ -146,8 +151,8 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 
 	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
-	WorldSettings->SetTimeDilation(1);
-	Player->CustomTimeDilation = 1;
+	WorldSettings->SetTimeDilation(1.0f);
+	Player->CustomTimeDilation = 1.0f;
 
 	if (PPComp) {
 		FPostProcessSettings* PostProcessSettings = new FPostProcessSettings();
@@ -184,14 +189,14 @@ void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 
 	if (CurrentSlowTimeDilation <= CustomTimeDilation) {
 		WorldSettings->SetTimeDilation(CustomTimeDilation);
-		Player->CustomTimeDilation = 1 / CustomTimeDilation;
+		Player->CustomTimeDilation = 1.0f / CustomTimeDilation;
 		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", SlowTimeEffectLineDensity);
 		bSlowingTime = false;
-		CurrentSlowTimeDilation = 1;
+		CurrentSlowTimeDilation = 1.0f;
 	}
 	else {
 		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
-		Player->CustomTimeDilation = 1 / CurrentSlowTimeDilation;
+		Player->CustomTimeDilation = 1.0f / CurrentSlowTimeDilation;
 		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", CurrentLineStep);
 	}
 }

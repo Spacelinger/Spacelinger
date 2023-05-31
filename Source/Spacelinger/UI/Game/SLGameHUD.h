@@ -17,7 +17,8 @@ class SPACELINGER_API ASLGameHUD : public AHUD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spacelinger, meta = (AllowPrivateAccess = "true"))
 	UClass *PlayerInterfaceClass;
 
-	UUserWidget *PlayerInterface;
+	UPROPERTY()
+		UUserWidget *PlayerInterface;
 
 public:
 	ASLGameHUD();
