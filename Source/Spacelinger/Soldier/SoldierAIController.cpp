@@ -41,7 +41,6 @@ void ASoldierAIController::ResumePatrol()
 	}
 }
 
-#pragma optimize("", off)
 void ASoldierAIController::OnActorDetected() {
 	ensure(DetectedActor.IsValid());
 
@@ -67,7 +66,7 @@ void ASoldierAIController::OnActorDetected() {
 
 	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
 }
-#pragma optimize("", on)
+
 void ASoldierAIController::OnActorUndetected() {
 	float TimeSecondsElapsed = GetWorld()->GetTimeSeconds() - LastTimeSecondsTimer;
 

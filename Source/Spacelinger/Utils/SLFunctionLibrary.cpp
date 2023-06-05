@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Without Copyright. Project SpaceLinger, Master en Creacion de Videojuegos (MCV) at Universitat Pompeu Fabra (UPF)
 
 #include "SLFunctionLibrary.h"
 #include "Kismet/GameplayStaticsTypes.h"

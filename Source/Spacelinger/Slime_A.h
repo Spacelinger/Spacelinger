@@ -137,6 +137,8 @@ protected:
 	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
 	FVector getRelativePositionPhysicsConstraint();
 
+	void UpdateBaseCameraRotation(FVector CurrentNormal);
+	void UpdateCameraRotation();
 	double FloorThreshold = 0.9;
 	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
 	FORCEINLINE bool IsCeiling(FVector Normal) {
@@ -150,7 +152,8 @@ private:
 	TArray<FVector> InitialDiagonalDirections;
 
 
-	bool bDrawDebugLines = true;
+public:
+	bool bDrawDebugLines = false;
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -160,9 +163,11 @@ protected:
 public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FMatrix BaseCameraRotation = FMatrix::Identity;
+	FRotator InputRotator = FRotator::ZeroRotator;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
-	float MaxCameraPitch = 40.0f;
+	float MaxCameraPitch = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
 	float MinCameraPitch = 60.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing")

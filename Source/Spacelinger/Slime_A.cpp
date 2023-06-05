@@ -84,6 +84,8 @@ void ASlime_A::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+	InputRotator = GetActorRotation();
+	UpdateCameraRotation();
 
 	// Init climbing stuff
 	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
@@ -234,6 +236,9 @@ void ASlime_A::HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector A
 
 	FVector AverageNormal = CalculateAverageNormal(HitNormals);
 
+	if (previousNormal != AverageNormal) {
+		UpdateBaseCameraRotation(AverageNormal);
+	}
 	previousNormal = AverageNormal;
 
 	FHitResult HitDirection;
@@ -313,6 +318,7 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 
 		if (previousNormal != SurfaceNormal)
 		{
+			UpdateBaseCameraRotation(SurfaceNormal);
 			previousNormal = SurfaceNormal;
 			AlignToPlane(SurfaceNormal);
 		}
@@ -331,8 +337,7 @@ bool ASlime_A::ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation,
 	return GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndRayLocation, ECC_Visibility, Params);
 }
 
-void ASlime_A::DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation)
-{
+void ASlime_A::DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation) {
 	if (bDrawDebugLines)
 		DrawDebugLine(GetWorld(), StartLocation + GetActorUpVector(), EndLocation, FColor::Red, false, 0.2f, 0, 1.0f);
 }
@@ -418,14 +423,26 @@ void ASlime_A::UpdateRotation(FVector planeNormal)
 
 void ASlime_A::AlignToPlane(FVector planeNormal)
 {
-	// NOTE(Sergi): Wizardry I found online
-	//https://forums.unrealengine.com/t/tilting-character-to-surface-lost-in-vector-math-help-please/306736/3
+	// https://forums.unrealengine.com/t/tilting-character-to-surface-lost-in-vector-math-help-please/306736/3
 	FVector currentRightVect = GetActorRightVector();
 	FVector newForward = FVector::CrossProduct(currentRightVect, planeNormal);
 	FVector newRight   = FVector::CrossProduct(planeNormal, newForward);
 
-	FTransform newTransform(newForward, newRight, planeNormal, GetActorLocation());
-	SetActorRotation(newTransform.Rotator());
+	FMatrix RotMatrix(newForward, newRight, planeNormal, FVector::ZeroVector);
+	SetActorRotation(RotMatrix.Rotator());
+}
+
+void ASlime_A::UpdateBaseCameraRotation(FVector CurrentNormal) {
+	FVector NewForward = FVector::CrossProduct(FVector::RightVector, CurrentNormal);
+	FVector NewRight   = FVector::CrossProduct(CurrentNormal, NewForward);
+	NewForward.Normalize();
+	NewRight.Normalize();
+
+	BaseCameraRotation = FMatrix(NewForward, NewRight, CurrentNormal, FVector::ZeroVector);
+	UpdateCameraRotation();
+}
+void ASlime_A::UpdateCameraRotation() {
+	CameraBoom->SetRelativeRotation(BaseCameraRotation.Rotator().Quaternion() * InputRotator.Quaternion());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -747,6 +764,8 @@ void ASlime_A::StopClimbing() {
 	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
+	UpdateBaseCameraRotation(FVector::UpVector);
+
 	// Set actor rotation to controller's rotation
 	if (Controller) {
 		FRotator ControllerRotator = Controller->GetControlRotation();
@@ -789,8 +808,12 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 	if (Controller == nullptr) { return; }
 
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
+	InputRotator.Yaw   += LookAxisVector.X;
+	InputRotator.Pitch -= LookAxisVector.Y;
+	if (InputRotator.Pitch >  MaxCameraPitch) { InputRotator.Pitch =  MaxCameraPitch; }
+	if (InputRotator.Pitch < -MinCameraPitch) { InputRotator.Pitch = -MinCameraPitch; }
+
+	UpdateCameraRotation();
 }
 
 void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
