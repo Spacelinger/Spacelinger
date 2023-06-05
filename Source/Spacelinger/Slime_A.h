@@ -58,7 +58,8 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* increaseSpiderWebAction;
+	UInputAction* SwitchAbilityAction;
+	
 
 protected:
 	// GAS
@@ -104,7 +105,6 @@ protected:
 	void HandleClimbingBehaviour();
 	void HandleAttachedBehaviour();
 	void HandleHangingBehaviour();
-	void HandleSlowTimeBehaviour(float DeltaTime);
 	void HandleJumpToLocationBehaviour();
 	void ThrowSpiderWeb();
 
@@ -130,10 +130,8 @@ protected:
 	void keepClimbing();
 	void UpdateRotation(FVector planeNormal);
 	void StartClimbing();
-	void keepClimbing();
 	void StopClimbing();
 
-	void UpdateRotation(FVector planeNormal);
 	void AlignToPlane(FVector planeNormal);
 	void CutSpiderWeb();
 	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);

@@ -5,9 +5,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Slime_A.h"
 #include <Soldier/SLSoldier.h>
-#include <Actors/SpiderSack.h>
-
-
 
 // Sets default values
 ASpiderWeb::ASpiderWeb()

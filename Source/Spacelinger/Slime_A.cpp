@@ -87,19 +87,27 @@ void ASlime_A::BeginPlay()
 
 	// Init climbing stuff
 	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
-	
-
 	DiagonalDirections.Reserve(8);
-	DiagonalDirections.Add(FVector(.5, .5, .5));
-	DiagonalDirections.Add(FVector(-.5, .5, .5));
-	DiagonalDirections.Add(FVector(.5, -.5, .5));
-	DiagonalDirections.Add(FVector(-.5, -.5, .5));
-	DiagonalDirections.Add(FVector(.5, .5, -.5));
-	DiagonalDirections.Add(FVector(-.5, .5, -.5));
-	DiagonalDirections.Add(FVector(.5, -.5, -.5));
+	DiagonalDirections.Add(FVector( .5,  .5,  .5));
+	DiagonalDirections.Add(FVector(-.5,  .5,  .5));
+	DiagonalDirections.Add(FVector( .5, -.5,  .5));
+	DiagonalDirections.Add(FVector(-.5, -.5,  .5));
+	DiagonalDirections.Add(FVector( .5,  .5, -.5));
+	DiagonalDirections.Add(FVector(-.5,  .5, -.5));
+	DiagonalDirections.Add(FVector( .5, -.5, -.5));
 	DiagonalDirections.Add(FVector(-.5, -.5, -.5));
 	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
+	}
+
+	//GAS
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+
+	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 	}
 }
 
@@ -112,15 +120,11 @@ void ASlime_A::Tick(float DeltaTime)
 		HandleClimbingBehaviour();
 		HandleAttachedBehaviour();
 		HandleHangingBehaviour();
-		HandleSlowTimeBehaviour(DeltaTime);
 	}
 	else
 	{
 		HandleJumpToLocationBehaviour();
 	}
-
-
-	
 }
 
 void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
@@ -422,33 +426,6 @@ void ASlime_A::AlignToPlane(FVector planeNormal)
 
 	FTransform newTransform(newForward, newRight, planeNormal, GetActorLocation());
 	SetActorRotation(newTransform.Rotator());
-}
-
-// TODO: Esto va en el beginplay
-	// Init climbing stuff
-	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
-	DiagonalDirections.Reserve(8);
-	DiagonalDirections.Add(FVector( .5,  .5,  .5));
-	DiagonalDirections.Add(FVector(-.5,  .5,  .5));
-	DiagonalDirections.Add(FVector( .5, -.5,  .5));
-	DiagonalDirections.Add(FVector(-.5, -.5,  .5));
-	DiagonalDirections.Add(FVector( .5,  .5, -.5));
-	DiagonalDirections.Add(FVector(-.5,  .5, -.5));
-	DiagonalDirections.Add(FVector( .5, -.5, -.5));
-	DiagonalDirections.Add(FVector(-.5, -.5, -.5));
-	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
-		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
-	}
-
-	//GAS
-	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
-	
-	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
-	}
 }
 
 //////////////////////////////////////////////////////////////////////////

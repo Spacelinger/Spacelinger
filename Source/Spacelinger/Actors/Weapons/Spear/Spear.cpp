@@ -49,9 +49,9 @@ void ASpear::OnBeginOverlap_BoxCollision(
 
 	}
 	// Check if OtherActor is not the spear itself and also not from classes SLProjectilePuddle and SLStickyPuddle
-	) /* &&
+	/* &&
 	// Check if OtherActor can be cast to BP_InteractLockDoor_C, and if it can, then check if a "Cylinder" subobject is visible
-	(OtherActor->IsA(InteractLockDoor_C::StaticClass()) ? Cast<InteractLockDoor_C>(OtherActor)->Cylinder->IsVisible() : true) */)
+	(OtherActor->IsA(InteractLockDoor_C::StaticClass()) ? Cast<InteractLockDoor_C>(OtherActor)->Cylinder->IsVisible() : true) */
 	{
 		// Stop movement immediately, receiving projectile movement as an input
 		MovementComponent->StopMovementImmediately();
