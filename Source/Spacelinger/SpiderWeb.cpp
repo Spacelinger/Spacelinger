@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Slime_A.h"
 #include <Soldier/SLSoldier.h>
+#include <Actors/SpiderSack.h>
 
 
 
@@ -57,8 +58,9 @@ void ASpiderWeb::Tick(float DeltaTime)
 			if(bAttached)
 				spider->JumpToPosition();
 			else {
-				this->CableComponent->bAttachEnd = false;
 				spider->bHasTrownSpiderWeb = false;
+				spider->spiderWebReference = nullptr;
+				Destroy();
 			}
 		}
 	}
@@ -71,14 +73,13 @@ void ASpiderWeb::Tick(float DeltaTime)
 		}
 
 		if (initialRelativePosition.Length() < 20 && !bTrapFinished) {
-			bTrapFinished = true;
-			
+			bTrapFinished = true;	
 		}
 
 		if (!bTrapFinished) {
 			//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
 			FVector vectorDirection = Soldier->GetMesh()->GetBoneLocation("foot_r") - ConstraintComp->GetComponentLocation();
-			FVector newLocation = getVectorInConstraintCoordinates(vectorDirection, 300.0f, DeltaTime);
+			FVector newLocation = getVectorInConstraintCoordinates(vectorDirection, 500.0f, DeltaTime);
 			initialRelativePosition = initialRelativePosition + newLocation;
 
 			ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);

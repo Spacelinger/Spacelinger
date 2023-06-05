@@ -379,6 +379,7 @@ void ASlime_A::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 	canTrace = true;
+	bHasLanded = true;
 
 }
 
@@ -477,7 +478,7 @@ void ASlime_A::CutSpiderWeb()
 		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 		spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
 	}
-	else
+	else if(spiderWebReference)
 	{
 		FHitResult Hit;
 		FCollisionQueryParams Params;

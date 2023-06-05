@@ -174,6 +174,8 @@ public:
 		float bSetInitialRelativeLocation;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		FVector initialRelativePosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "CR_Aniamtion")
+		bool bHasLanded = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;

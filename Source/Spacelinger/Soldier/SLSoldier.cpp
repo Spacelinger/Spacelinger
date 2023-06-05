@@ -81,6 +81,8 @@ void ASLSoldier::MoveToCeiling() {
 	MeshComp->bBlendPhysics = true;
 	// Enable "Simulation Generates Hit Events"
 	MeshComp->SetNotifyRigidBodyCollision(true);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetEnableGravity(false);
 	
 }
 
