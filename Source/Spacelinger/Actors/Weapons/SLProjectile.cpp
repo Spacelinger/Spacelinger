@@ -13,6 +13,7 @@ ASLProjectile::ASLProjectile()
 	CapsuleCollision->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 		CapsuleCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
 		CapsuleCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn,         ECollisionResponse::ECR_Overlap);
+		CapsuleCollision->SetCollisionProfileName("Projectile");
 	RootComponent = CapsuleCollision;
 
 	MovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement Component"));

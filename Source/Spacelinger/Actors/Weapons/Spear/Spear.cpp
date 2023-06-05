@@ -38,10 +38,18 @@ void ASpear::OnBeginOverlap_BoxCollision(
 	bool bFromSweep,
 	const FHitResult & SweepResult)
 {
-	// Check if OtherActor is different from the player pawn
-	if ((OtherActor != GetWorld()->GetFirstPlayerController()->GetPawn()) &&
+	if (!OtherActor)
+		return;
+
+		// Check if OtherActor is different from the player pawn
+	const bool bHitPlayer = (OtherActor == GetWorld()->GetFirstPlayerController()->GetPawn());
+	const bool bHitProjectil = OtherActor != this && !OtherActor->IsA<ASLProjectile>();
+	if (!bHitPlayer && !bHitProjectil)
+	{
+
+	}
 	// Check if OtherActor is not the spear itself and also not from classes SLProjectilePuddle and SLStickyPuddle
-	(OtherActor != this) && (!OtherActor->IsA(ASLProjectile::StaticClass())) /* &&
+	) /* &&
 	// Check if OtherActor can be cast to BP_InteractLockDoor_C, and if it can, then check if a "Cylinder" subobject is visible
 	(OtherActor->IsA(InteractLockDoor_C::StaticClass()) ? Cast<InteractLockDoor_C>(OtherActor)->Cylinder->IsVisible() : true) */)
 	{

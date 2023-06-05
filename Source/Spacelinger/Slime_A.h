@@ -7,6 +7,7 @@
 #include "InputActionValue.h"
 #include "CableComponent.h"
 #include "SpiderWeb.h"
+#include "AbilitySystemInterface.h"
 #include "Slime_A.generated.h"
 
 class USpringArmComponent;
@@ -14,9 +15,13 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class UStaticMeshComponent;
+class UPostProcessComponent;
+class UMCV_AbilitySystemComponent;
+class UStaminaAttributeSet;
+class UHealthAttributeSet;
 
 UCLASS(config = Game)
-class ASlime_A : public ACharacter
+class ASlime_A : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -25,6 +30,8 @@ class ASlime_A : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPostProcessComponent* PostProcessComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -39,16 +46,34 @@ class ASlime_A : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DebugAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* putSpiderWebAction;
+	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* increaseSpiderWebAction;
+	UInputAction* putSpiderWebAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* throwSpiderWebAction;
+	UInputAction* increaseSpiderWebAction;
+
+protected:
+	// GAS
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	UMCV_AbilitySystemComponent* AbilitySystemComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	UHealthAttributeSet* HealthAttributeSet = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
+	float MaxHealth = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	UStaminaAttributeSet* StaminaAttributeSet = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
+	float MaxStamina = 100.0f;
 
 public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Landed(const FHitResult& Hit) override;
+	UPostProcessComponent* GetPostProcessComponent() const;
 	void JumpToPosition();
 
 protected:
@@ -71,6 +96,7 @@ protected:
 	void HandleSlowTimeBehaviour(float DeltaTime);
 	void HandleJumpToLocationBehaviour();
 
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//ThrowSpiderWeb
 	FVector2D GetViewportCenter();
@@ -91,8 +117,12 @@ protected:
 	void keepClimbing();
 	void UpdateRotation(FVector planeNormal);
 	void StartClimbing();
+	void keepClimbing();
 	void StopClimbing();
+
+	void UpdateRotation(FVector planeNormal);
 	void AlignToPlane(FVector planeNormal);
+
 	double FloorThreshold = 0.9;
 	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
 	FORCEINLINE bool IsCeiling(FVector Normal) {
@@ -154,27 +184,8 @@ public:
 	FCollisionQueryParams TraceParams;
 	
 	// ============== Slow Time Ability
-public:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SlowTimeAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.1", UIMax = "1.0"))
-	float SlowTimeDilation = .2f;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.001", UIMax = "1.0"))
-	float PlayerSlowTimeCompensation = 5;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.01", UIMax = "0.5"))
-	float SlowTimeFadeInRate = 0.5;	// Fade in time for the slow time
-
 protected:
-	
-	FTimerHandle SlowTimeTimerHandle;
-	float CurrentSlowTimeDilation = 1;
-	bool bIsTimeSlowing = false;
-	float SlowStep = 0;
 
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
-	void SlowTimeFunc(float DeltaTime);
 };

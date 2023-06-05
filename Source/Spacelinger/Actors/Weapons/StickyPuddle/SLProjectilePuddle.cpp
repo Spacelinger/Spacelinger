@@ -27,7 +27,6 @@ void ASLProjectilePuddle::OnBeginOverlap_SphereCollision(
 	/* TODO(Sergi): Properly handle collisions instead of checking them in code */
 	// These are things we don't want to collide with
 	if (ASLProjectilePuddle *OtherProjectile = Cast<ASLProjectilePuddle>(OtherActor)) { return; }
-	if (!GetWorld()) { return; }
 	if (OtherActor == UGameplayStatics::GetPlayerPawn(GetWorld(), 0)) { return; }
 	/* END OF TODO */
 

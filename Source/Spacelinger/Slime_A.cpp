@@ -9,6 +9,13 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/PostProcessComponent.h"
+#include "Components/MCV_AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
+#include "AbilitySystemComponent.h"
+#include "GAS/Attributes/HealthAttributeSet.h"
+#include "GAS/Attributes/StaminaAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
 
@@ -45,6 +52,15 @@ ASlime_A::ASlime_A()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	// Create Post Process component
+	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcessComponent"));
+	PostProcessComponent->bUnbound = true;	// set to unbound so PPFX take whole map/screen
+
+	// Create GAS' Ability System Component and attributes
+	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
+	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("HealthAttributeSet"));
+	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -308,12 +324,6 @@ void ASlime_A::HandleHangingBehaviour()
 	}
 }
 
-void ASlime_A::HandleSlowTimeBehaviour(float DeltaTime)
-{
-	if (bIsTimeSlowing)
-		SlowTimeFunc(DeltaTime);
-}
-
 void ASlime_A::HandleJumpToLocationBehaviour()
 {
 	FVector TargetLocation = spiderWebReference->CableComponent->GetComponentLocation();
@@ -376,7 +386,32 @@ void ASlime_A::AlignToPlane(FVector planeNormal)
 	SetActorRotation(newTransform.Rotator());
 }
 
+// TODO: Esto va en el beginplay
+	// Init climbing stuff
+	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
+	DiagonalDirections.Reserve(8);
+	DiagonalDirections.Add(FVector( .5,  .5,  .5));
+	DiagonalDirections.Add(FVector(-.5,  .5,  .5));
+	DiagonalDirections.Add(FVector( .5, -.5,  .5));
+	DiagonalDirections.Add(FVector(-.5, -.5,  .5));
+	DiagonalDirections.Add(FVector( .5,  .5, -.5));
+	DiagonalDirections.Add(FVector(-.5,  .5, -.5));
+	DiagonalDirections.Add(FVector( .5, -.5, -.5));
+	DiagonalDirections.Add(FVector(-.5, -.5, -.5));
+	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
+		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
+	}
 
+	//GAS
+	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
+	
+	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -403,8 +438,8 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
 
 		// Slow Time Ability
-		EnhancedInputComponent->BindAction(SlowTimeAction, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
-		EnhancedInputComponent->BindAction(SlowTimeAction, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
+		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
+		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
 	}
 }
 
@@ -675,45 +710,25 @@ void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
 	bDrawDebugLines = !bDrawDebugLines;
 }
 
-// ============== Slow Time Ability
-void ASlime_A::SlowTime(const FInputActionValue& Value) {
-
-	bIsTimeSlowing = true;
-	SlowStep = (1-SlowTimeDilation) / SlowTimeFadeInRate;
+UAbilitySystemComponent* ASlime_A::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 
-void ASlime_A::SlowTimeFunc(float DeltaTime) {
-	// Fade in function to smooth slowing time ability
-	UWorld* World = GetWorld();
-	AWorldSettings* const WorldSettings = World->GetWorldSettings();
-	if (!WorldSettings)
-		return;
+UPostProcessComponent* ASlime_A::GetPostProcessComponent() const 
+{
+	return PostProcessComponent;
+}
 
-	CurrentSlowTimeDilation -= SlowStep * DeltaTime;
+// ============== Slow Time Ability
+void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
-	if (CurrentSlowTimeDilation <= SlowTimeDilation) {
-		WorldSettings->SetTimeDilation(SlowTimeDilation);
-		this->CustomTimeDilation = 1 / SlowTimeDilation;
-
-		bIsTimeSlowing = false;
-		CurrentSlowTimeDilation = 0;
-	}
-	else {
-		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
-		this->CustomTimeDilation = 1/ CurrentSlowTimeDilation;
-	}
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Started")), Payload);
 }
 
 void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
-	UWorld* World = GetWorld();
 
-	AWorldSettings* const WorldSettings = World->GetWorldSettings();
-	if (!WorldSettings)
-		return;
-
-	bIsTimeSlowing = false;
-	CurrentSlowTimeDilation = 1;
-
-	WorldSettings->SetTimeDilation(1);
-	this->CustomTimeDilation = 1;
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 }

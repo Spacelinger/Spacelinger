@@ -18,8 +18,15 @@ public class Spacelinger : ModuleRules
 			"UMG",
 			"AIModule",
 			"CableComponent",
-			"NavigationSystem"
-		});
+			"NavigationSystem",
+            "MCVGASFramework",
+			"GameplayTags",
+			"GameplayTasks",
+			"GameplayAbilities"
+        });
 		PublicIncludePaths.Add("Spacelinger");
-	}
+
+		PrivateDependencyModuleNames.AddRange(new string[] { "MCVGASFramework", "GameplayAbilities" });
+
+    }
 }

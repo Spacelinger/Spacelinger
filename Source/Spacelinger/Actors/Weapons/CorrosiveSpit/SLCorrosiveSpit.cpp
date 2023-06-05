@@ -33,8 +33,7 @@ void ASLCorrosiveSpit::OnBeginOverlap_SphereCollision(
 	/* END OF TODO */
 
 	// Following the example from UGameplayStatics::ApplyDamage()
-	TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
-	FDamageEvent DamageEvent(ValidDamageTypeClass);
+	FDamageEvent DamageEvent(UDamageType::StaticClass());
 	OtherActor->TakeDamage(INFINITY, DamageEvent, nullptr, nullptr);
 	Destroy();
 }
