@@ -20,6 +20,14 @@ class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
 class UHealthAttributeSet;
 
+UENUM(BlueprintType)
+enum SLSpiderAbility {
+	PutSpiderWeb = 0,
+	PutTrap,
+	ThrowSpiderWeb,
+	COUNT UMETA(Hidden),
+};
+
 UCLASS(config = Game)
 class ASlime_A : public ACharacter, public IAbilitySystemInterface
 {
@@ -46,9 +54,9 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DebugAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SlowTimeAbility;
+	UInputAction* throwAbilityAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* putSpiderWebAction;
+	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* increaseSpiderWebAction;
 
@@ -76,6 +84,8 @@ public:
 	UPostProcessComponent* GetPostProcessComponent() const;
 	void JumpToPosition();
 
+
+
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);
@@ -83,11 +93,12 @@ protected:
 	void Look(const FInputActionValue& Value);
 	void Climb(const FInputActionValue& Value);
 	void ToggleDrawDebugLines(const FInputActionValue& Value);
-	void PutSpiderWeb(const FInputActionValue& Value);
-	void ModifySpiderWeb(const FInputActionValue& Value);
-	void LockSpiderWeb(const FInputActionValue& Value);
-	void ThrowSpiderWeb(const FInputActionValue& Value);
+	void ThrowAbility(const FInputActionValue& Value);
+	
+	void SwitchAbility(const FInputActionValue& Value);
 	void StopJumpToPosition();
+
+	void PutTrap();
 
 	//Handlers
 	void HandleClimbingBehaviour();
@@ -95,6 +106,7 @@ protected:
 	void HandleHangingBehaviour();
 	void HandleSlowTimeBehaviour(float DeltaTime);
 	void HandleJumpToLocationBehaviour();
+	void ThrowSpiderWeb();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -103,6 +115,7 @@ protected:
 	FVector GetLookDirection(FVector2D ScreenLocation);
 	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
 	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached);
+	void PutSpiderWebAbility();
 
 	// Helpers
 	void PerformClimbingBehaviour(FVector ActorLocation);
@@ -122,6 +135,9 @@ protected:
 
 	void UpdateRotation(FVector planeNormal);
 	void AlignToPlane(FVector planeNormal);
+	void CutSpiderWeb();
+	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
+	FVector getRelativePositionPhysicsConstraint();
 
 	double FloorThreshold = 0.9;
 	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
@@ -133,6 +149,8 @@ private:
 	const float TraceDistance = 50.0f;
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
+	TArray<FVector> InitialDiagonalDirections;
+
 
 	bool bDrawDebugLines = true;
 
@@ -181,11 +199,27 @@ public:
 		bool bHasTrownSpiderWeb = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
+	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
+		float distanceConstraints ;
+	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
+		float bSetInitialRelativeLocation;
+	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
+		FVector initialRelativePosition;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "CR_Aniamtion")
+		bool bHasLanded = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
+		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
+
 	FCollisionQueryParams TraceParams;
 	
 	// ============== Slow Time Ability
+	UFUNCTION()
+		void OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 protected:
 
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
+	void SlowTimeFunc(float DeltaTime);
 };

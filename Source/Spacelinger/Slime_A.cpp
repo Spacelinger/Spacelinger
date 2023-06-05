@@ -18,6 +18,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
+#include "Engine/StaticMeshActor.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -66,6 +67,9 @@ ASlime_A::ASlime_A()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 	TraceParams.AddIgnoredActor(this);
 
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
+
+
 }
 
 void ASlime_A::BeginPlay()
@@ -83,6 +87,8 @@ void ASlime_A::BeginPlay()
 
 	// Init climbing stuff
 	DefaultMaxStepHeight = GetCharacterMovement()->MaxStepHeight;
+	
+
 	DiagonalDirections.Reserve(8);
 	DiagonalDirections.Add(FVector(.5, .5, .5));
 	DiagonalDirections.Add(FVector(-.5, .5, .5));
@@ -112,6 +118,43 @@ void ASlime_A::Tick(float DeltaTime)
 	{
 		HandleJumpToLocationBehaviour();
 	}
+
+
+	
+}
+
+void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
+	AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
+	if (StaticMeshActor && bJumpToLocation) {
+		StopJumpToPosition();
+	}
+}
+
+
+void ASlime_A::SwitchAbility(const FInputActionValue& Value)
+{
+	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
+	{
+		if (!bSetInitialRelativeLocation) {
+			bSetInitialRelativeLocation = true;
+			initialRelativePosition = getRelativePositionPhysicsConstraint();
+		}
+
+		//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
+		FVector vectorDirection = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
+		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 30.0f, 1.0f);
+		initialRelativePosition = initialRelativePosition + newLocation;
+
+		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
+		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
+	}
+	else {
+		int ActionValue = Value.GetMagnitude();
+		int CurrentAbility = SelectedSpiderAbility.GetValue();
+		CurrentAbility = (ActionValue + CurrentAbility + SLSpiderAbility::COUNT) % SLSpiderAbility::COUNT;
+		SelectedSpiderAbility = static_cast<SLSpiderAbility>(CurrentAbility);
+	}
+
 }
 
 void ASlime_A::keepClimbing()
@@ -243,6 +286,7 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 		FHitResult HitResult;
 		FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
 		bool bHit = ExecuteGroundTrace(ActorLocation, EndRayLocation, TraceParams, HitResult);
+		DrawDebugLinesIfNeeded(ActorLocation, EndRayLocation);
 
 		if (bHit && GetCapsuleComponent()->IsSimulatingPhysics())
 		{
@@ -339,19 +383,13 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 	SetActorRotation(TargetRotation);
 
-	// Check if the character has reached the destination
-	float DistanceThreshold = 20.0f; // Adjust this value as needed
-	float DistanceToTarget = FVector::Dist(CurrentLocation, TargetLocation);
-	if (DistanceToTarget <= DistanceThreshold)
-	{
-		StopJumpToPosition();
-	}
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
 {
 	Super::Landed(Hit);
 	canTrace = true;
+	bHasLanded = true;
 
 }
 
@@ -428,14 +466,11 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ASlime_A::Climb);
 
-		EnhancedInputComponent->BindAction(putSpiderWebAction, ETriggerEvent::Started, this, &ASlime_A::PutSpiderWeb);
-
-		EnhancedInputComponent->BindAction(throwSpiderWebAction, ETriggerEvent::Started, this, &ASlime_A::ThrowSpiderWeb);
-
-		EnhancedInputComponent->BindAction(increaseSpiderWebAction, ETriggerEvent::Started,   this, &ASlime_A::ModifySpiderWeb);
-		EnhancedInputComponent->BindAction(increaseSpiderWebAction, ETriggerEvent::Completed, this, &ASlime_A::LockSpiderWeb);
+		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
 
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
+
+		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
 
 		// Slow Time Ability
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
@@ -443,10 +478,13 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 	}
 }
 
-void ASlime_A::ThrowSpiderWeb(const FInputActionValue& Value)
+void ASlime_A::ThrowSpiderWeb()
 {
 	if (!bHasTrownSpiderWeb)
 	{
+		if (spiderWebReference != nullptr) {
+			CutSpiderWeb();
+		}
 		bHasTrownSpiderWeb = true;
 		FVector2D ScreenLocation = GetViewportCenter();
 		FVector LookDirection = GetLookDirection(ScreenLocation);
@@ -464,6 +502,38 @@ void ASlime_A::ThrowSpiderWeb(const FInputActionValue& Value)
 			SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false);
 		}
 	}
+}
+
+void ASlime_A::CutSpiderWeb()
+{
+	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
+	if (isHanging)
+	{
+		isHanging = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
+	}
+	else if(spiderWebReference)
+	{
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
+
+		if (bHit)
+		{
+			spiderWebReference->CableComponent->EndLocation = Hit.Location - spiderWebReference->CableComponent->GetComponentLocation();
+			spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
+		}
+		else
+		{
+			spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
+		}
+	}
+	attached = false;
+	attachedAtCeiling = false;
+	spiderWebReference = nullptr;
+	bSetInitialRelativeLocation = false;
 }
 
 
@@ -500,6 +570,70 @@ void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bo
 	spiderWebReference->setFuturePosition(HitLocation, this, bAttached);
 }
 
+void ASlime_A::PutTrap()
+{
+	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
+
+	FHitResult Hit;
+	FHitResult Hit2;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
+	bool bHit2 = GetWorld()->LineTraceSingleByChannel(Hit2, spiderPoint, spiderPoint + FVector::UpVector * -3000.0f, ECC_Visibility, Params);
+	DrawDebugLine(GetWorld(), spiderPoint + GetActorUpVector(), spiderPoint + FVector::UpVector * -3000.0f, FColor::Red, false, 0.2f, 0, 1.0f);
+
+	if (bHit)
+	{
+		FVector cablePosition = Hit.Location;
+		ASpiderWeb* spiderWebTrap = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), cablePosition, FRotator::ZeroRotator);
+		spiderWebTrap->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
+		if (bHit2)
+			spiderWebTrap->CableComponent->EndLocation = -(spiderWebTrap->CableComponent->GetComponentLocation() - Hit2.Location);
+		else
+			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
+		spiderWebTrap->SetTrap();
+	}
+}
+
+
+FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldBoneLocation = GetCapsuleComponent()->GetComponentLocation();
+
+	// Convert the constraint location to the local space of the bone
+	FTransform boneTransform = GetCapsuleComponent()->GetComponentTransform();
+
+	// Normalize the input vector
+	FVector NormalizedInput = input.GetSafeNormal();
+
+	// Apply speed and DeltaTime to the normalized input vector
+	FVector Velocity = NormalizedInput * Speed * DeltaTime;
+
+	// Update input with velocity
+	FVector inputAdapted = boneTransform.InverseTransformPosition(WorldBoneLocation + Velocity);
+
+	return inputAdapted;
+}
+
+
+
+FVector ASlime_A::getRelativePositionPhysicsConstraint() {
+
+	// Get the world space location of the physics constraint and the bone
+	FVector WorldConstraintLocation = spiderWebReference->ConstraintComp->GetComponentLocation();
+	FVector WorldBoneLocation = GetCapsuleComponent()->GetComponentLocation();
+
+	// Convert the constraint location to the local space of the bone
+	FTransform boneTransform = GetCapsuleComponent()->GetComponentTransform();
+
+	FVector LocalConstraintLocation = boneTransform.InverseTransformPosition(WorldConstraintLocation);
+
+	return LocalConstraintLocation;
+}
+
+
+
 
 
 
@@ -508,6 +642,7 @@ void ASlime_A::JumpToPosition() {
 	bJumpToLocation = true;
 	GetCapsuleComponent()->SetSimulatePhysics(true);
 	GetCapsuleComponent()->SetEnableGravity(false);
+	GetCapsuleComponent()->SetNotifyRigidBodyCollision(true);
 
 }
 
@@ -516,84 +651,24 @@ void ASlime_A::StopJumpToPosition() {
 	bHasTrownSpiderWeb = false;
 	GetCapsuleComponent()->SetSimulatePhysics(false);
 	GetCapsuleComponent()->SetEnableGravity(true);
+	GetCapsuleComponent()->SetNotifyRigidBodyCollision(false);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(nullptr, NAME_None);
 	spiderWebReference->CableComponent->bAttachEnd = false; // Attach the end of the cable to the spider web
 	spiderWebReference = nullptr;
 }
 
-void ASlime_A::LockSpiderWeb(const FInputActionValue& Value) {
-	//Enable physics simulation
-    //GetCapsuleComponent()->SetSimulatePhysics(true);
-
-	// Reactivate the constraint
-	//spiderWebReference->ConstraintComp->Activate();
-}
-
-void ASlime_A::ModifySpiderWeb(const FInputActionValue& Value)
-{
-	// Early return if these conditions are not met
-	if (!AtCeiling || !attachedAtCeiling || spiderWebReference == nullptr) return;
-
-	if (!isHanging)
-	{
-		isHanging = true;
-		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-		GetCapsuleComponent()->SetSimulatePhysics(true);
-
-		spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
-
-		spiderWebReference->ConstraintComp->SetConstrainedComponents(
-			spiderWebReference->StartLocationCable, NAME_None,
-			GetCapsuleComponent(), NAME_None
-		);
-
-		// Set the linear motion types to 'limited'
-		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, 0.0f);
-	}
-	else
-	{
-		float LinearLimit = spiderWebReference->ConstraintComp->ConstraintInstance.GetLinearLimit();
-		float newLimit = LinearLimit + Value.GetMagnitude() * 2000.0f * GetWorld()->GetDeltaSeconds();
-		newLimit = FMath::Max(0.0f, newLimit);
-
-		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, ELinearConstraintMotion::LCM_Limited, newLimit);
-		spiderWebReference->ConstraintComp->ConstraintInstance.UpdateLinearLimit();
-	}
-}
 
 
-void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
-{
+
+void ASlime_A::PutSpiderWebAbility() {
+	if (bJumpToLocation)
+		return;
+
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
 
 	if (spiderWebReference != nullptr)
 	{
-		if (isHanging)
-		{
-			isHanging = false;
-			GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-			spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
-		}
-		else
-		{
-			FHitResult Hit;
-			FCollisionQueryParams Params;
-			Params.AddIgnoredActor(this);
-			bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
-
-			if (bHit)
-			{
-				spiderWebReference->CableComponent->EndLocation = Hit.Location - spiderWebReference->CableComponent->GetComponentLocation();
-				spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
-			}
-			else
-			{
-				spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
-			}
-		}
-		attached = false;
-		attachedAtCeiling = false;
-		spiderWebReference = nullptr;
+		CutSpiderWeb();
 	}
 	else
 	{
@@ -612,6 +687,20 @@ void ASlime_A::PutSpiderWeb(const FInputActionValue& Value)
 			attachedAtCeiling = IsCeiling(previousNormal);
 		}
 	}
+}
+
+void ASlime_A::ThrowAbility(const FInputActionValue& Value)
+{
+	switch (SelectedSpiderAbility)
+	{
+	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
+	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(); break;
+	case SLSpiderAbility::PutTrap: PutTrap(); break;
+
+	default:
+		break;
+	}
+	
 }
 
 
@@ -692,9 +781,30 @@ void ASlime_A::StopClimbing() {
 #include <Kismet/KismetMathLibrary.h>
 void ASlime_A::Climb(const FInputActionValue& Value)
 {
-	if (bIsClimbing) {
-		canTrace = false;
-		StopClimbing();
+	
+
+	if (attachedAtCeiling && AtCeiling) {
+		isHanging = true;
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCapsuleComponent()->SetSimulatePhysics(true);
+
+		spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
+
+		spiderWebReference->ConstraintComp->SetConstrainedComponents(
+			spiderWebReference->StartLocationCable, NAME_None,
+			GetCapsuleComponent(), NAME_None
+		);
+
+		// Set the linear motion types to 'limited'
+		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
+		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
+
+	}
+	else {
+		if (bIsClimbing) {
+			canTrace = false;
+			StopClimbing();
+		}
 	}
 }
 

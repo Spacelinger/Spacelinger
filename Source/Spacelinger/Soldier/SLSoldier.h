@@ -12,6 +12,7 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 
 public:
 	ASLSoldier();
+	virtual void Tick(float DeltaTime) override;
 
 // Interact stuff
 public:
@@ -19,4 +20,13 @@ public:
 	int GetInteractPriority() const;
 	void Interact(AActor* ActorInteracting);
 	void SetAsCandidate(bool IsCandidate);
+	void MoveToCeiling();
+	void StopAdaptToCeiling();
+	void AdaptToCeiling();
+
+	UFUNCTION()
+		void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
+		bool bMoveToCeiling = false;
 };
