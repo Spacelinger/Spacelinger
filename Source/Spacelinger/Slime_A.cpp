@@ -136,7 +136,7 @@ void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* Other
 	}
 }
 
-
+#pragma optimize("", off)
 void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
 	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
@@ -149,8 +149,10 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 		//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
 		FVector vectorDirection = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
 		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 30.0f, 1.0f);
+		if(initialRelativePosition.Length()<30 && Value.GetMagnitude()>0){
+			return;
+		}
 		initialRelativePosition = initialRelativePosition + newLocation;
-
 		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
 		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
 	}
@@ -162,6 +164,8 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 	}
 
 }
+#pragma optimize("", on)
+
 
 void ASlime_A::keepClimbing()
 {
@@ -443,6 +447,7 @@ void ASlime_A::UpdateBaseCameraRotation(FVector CurrentNormal) {
 }
 void ASlime_A::UpdateCameraRotation() {
 	CameraBoom->SetRelativeRotation(BaseCameraRotation.Rotator().Quaternion() * InputRotator.Quaternion());
+	//CameraBoom->SetRelativeRotation(InputRotator.Quaternion());
 }
 
 //////////////////////////////////////////////////////////////////////////
