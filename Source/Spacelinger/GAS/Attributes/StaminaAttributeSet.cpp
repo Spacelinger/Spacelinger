@@ -4,13 +4,13 @@
 #include "GAS/Attributes/StaminaAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include <AbilitySystemBlueprintLibrary.h>
+#include "GAS/Effects/GE_StaminaRecovery.h"
 
 void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) {
 	Super::PreAttributeChange(Attribute, NewValue);
 
 	if (Attribute == GetStaminaAttribute()) {
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxStamina());
-		UE_LOG(LogTemp, Warning, TEXT("Stamina val %f"), NewValue);
 	}
 }
 
@@ -35,6 +35,7 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 			{
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerActor, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.Empty")), Payload);
 			
+
 				// Here or at abilities end might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0.x values of it
 			}
 		}

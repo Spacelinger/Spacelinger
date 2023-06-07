@@ -224,5 +224,4 @@ protected:
 
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
-	void SlowTimeFunc(float DeltaTime);
 };

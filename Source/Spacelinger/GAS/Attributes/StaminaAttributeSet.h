@@ -9,6 +9,8 @@
 /**
  * 
  */
+
+
 UCLASS()
 class SPACELINGER_API UStaminaAttributeSet : public UMCV_AttributeSet
 {
@@ -24,10 +26,12 @@ public:
 	FGameplayAttributeData MaxStamina = 100.0f;
 	ATTRIBUTE_ACCESSORS(UStaminaAttributeSet, MaxStamina)
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FActiveGameplayEffectHandle StaminaRecoveryEffect;
+
 public:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
-
 };

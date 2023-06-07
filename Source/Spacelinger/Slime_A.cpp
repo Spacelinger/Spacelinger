@@ -15,6 +15,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/HealthAttributeSet.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
+#include "GAS/Effects/GE_StaminaRecovery.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
@@ -110,6 +111,11 @@ void ASlime_A::BeginPlay()
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+		
+		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
+		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);
+		StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
+		// TODO
 	}
 }
 
@@ -835,10 +841,13 @@ void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Started")), Payload);
+	//StaminaAttributeSet->StaminaRecoveryValueSpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);
 }
 
 void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
+	//StaminaAttributeSet->StaminaRecoveryValueSpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), 4.0f);
+
 }
