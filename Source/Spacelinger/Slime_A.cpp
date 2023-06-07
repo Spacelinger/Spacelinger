@@ -362,6 +362,7 @@ void ASlime_A::HandleClimbingBehaviour()
 	}
 }
 
+
 void ASlime_A::HandleAttachedBehaviour()
 {
 	if (attached)
@@ -389,7 +390,7 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	Direction.Normalize();
 
 	// Apply force to move the character
-	FVector Force = Direction * 20000.0f;
+	FVector Force = Direction * 30000.0f;
 	GetCapsuleComponent()->AddForce(Force);
 
 	// Rotate the character towards the target location
@@ -446,8 +447,8 @@ void ASlime_A::UpdateBaseCameraRotation(FVector CurrentNormal) {
 	UpdateCameraRotation();
 }
 void ASlime_A::UpdateCameraRotation() {
-	CameraBoom->SetRelativeRotation(BaseCameraRotation.Rotator().Quaternion() * InputRotator.Quaternion());
-	//CameraBoom->SetRelativeRotation(InputRotator.Quaternion());
+	//CameraBoom->SetRelativeRotation(BaseCameraRotation.Rotator().Quaternion() * InputRotator.Quaternion());
+	CameraBoom->SetRelativeRotation(InputRotator.Quaternion());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -695,11 +696,24 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
 	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
+	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
 
 	default:
 		break;
 	}
 	
+}
+
+void ASlime_A::MeleeAttack() {
+	if (fBlendingFactor == 0) {
+
+		fBlendingFactor = 1.0f;
+	}
+	
+}
+
+void ASlime_A::ResetBlendingFactor() {
+	fBlendingFactor = 0.0f;
 }
 
 
