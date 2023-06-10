@@ -41,9 +41,6 @@ public:
 	// If the AI is alerted, but not necessarily detecting the player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	bool bIsAlerted = false;
-	// If the patrol mechanic must be disabled
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
-	bool bCanPatrol = true;
 
 	// AI Guarding
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
@@ -68,6 +65,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
+
+	UFUNCTION(BlueprintCallable)
+	bool CanPatrol() const;
 
 private:
 	UFUNCTION()

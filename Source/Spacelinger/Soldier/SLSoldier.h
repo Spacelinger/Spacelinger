@@ -5,6 +5,15 @@
 #include "Interact_Luis/Interfaces/InteractInterface.h"
 #include "SLSoldier.generated.h"
 
+UENUM()
+enum SoldierAIState {
+	IDLE,
+	SUSPICIOUS,
+	ALERTED,
+	AIMING,
+	ATTACK
+};
+
 UCLASS(config=Game)
 class ASLSoldier : public ACharacter, public IInteractInterface
 {
@@ -25,8 +34,13 @@ public:
 	void AdaptToCeiling();
 
 	UFUNCTION()
-		void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
-		bool bMoveToCeiling = false;
+	bool bMoveToCeiling = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	bool bCanPatrol = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	TEnumAsByte<SoldierAIState> AnimationState = SoldierAIState::IDLE;
 };
