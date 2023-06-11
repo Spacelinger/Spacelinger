@@ -861,3 +861,95 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 }
+
+/*
+// Stunning Web Ability
+void ASlime_A::AimStunningWeb(const FInputActionValue& Value)
+{
+	if (Value.Get<float>() > 0.0f)
+	{
+		isAimingStunningWeb = true;
+		// Spawn the reticle if it doesn't exist
+		if (!reticleReference)
+		{
+			reticleReference = GetWorld()->SpawnActor<AReticle>(AReticle::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+		}
+
+		// Get the mouse position and convert it to a world position
+		FVector2D mousePosition;
+		APlayerController* playerController = Cast<APlayerController>(GetController());
+		if (playerController)
+		{
+			playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
+		}
+		FVector worldPosition;
+		FVector worldDirection;
+		FVector worldUp;
+		playerController->DeprojectMousePositionToWorld(worldPosition, worldDirection, worldUp);
+
+		// Trace from the camera to the world position
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, worldPosition, worldPosition + worldDirection * 10000.0f, ECC_Visibility, Params);
+
+		// If the trace hit something, set the reticle's location to the hit location
+		if (bHit)
+		{
+			reticleReference->SetActorLocation(Hit.Location);
+		}
+	}
+	else
+	{
+		bIsAimingStunningWeb = false;
+		// Destroy the reticle if it exists
+		if (reticleReference)
+		{
+			reticleReference->Destroy();
+			reticleReference = nullptr;
+		}
+	}
+}
+	
+
+
+void ASlime_A::ThrowStunningWeb(const FInputActionValue& Value)
+{
+	// If the player is aiming the web, throw it
+	if (reticleReference)
+	{
+		// Get the mouse position and convert it to a world position
+		FVector2D mousePosition;
+		APlayerController* playerController = Cast<APlayerController>(GetController());
+		if (playerController)
+		{
+			playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
+		}
+		FVector worldPosition;
+		FVector worldDirection;
+		FVector worldUp;
+		playerController->DeprojectMousePositionToWorld(worldPosition, worldDirection, worldUp);
+
+		// Trace from the camera to the world position
+		FHitResult Hit;
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, worldPosition, worldPosition + worldDirection * 10000.0f, ECC_Visibility, Params);
+
+		// If the trace hit something, throw the web
+		if (bHit)
+		{
+			// Spawn the web
+			AStunningWeb* web = GetWorld()->SpawnActor<AStunningWeb>(AStunningWeb::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
+
+			// Set the web's target location
+			web->SetTargetLocation(Hit.Location);
+
+			// Destroy the reticle
+			reticleReference->Destroy();
+			reticleReference = nullptr;
+		}
+	}
+	
+}
+*/
