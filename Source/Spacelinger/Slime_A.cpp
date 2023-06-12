@@ -148,13 +148,15 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 
 		//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
 		FVector vectorDirection = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
-		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 30.0f, 1.0f);
+		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 20.0f, 1.0f);
 		if(initialRelativePosition.Length()<30 && Value.GetMagnitude()>0){
 			return;
 		}
 		initialRelativePosition = initialRelativePosition + newLocation;
 		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
 		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
+		// Force an immediate update of component transforms
+		
 	}
 	else {
 		int ActionValue = Value.GetMagnitude();
@@ -813,6 +815,12 @@ void ASlime_A::Climb(const FInputActionValue& Value)
 		// Set the linear motion types to 'limited'
 		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
 		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
+
+		spiderWebReference->ConstraintComp->SetAngularDriveMode(EAngularDriveMode::TwistAndSwing);
+		spiderWebReference->ConstraintComp->SetAngularTwistLimit(EAngularConstraintMotion::ACM_Locked, 0.0f);
+
+		// Enable the Angular Drive
+
 
 	}
 	else {
