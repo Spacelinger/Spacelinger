@@ -136,7 +136,7 @@ void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* Other
 	}
 }
 
-
+#pragma optimize("", off)
 void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
 	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
@@ -149,8 +149,10 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 		//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
 		FVector vectorDirection = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
 		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 30.0f, 1.0f);
+		if(initialRelativePosition.Length()<30 && Value.GetMagnitude()>0){
+			return;
+		}
 		initialRelativePosition = initialRelativePosition + newLocation;
-
 		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
 		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
 	}
@@ -162,6 +164,8 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 	}
 
 }
+#pragma optimize("", on)
+
 
 void ASlime_A::keepClimbing()
 {
@@ -358,6 +362,7 @@ void ASlime_A::HandleClimbingBehaviour()
 	}
 }
 
+
 void ASlime_A::HandleAttachedBehaviour()
 {
 	if (attached)
@@ -385,7 +390,7 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	Direction.Normalize();
 
 	// Apply force to move the character
-	FVector Force = Direction * 20000.0f;
+	FVector Force = Direction * 30000.0f;
 	GetCapsuleComponent()->AddForce(Force);
 
 	// Rotate the character towards the target location
@@ -442,7 +447,8 @@ void ASlime_A::UpdateBaseCameraRotation(FVector CurrentNormal) {
 	UpdateCameraRotation();
 }
 void ASlime_A::UpdateCameraRotation() {
-	CameraBoom->SetRelativeRotation(BaseCameraRotation.Rotator().Quaternion() * InputRotator.Quaternion());
+	//CameraBoom->SetRelativeRotation(BaseCameraRotation.Rotator().Quaternion() * InputRotator.Quaternion());
+	CameraBoom->SetRelativeRotation(InputRotator.Quaternion());
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -690,11 +696,24 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
 	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
+	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
 
 	default:
 		break;
 	}
 	
+}
+
+void ASlime_A::MeleeAttack() {
+	if (fBlendingFactor == 0) {
+
+		fBlendingFactor = 1.0f;
+	}
+	
+}
+
+void ASlime_A::ResetBlendingFactor() {
+	fBlendingFactor = 0.0f;
 }
 
 

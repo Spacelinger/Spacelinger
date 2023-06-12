@@ -25,6 +25,7 @@ enum SLSpiderAbility {
 	PutSpiderWeb = 0,
 	PutTrap,
 	ThrowSpiderWeb,
+	MeleeAttack,
 	COUNT UMETA(Hidden),
 };
 
@@ -131,6 +132,9 @@ protected:
 	void UpdateRotation(FVector planeNormal);
 	void StartClimbing();
 	void StopClimbing();
+	void ResetBlendingFactor();
+
+	void MeleeAttack();
 
 	void AlignToPlane(FVector planeNormal);
 	void CutSpiderWeb();
@@ -210,6 +214,8 @@ public:
 		FVector initialRelativePosition;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "CR_Aniamtion")
 		bool bHasLanded = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
+		float fBlendingFactor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
