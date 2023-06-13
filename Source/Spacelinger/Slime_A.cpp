@@ -122,6 +122,43 @@ void ASlime_A::Tick(float DeltaTime)
 		HandleClimbingBehaviour();
 		HandleAttachedBehaviour();
 		HandleHangingBehaviour();
+
+		if (isHanging) {
+
+
+			// Get the positions of both agents
+			FVector Position1 = GetMesh()->GetSocketLocation("SpiderWebPoint");
+			FVector Position2 = spiderWebReference->ConstraintComp->GetComponentLocation();
+
+			// Create a vector from Agent1 to Agent2
+			FVector VectorFrom1To2 = Position2 - Position1;
+
+			// Normalize the vector
+			VectorFrom1To2.Normalize();
+
+			// To compare to vertical alignment, create a vertical vector. In Unreal, Z is usually up.
+			FVector VerticalVector = FVector(0, 0, 1);
+
+			// Calculate the dot product between the vertical vector and the vector from Agent1 to Agent2
+			float DotProduct = FVector::DotProduct(VectorFrom1To2, VerticalVector);
+
+			// Use the arccosine (acos) function to find the angle. Unreal Engine's math library uses radians, so convert it to degrees.
+			float AngleInDegrees = FMath::Acos(DotProduct) * (180.0f / PI);
+
+			// Map the clamped angle to the range of angular damping values (0 to 5)
+			// If the range of AngleInDegrees is -90 to 90, then we first add 90 to the angle to get a range from 0 to 180
+			// Then we divide by 180 to get a range from 0 to 1
+			// Finally, we multiply by 5 to get a range from 0 to 5
+			// Subtract the result from 5 to invert the mapping
+			float MappedAngularDamping = 5.0f - ((AngleInDegrees + 90.0f) / 180.0f) * 5.0f;
+
+			// Set the angular damping
+			GetCapsuleComponent()->SetAngularDamping(MappedAngularDamping);
+
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("The angle is %f degrees"), AngleInDegrees));
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("The inverted mapped angular damping is %f"), MappedAngularDamping));
+
+		}
 	}
 	else
 	{
@@ -155,6 +192,9 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 		initialRelativePosition = initialRelativePosition + newLocation;
 		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
 		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
+		FVector HangingForce = FVector(0.0f,0.0f,0.0f) * 3000.0f;
+		GetCapsuleComponent()->AddForce(HangingForce);
+
 		// Force an immediate update of component transforms
 		
 	}
@@ -508,6 +548,7 @@ void ASlime_A::ThrowSpiderWeb()
 
 void ASlime_A::CutSpiderWeb()
 {
+	GetCapsuleComponent()->SetAngularDamping(0.0f);
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
 	if (isHanging)
 	{
@@ -743,7 +784,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 
 	if (isHanging)
 	{
-		FVector HangingForce = MovementDirection * 3000.0f;
+		FVector HangingForce = MovementDirection * 30000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
 	else
@@ -801,6 +842,7 @@ void ASlime_A::Climb(const FInputActionValue& Value)
 	
 
 	if (attachedAtCeiling && AtCeiling) {
+
 		isHanging = true;
 		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 		GetCapsuleComponent()->SetSimulatePhysics(true);
@@ -815,12 +857,7 @@ void ASlime_A::Climb(const FInputActionValue& Value)
 		// Set the linear motion types to 'limited'
 		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
 		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
-
-		spiderWebReference->ConstraintComp->SetAngularDriveMode(EAngularDriveMode::TwistAndSwing);
-		spiderWebReference->ConstraintComp->SetAngularTwistLimit(EAngularConstraintMotion::ACM_Locked, 0.0f);
-
 		// Enable the Angular Drive
-
 
 	}
 	else {

@@ -60,6 +60,7 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchAbilityAction;
+
 	
 
 protected:
@@ -216,6 +217,8 @@ public:
 		bool bHasLanded = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
 		float fBlendingFactor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
+		float angleAlign;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
