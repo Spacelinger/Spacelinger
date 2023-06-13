@@ -21,16 +21,12 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	AAIController* MyController = OwnerComp.GetAIOwner();
 	ensure(MyController);
 
-	APawn *MyPawn = MyController->GetInstigator();
-	ensure(MyPawn);
-	AActor *MyActor = Cast<AActor>(MyPawn);
+	AActor *MyActor = Cast<AActor>(MyController->GetInstigator());
 	ensure(MyActor);
 
 	UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
 	ensure(MyBlackboard);
-	UObject *PlayerObject = MyBlackboard->GetValueAsObject(PlayerSeenKey);
-	ensure(PlayerObject);
-	AActor *PlayerActor = Cast<AActor>(PlayerObject);
+	AActor *PlayerActor = Cast<AActor>(MyBlackboard->GetValueAsObject(PlayerSeenKey));
 	ensure(PlayerActor);
 
 	FVector MyLocation     = MyActor->GetActorLocation();
