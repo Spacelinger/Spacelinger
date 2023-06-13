@@ -51,7 +51,7 @@ void UGA_SlowTime::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	TagContainer.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Cost.SlowTime")));	// Hardcoded, couldn't find how to link with GetCostGameEffect()
 	GetAbilitySystemComponentFromActorInfo()->RemoveActiveEffectsWithSourceTags(TagContainer);
 
-	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
+	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime"))); 
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

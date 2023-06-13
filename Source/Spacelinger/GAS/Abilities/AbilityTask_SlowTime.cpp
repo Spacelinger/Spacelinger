@@ -10,7 +10,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "GameFramework/SpringArmComponent.h"
-
+#include "GAS/Attributes/StaminaAttributeSet.h"
 
 UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -93,6 +93,8 @@ void UAbilityTask_SlowTime::Activate()
 		
 		PPComp->Settings.WeightedBlendables.Array.Add(WeightedBlendable);
 	}
+	
+	Slime->SetStaminaRecoveryValue(StaminaCostOverTime);
 
 	/*
 	USpringArmComponent* CameraBoom;
@@ -123,6 +125,8 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 		FPostProcessSettings* PostProcessSettings = new FPostProcessSettings();
 		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
 	}
+
+	Cast<ASlime_A>(Player)->ResetStaminaRecoveryValue();
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -158,6 +162,8 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 		FPostProcessSettings* PostProcessSettings = new FPostProcessSettings();
 		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
 	}
+
+	Cast<ASlime_A>(Player)->ResetStaminaRecoveryValue();
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{

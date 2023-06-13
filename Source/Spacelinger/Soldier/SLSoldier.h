@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interact_Luis/Interfaces/InteractInterface.h"
+#include "Interfaces/InteractInterface.h"
 #include "SLSoldier.generated.h"
 
 UCLASS(config=Game)

@@ -34,9 +34,15 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 			if (CurrentStamina <= 0.0f) 
 			{
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerActor, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.Empty")), Payload);
-			
 
 				// Here or at abilities end might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0.x values of it
 			}
 		}
 }
+
+void UStaminaAttributeSet::SetStaminaRecoveryValue(float Value)
+{
+	GetOwningAbilitySystemComponent()->
+		UpdateActiveGameplayEffectSetByCallerMagnitude(StaminaRecoveryEffect, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.RecoveryValue")), Value);
+}
+

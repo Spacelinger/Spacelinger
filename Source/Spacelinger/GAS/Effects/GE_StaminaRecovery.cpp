@@ -7,7 +7,7 @@
 UGE_StaminaRecovery::UGE_StaminaRecovery() {
 
 	DurationPolicy = EGameplayEffectDurationType::Infinite;
-	Period = .5f;
+	Period = .25f;
 	bExecutePeriodicEffectOnApplication = false;
 
 	FGameplayModifierInfo modifierInfo;

@@ -20,6 +20,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
 #include "Engine/StaticMeshActor.h"
+#include "Components/BoxComponent.h"
+#include "Components/InteractingComponent.h"
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -58,6 +61,14 @@ ASlime_A::ASlime_A()
 	// Create Post Process component
 	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcessComponent"));
 	PostProcessComponent->bUnbound = true;	// set to unbound so PPFX take whole map/screen
+
+	// Interact Component
+
+	InteractingComponent = CreateDefaultSubobject<UInteractingComponent>(TEXT("Interacting Component"));
+	
+	// Interact Collider component
+	InteractCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Interact Collision Component"));
+	InteractCollisionComponent->SetupAttachment(RootComponent);
 
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
@@ -113,9 +124,8 @@ void ASlime_A::BeginPlay()
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 		
 		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
-		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);
+		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
 		StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
-		// TODO
 	}
 }
 
@@ -471,6 +481,8 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
 
 		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASlime_A::Interact);
 
 		// Slow Time Ability
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
@@ -836,6 +848,12 @@ UPostProcessComponent* ASlime_A::GetPostProcessComponent() const
 	return PostProcessComponent;
 }
 
+void ASlime_A::Interact(const FInputActionValue& Value)
+{
+	InteractingComponent->TryToInteract();
+}
+
+
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value) {
 	
@@ -850,4 +868,9 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 	//StaminaAttributeSet->StaminaRecoveryValueSpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), 4.0f);
 
+}
+
+void ASlime_A::SetStaminaRecoveryValue(float Value)
+{
+	StaminaAttributeSet->SetStaminaRecoveryValue(Value);
 }

@@ -19,6 +19,9 @@ class UPostProcessComponent;
 class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
 class UHealthAttributeSet;
+class IInteractInterface;
+class UInteractingComponent;
+class UBoxComponent;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -38,7 +41,7 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UPostProcessComponent* PostProcessComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -59,7 +62,14 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchAbilityAction;
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UInteractingComponent* InteractingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* InteractCollisionComponent;
 
 protected:
 	// GAS
@@ -78,6 +88,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
 	float MaxStamina = 100.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	float DefaultStaminaRecovertRate = 2.5f;
+
+	// Interact
+	IInteractInterface* CurrentInteractable = nullptr;
+
 public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
@@ -95,6 +111,7 @@ protected:
 	void Climb(const FInputActionValue& Value);
 	void ToggleDrawDebugLines(const FInputActionValue& Value);
 	void ThrowAbility(const FInputActionValue& Value);
+	void Interact(const FInputActionValue& Value);
 	
 	void SwitchAbility(const FInputActionValue& Value);
 	void StopJumpToPosition();
@@ -216,12 +233,16 @@ public:
 
 	FCollisionQueryParams TraceParams;
 	
-	// ============== Slow Time Ability
 	UFUNCTION()
 		void OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	// ============== Slow Time Ability
 protected:
 
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
+
+public:
+	void SetStaminaRecoveryValue(float Value);
+	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(DefaultStaminaRecovertRate); }
 };
