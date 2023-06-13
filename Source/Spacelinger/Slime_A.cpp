@@ -855,19 +855,16 @@ void ASlime_A::Interact(const FInputActionValue& Value)
 
 
 // ============== Slow Time Ability
-void ASlime_A::SlowTime(const FInputActionValue& Value) {
-	
+void ASlime_A::SlowTime(const FInputActionValue& Value)
+{	
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Started")), Payload);
-	//StaminaAttributeSet->StaminaRecoveryValueSpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);
 }
 
-void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
-
+void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) 
+{
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
-	//StaminaAttributeSet->StaminaRecoveryValueSpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), 4.0f);
-
 }
 
 void ASlime_A::SetStaminaRecoveryValue(float Value)

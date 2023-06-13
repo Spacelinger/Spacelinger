@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "InteractingComponent.generated.h"
 
+class UInteractableComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class SPACELINGER_API UInteractingComponent : public UActorComponent
@@ -29,8 +30,17 @@ protected:
 	UFUNCTION()
 	void OnBoundsEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex);
 	
+	void Refresh();
 	UPROPERTY()
-	AActor* CurrentInteractableActor = nullptr;
+	AActor* CurrentInteractableActor = nullptr;				//Might not need. Consider delete
 
+	UPROPERTY()
+	UInteractableComponent* CurrentInteractable = nullptr;	//Might not need. Consider delete
+
+	UPROPERTY()
+	TArray<AActor*> CurrentInteractables2;
+
+	UPROPERTY()
+	TArray<UInteractableComponent*> CurrentInteractables;
 		
 };

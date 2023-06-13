@@ -16,23 +16,19 @@ void UInteractingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Retrieve all components from my owner with the Tag "InteractVolume" of class PrimitiveComponent
-	// Which is the one supporting the Begin/End overlap methods
+	// Retrieve all components from my owner with the Tag "Interact Volume" of class PrimitiveComponent
+	// This tag has to be set from the actor BP
 	TArray<UActorComponent*> Comps = GetOwner()->GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("Interact Volume"));
 
-	UE_LOG(LogTemp, Warning, TEXT(" ############## Found %d interact componenets in actor"), Comps.Num());
-
-	// Foreach one, bind myself to the Begin/EndOverlap
+	// In case there are multiple, for each one, bind myself to the Begin/End Overlap
 	for (UActorComponent* Comp : Comps)
 	{
-		// Confirm the component is of the type PrimComponent
 		if (UPrimitiveComponent* PrimComp = Cast< UPrimitiveComponent>(Comp))
 		{
 			PrimComp->OnComponentBeginOverlap.AddDynamic(this, &UInteractingComponent::OnBoundsBeginOverlap);
 			PrimComp->OnComponentEndOverlap.AddDynamic(this, &UInteractingComponent::OnBoundsEndOverlap);
 		}
 	}
-	
 }
 
 bool UInteractingComponent::TryToInteract_Validate()
@@ -42,36 +38,57 @@ bool UInteractingComponent::TryToInteract_Validate()
 
 void UInteractingComponent::TryToInteract_Implementation()
 {
-
-	if (CurrentInteractableActor)
+	if (CurrentInteractable)
 	{
-		
-		UInteractableComponent* ActorInteractComp = CurrentInteractableActor->FindComponentByClass<UInteractableComponent>();
-		if (ActorInteractComp)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Interacting with %s"), *CurrentInteractableActor->GetName());
-			ActorInteractComp->Interact(GetOwner());
-		}
+		UE_LOG(LogTemp, Warning, TEXT("Interacting with %s from %s"), *CurrentInteractable->GetOwner()->GetName(), *GetOwner()->GetName());
+		CurrentInteractable->Interact(GetOwner());
 	}
 }
 
 void UInteractingComponent::OnBoundsBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex,
 	bool bFromSweep, const FHitResult& SweepResult)
 {
-	//if (IInteractInterface* Candidate = Cast<IInteractInterface>(OtherActor))
-	if (AActor* Candidate = OtherActor->FindComponentByClass<UInteractableComponent>()->GetOwner())
+	if (UInteractableComponent* Candidate = OtherActor->FindComponentByClass<UInteractableComponent>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Begin overlap"));
-		CurrentInteractableActor = OtherActor;
+
+		CurrentInteractables.AddUnique(Candidate);
+		CurrentInteractables.StableSort([](const UInteractableComponent& A, const UInteractableComponent& B) {
+			return A.GetInteractPriority() < B.GetInteractPriority();
+			});
+		Refresh();
 	}
 }
 
 void UInteractingComponent::OnBoundsEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex)
 {
-	if (IInteractInterface* Candidate = Cast<IInteractInterface>(OtherActor))
+	if (OtherActor->FindComponentByClass<UInteractableComponent>())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("End overlap"));
-		CurrentInteractableActor = nullptr;
+		CurrentInteractables.Remove(OtherActor->FindComponentByClass<UInteractableComponent>());
+		Refresh();
+	}
+}
+
+void UInteractingComponent::Refresh()
+{
+	// Get the new current
+	UInteractableComponent* NewCurrent = CurrentInteractables.Num() ? CurrentInteractables[0] : nullptr;
+
+	if (NewCurrent == CurrentInteractable)
+	{
+		return;
 	}
 
+	// Tell the old one that he is no longer in the CanInteract state
+	if (CurrentInteractable)
+	{
+		CurrentInteractable->RemoveAsCandidate(GetOwner());
+		CurrentInteractable = nullptr;
+	}
+
+	// Tell the new actor that we are starting to interact with it
+	if (NewCurrent)
+	{
+		CurrentInteractable = NewCurrent;
+		CurrentInteractable->SetAsCandidate(GetOwner());
+	}
 }

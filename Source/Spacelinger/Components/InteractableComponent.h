@@ -7,6 +7,9 @@
 #include "Interfaces/InteractInterface.h"
 #include "InteractableComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetCandidate, AActor*, InteractingActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemoveCandidate, AActor*, InteractingActor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, InteractingActor);
 
 UCLASS()
 class SPACELINGER_API UInteractableComponent : public UActorComponent, public IInteractInterface
@@ -15,23 +18,30 @@ class SPACELINGER_API UInteractableComponent : public UActorComponent, public II
 	
 public:	
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (UIMin = "0", UIMax = "99"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (UIMin = "1", UIMax = "99"))
 	int Priority = 50;
 
 	UInteractableComponent();
 
 	virtual void BeginPlay() override;
 
-	virtual void StartCanInteract(AActor* ActorInteracting) override;
-	virtual void EndCanInteract(AActor* ActorInteracting) override;
+	virtual void SetAsCandidate(AActor* ActorInteracting) override;
+	virtual void RemoveAsCandidate(AActor* ActorInteracting) override;
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const override { return Priority; }
-	virtual void SetAsCandidate(bool IsCandidate) override;
+
+
+	UPROPERTY(BlueprintAssignable)
+	FOnSetCandidate OnSetCandidateDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnRemoveCandidate OnRemoveCandidateDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnInteract OnInteractDelegate;
 
 protected:
 
 	UPROPERTY()
 	AActor* CurrentInteractingActor = nullptr;
-
-	bool bIsCandidate = false;
 };

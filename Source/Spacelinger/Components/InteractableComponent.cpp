@@ -14,22 +14,20 @@ void UInteractableComponent::BeginPlay()
 	Super::BeginPlay();
 }
 
-void UInteractableComponent::StartCanInteract(AActor* ActorInteracting)
+void UInteractableComponent::SetAsCandidate(AActor* ActorInteracting)
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("Actor %s can engage an interaction with %s"), *ActorInteracting->GetName(), *GetOwner()->GetName());
+	OnSetCandidateDelegate.Broadcast(ActorInteracting);
 }
 
-void UInteractableComponent::EndCanInteract(AActor* ActorInteracting)
+void UInteractableComponent::RemoveAsCandidate(AActor* ActorInteracting)
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("Actor %s can no longer engage an interaction with %s"), *ActorInteracting->GetName(), *GetOwner()->GetName());
+	OnRemoveCandidateDelegate.Broadcast(ActorInteracting);
 }
 
 void UInteractableComponent::Interact(AActor* ActorInteracting)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Request interaction from %s"), *ActorInteracting->GetName());
-}
-
-void UInteractableComponent::SetAsCandidate(bool IsCandidate)
-{
-
+	UE_LOG(LogTemp, Warning, TEXT("%s reveived request interaction from %s"), *GetOwner()->GetName(), *ActorInteracting->GetName());
+	OnInteractDelegate.Broadcast(ActorInteracting);
 }

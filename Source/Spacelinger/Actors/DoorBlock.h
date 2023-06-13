@@ -16,11 +16,14 @@ class SPACELINGER_API ADoorBlock : public AActor
 
 
 public:	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UInteractableComponent* InteractableComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UInteractableComponent* InteractableComponent = nullptr;
 
-	UPROPERTY(VisibleAnyWhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UBoxComponent* ColliderComp = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMeshComponent* StaticMeshComp = nullptr;
 
 	// Sets default values for this actor's properties
 	ADoorBlock();
@@ -28,6 +31,9 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	void SetAsCandidate(AActor* InteractingActor);
+	void RemoveAsCandidate(AActor* InteractingActor);
+	void Interact(AActor* InteractingActor);
 
 public:	
 	// Called every frame

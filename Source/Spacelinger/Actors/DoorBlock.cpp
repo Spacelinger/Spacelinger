@@ -13,8 +13,14 @@ ADoorBlock::ADoorBlock()
 
 	ColliderComp = CreateDefaultSubobject<UBoxComponent>(FName(TEXT("Interaction Bounds")));
 	ColliderComp->SetupAttachment(RootComponent);
+
+	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName(TEXT("Mesh")));
+	StaticMeshComp->SetupAttachment(ColliderComp);
 	
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(FName(TEXT("Interactable Component")));
+	InteractableComponent->OnSetCandidateDelegate.AddDynamic(this, &ADoorBlock::SetAsCandidate);
+	InteractableComponent->OnRemoveCandidateDelegate.AddDynamic(this, &ADoorBlock::RemoveAsCandidate);
+	InteractableComponent->OnInteractDelegate.AddDynamic(this, &ADoorBlock::Interact);
 }
 
 // Called when the game starts or when spawned
@@ -22,6 +28,21 @@ void ADoorBlock::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ADoorBlock::SetAsCandidate(AActor* InteractingActor)
+{
+	StaticMeshComp->SetVisibility(true);
+}
+
+void ADoorBlock::RemoveAsCandidate(AActor* InteractingActor)
+{
+	StaticMeshComp->SetVisibility(false);
+}
+
+void ADoorBlock::Interact(AActor* InteractingActor)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Interacted."));
 }
 
 // Called every frame

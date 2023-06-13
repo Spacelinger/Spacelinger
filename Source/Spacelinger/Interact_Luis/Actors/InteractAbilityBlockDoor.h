@@ -40,7 +40,7 @@ public:
 
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const { return InteractPriorityValue; }
-	virtual void SetAsCandidate(bool IsCandidate) override; // TO-DO
+	//virtual void SetAsCandidate(bool IsCandidate) override; // TO-DO
 
 
 protected:

@@ -103,18 +103,3 @@ void AInteractAbilityBlockDoor::SetUIVisibility(bool IsVisible)
 	InteractPromptFront->SetVisibility(IsVisible);
 	InteractPromptBack->SetVisibility(IsVisible);
 }
-
-
-void AInteractAbilityBlockDoor::SetAsCandidate(bool IsCandidate)
-{
-	// TO-DO
-
-	if (IsCandidate) 
-	{
-		// Show UI to interact
-	}
-	else 
-	{
-		// Hide UI to interact
-	}
-}
