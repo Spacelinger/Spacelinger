@@ -87,6 +87,8 @@ public:
 	UPostProcessComponent* GetPostProcessComponent() const;
 	void JumpToPosition();
 
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+		void MeleeAttackTriggered();
 
 
 protected:

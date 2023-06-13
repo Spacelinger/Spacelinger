@@ -19,6 +19,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
 #include "Engine/StaticMeshActor.h"
+#include <Soldier/SLSoldier.h>
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -754,6 +756,42 @@ void ASlime_A::MeleeAttack() {
 	}
 	
 }
+
+void ASlime_A::MeleeAttackTriggered()
+{
+	// Get the bone indices of the specific bones you want to cast rays from
+	FVector LFootLocation = GetMesh()->GetBoneLocation("l_foot");
+	FVector RFootLocation = GetMesh()->GetBoneLocation("r_foot");
+
+	// Calculate the start and end locations as the middle points between the bones
+	FVector TraceStart = (LFootLocation + RFootLocation) * 0.5f;
+	float TraceRadius = 10.0f; // Adjust the radius as needed
+
+	// Perform the sphere trace using SweepSingleByChannel
+	FCollisionShape TraceShape = FCollisionShape::MakeSphere(TraceRadius);
+	FCollisionQueryParams TraceParameters;
+	TraceParameters.AddIgnoredActor(this);
+	FHitResult HitResult;
+	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, TraceStart, TraceStart, FQuat::Identity, ECC_Visibility, TraceShape, TraceParameters);
+
+	// DrawDebugSphere for visualization
+	DrawDebugSphere(GetWorld(), TraceStart, TraceRadius, 12, FColor::Red, false, 1.0f, 0, 1.0f);
+
+	if (bHit)
+	{
+		AActor* OtherActor = HitResult.GetActor();
+		if (OtherActor && OtherActor->IsA<ASLSoldier>())
+		{
+			ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor);
+			if (Soldier)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Attack Impact")));
+			}
+		}
+		
+	}
+}
+
 
 void ASlime_A::ResetBlendingFactor() {
 	fBlendingFactor = 0.0f;
