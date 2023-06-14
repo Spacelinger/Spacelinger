@@ -40,7 +40,7 @@ void UInteractingComponent::TryToInteract_Implementation()
 {
 	if (CurrentInteractable)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Interacting with %s from %s"), *CurrentInteractable->GetOwner()->GetName(), *GetOwner()->GetName());
+		//UE_LOG(LogActor, Warning, TEXT("Interacting with %s from %s"), *CurrentInteractable->GetOwner()->GetName(), *GetOwner()->GetName());
 		CurrentInteractable->Interact(GetOwner());
 	}
 }

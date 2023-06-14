@@ -25,18 +25,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* StaticMeshComp = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UMaterialInterface* InteractPreviewMaterial;
+	
 	// Sets default values for this actor's properties
 	ADoorBlock();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	UFUNCTION()
 	void SetAsCandidate(AActor* InteractingActor);
+	UFUNCTION()
 	void RemoveAsCandidate(AActor* InteractingActor);
+	UFUNCTION()
 	void Interact(AActor* InteractingActor);
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime) override;	//Consider remove
+
+private:
+	UMaterialInterface* OriginalMaterial = nullptr;
 
 };

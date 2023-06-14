@@ -11,6 +11,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSetCandidate, AActor*, Interactin
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnRemoveCandidate, AActor*, InteractingActor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, InteractingActor);
 
+class UWidgetComponent;
+
 UCLASS()
 class SPACELINGER_API UInteractableComponent : public UActorComponent, public IInteractInterface
 {
@@ -29,7 +31,6 @@ public:
 	virtual void RemoveAsCandidate(AActor* ActorInteracting) override;
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const override { return Priority; }
-
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSetCandidate OnSetCandidateDelegate;

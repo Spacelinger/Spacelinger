@@ -38,7 +38,7 @@ protected:
 	UInteractableComponent* CurrentInteractable = nullptr;	//Might not need. Consider delete
 
 	UPROPERTY()
-	TArray<AActor*> CurrentInteractables2;
+	TArray<AActor*> CurrentInteractables2;					//Might not need. Consider delete
 
 	UPROPERTY()
 	TArray<UInteractableComponent*> CurrentInteractables;
