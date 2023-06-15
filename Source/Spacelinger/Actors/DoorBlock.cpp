@@ -4,18 +4,20 @@
 #include "Actors/DoorBlock.h"
 #include "Components/InteractableComponent.h"
 #include "Components/BoxComponent.h"
+//#include <AbilitySystemComponent.h>
+#include "AbilitySystemBlueprintLibrary.h"
 
 // Sets default values
 ADoorBlock::ADoorBlock()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;	//Consider remove
+	ColliderComponent = CreateDefaultSubobject<UBoxComponent>(FName(TEXT("Interaction Bounds")));
+	ColliderComponent->SetupAttachment(RootComponent);
 
-	ColliderComp = CreateDefaultSubobject<UBoxComponent>(FName(TEXT("Interaction Bounds")));
-	ColliderComp->SetupAttachment(RootComponent);
+	PreviewStaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName(TEXT("Preview Interact Mesh")));
+	PreviewStaticMeshComponent->SetupAttachment(ColliderComponent);
 
-	StaticMeshComp = CreateDefaultSubobject<UStaticMeshComponent>(FName(TEXT("Mesh")));
-	StaticMeshComp->SetupAttachment(ColliderComp);
+	FinalStaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(FName(TEXT("Final Interact Mesh")));
+	FinalStaticMeshComponent->SetupAttachment(ColliderComponent);
 	
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(FName(TEXT("Interactable Component")));
 }
@@ -25,7 +27,10 @@ void ADoorBlock::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	StaticMeshComp->SetVisibility(false);
+	PreviewStaticMeshComponent->SetVisibility(false);
+	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	FinalStaticMeshComponent->SetVisibility(false);
+	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	InteractableComponent->OnSetCandidateDelegate.AddDynamic(this, &ADoorBlock::SetAsCandidate);
 	InteractableComponent->OnRemoveCandidateDelegate.AddDynamic(this, &ADoorBlock::RemoveAsCandidate);
@@ -34,34 +39,27 @@ void ADoorBlock::BeginPlay()
 	if (!InteractPreviewMaterial)
 		UE_LOG(LogTemp, Warning, TEXT("Missing Interact Preview Material in actor %s"), *GetName());
 
-	OriginalMaterial = StaticMeshComp->GetMaterial(0);
 }
 
 void ADoorBlock::SetAsCandidate(AActor* InteractingActor)
 {
-	if(InteractPreviewMaterial)
-		StaticMeshComp->SetMaterial(0, InteractPreviewMaterial);
-
-	StaticMeshComp->SetVisibility(true);
+	PreviewStaticMeshComponent->SetVisibility(true);
 }
 
 void ADoorBlock::RemoveAsCandidate(AActor* InteractingActor)
 {
-	StaticMeshComp->SetMaterial(0, OriginalMaterial);
-	StaticMeshComp->SetVisibility(false);
+	PreviewStaticMeshComponent->SetVisibility(false);
 }
 
 void ADoorBlock::Interact(AActor* InteractingActor)
 {
-	ColliderComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	StaticMeshComp->SetMaterial(0, OriginalMaterial);
-	StaticMeshComp->SetVisibility(true);
-	UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
-}
+	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PreviewStaticMeshComponent->SetVisibility(false);
 
-// Called every frame
-void ADoorBlock::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);	//Consider delete
-}
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InteractingActor, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Started")), Payload);
 
+	//FinalStaticMeshComponent->SetVisibility(true);
+	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
+
+}

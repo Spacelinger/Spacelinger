@@ -20,10 +20,13 @@ public:
 	UInteractableComponent* InteractableComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UBoxComponent* ColliderComp = nullptr;
+	UBoxComponent* ColliderComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UStaticMeshComponent* StaticMeshComp = nullptr;
+	UStaticMeshComponent* PreviewStaticMeshComponent = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMeshComponent* FinalStaticMeshComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* InteractPreviewMaterial;
@@ -38,14 +41,6 @@ protected:
 	void SetAsCandidate(AActor* InteractingActor);
 	UFUNCTION()
 	void RemoveAsCandidate(AActor* InteractingActor);
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void Interact(AActor* InteractingActor);
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;	//Consider remove
-
-private:
-	UMaterialInterface* OriginalMaterial = nullptr;
-
 };

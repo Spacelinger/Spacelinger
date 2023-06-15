@@ -20,6 +20,8 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void TryToInteract();
 
+	UInteractableComponent* GetCurrentInteractable() const { return CurrentInteractable; }	// Might not need. Consider delete
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

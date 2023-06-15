@@ -11,7 +11,7 @@ UGA_SlowTime::UGA_SlowTime() {
 
 	// TODO?: Check that a cost GE is set
 	if (!GetCostGameplayEffect()) {
-		UE_LOG(LogTemp, Warning, TEXT("Cost Gameplay Effect not set for %s!"), *this->GetName());
+		//UE_LOG(LogTemp, Warning, TEXT("Cost Gameplay Effect not set for %s!"), *this->GetName());
 	}
 }
 

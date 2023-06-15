@@ -31,6 +31,7 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	 * It will keep listening as long as OnlyTriggerOnce = false
 	 * If OnlyMatchExact = false it will trigger for nested tags
 	 */
+
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 		static UAbilityTask_SlowTime* SlowTimeGameplayEvent(UGameplayAbility* OwningAbility, FGameplayTag SuccessTag, FGameplayTag FailedTag,
 			AActor* OptionalExternalTarget = nullptr, bool OnlyTriggerOnce = false, bool OnlyMatchExact = true);
