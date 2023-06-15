@@ -123,7 +123,7 @@ protected:
 
 	// Helpers
 	void PerformClimbingBehaviour(FVector ActorLocation);
-	TMap<FVector, FHitResult> GenerateHitNormals(FVector ActorLocation);
+	TPair<TMap<FVector, FHitResult>, int32> GenerateHitNormals(FVector ActorLocation);
 	FHitResult ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQueryParams& Params);
 	void HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params);
 	FVector CalculateAverageNormal(TMap<FVector, FHitResult>& HitNormals);
@@ -136,7 +136,7 @@ protected:
 	void StartClimbing();
 	void StopClimbing();
 	void ResetBlendingFactor();
-
+	void ModifyDamping();
 	void MeleeAttack();
 
 	void AlignToPlane(FVector planeNormal);
@@ -146,8 +146,9 @@ protected:
 
 	void UpdateBaseCameraRotation(FVector CurrentNormal);
 	void UpdateCameraRotation();
+	void UpdateRotationOverTime(float DeltaTime);
 	double FloorThreshold = 0.9;
-	FORCEINLINE bool IsFloor(FVector Normal) { return FVector::DotProduct(Normal, FVector::UpVector) >= FloorThreshold; }
+	FORCEINLINE bool IsFloor(FVector Normal) { return Normal == FVector(0, 0, 1); }
 	FORCEINLINE bool IsCeiling(FVector Normal) {
 		return FVector::DotProduct(Normal, FVector::UpVector) <= -FloorThreshold;
 	}
@@ -195,6 +196,13 @@ public:
 	FVector previousLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing")
 	float upOffset = 10.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing")
+		FRotator TargetRotation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing")
+		bool bIsRotating;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Climbing")
+		bool bCanClimb = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 	ASpiderWeb* spiderWebReference;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
@@ -221,6 +229,12 @@ public:
 		float fBlendingFactor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+		float StateChangeCooldown = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
+		float LastStateChangeTime = 0.0f;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;

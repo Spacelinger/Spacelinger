@@ -19,6 +19,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
 #include "Engine/StaticMeshActor.h"
+#include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
 
 
@@ -124,48 +125,15 @@ void ASlime_A::Tick(float DeltaTime)
 		HandleClimbingBehaviour();
 		HandleAttachedBehaviour();
 		HandleHangingBehaviour();
+		ModifyDamping();
+		UpdateRotationOverTime(DeltaTime);
 
-		if (isHanging) {
-
-
-			// Get the positions of both agents
-			FVector Position1 = GetMesh()->GetSocketLocation("SpiderWebPoint");
-			FVector Position2 = spiderWebReference->ConstraintComp->GetComponentLocation();
-
-			// Create a vector from Agent1 to Agent2
-			FVector VectorFrom1To2 = Position2 - Position1;
-
-			// Normalize the vector
-			VectorFrom1To2.Normalize();
-
-			// To compare to vertical alignment, create a vertical vector. In Unreal, Z is usually up.
-			FVector VerticalVector = FVector(0, 0, 1);
-
-			// Calculate the dot product between the vertical vector and the vector from Agent1 to Agent2
-			float DotProduct = FVector::DotProduct(VectorFrom1To2, VerticalVector);
-
-			// Use the arccosine (acos) function to find the angle. Unreal Engine's math library uses radians, so convert it to degrees.
-			float AngleInDegrees = FMath::Acos(DotProduct) * (180.0f / PI);
-
-			// Map the clamped angle to the range of angular damping values (0 to 5)
-			// If the range of AngleInDegrees is -90 to 90, then we first add 90 to the angle to get a range from 0 to 180
-			// Then we divide by 180 to get a range from 0 to 1
-			// Finally, we multiply by 5 to get a range from 0 to 5
-			// Subtract the result from 5 to invert the mapping
-			float MappedAngularDamping = 5.0f - ((AngleInDegrees + 90.0f) / 180.0f) * 5.0f;
-
-			// Set the angular damping
-			GetCapsuleComponent()->SetAngularDamping(MappedAngularDamping);
-
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("The angle is %f degrees"), AngleInDegrees));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, FString::Printf(TEXT("The inverted mapped angular damping is %f"), MappedAngularDamping));
-
-		}
 	}
 	else
 	{
 		HandleJumpToLocationBehaviour();
 	}
+
 }
 
 void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
@@ -175,7 +143,6 @@ void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* Other
 	}
 }
 
-#pragma optimize("", off)
 void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
 	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
@@ -188,17 +155,17 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 		//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
 		FVector vectorDirection = GetCapsuleComponent()->GetComponentLocation() - spiderWebReference->ConstraintComp->GetComponentLocation();
 		FVector newLocation = getVectorInConstraintCoordinates(vectorDirection * Value.GetMagnitude(), 20.0f, 1.0f);
-		if(initialRelativePosition.Length()<30 && Value.GetMagnitude()>0){
+		if (initialRelativePosition.Length() < 30 && Value.GetMagnitude() > 0) {
 			return;
 		}
 		initialRelativePosition = initialRelativePosition + newLocation;
 		spiderWebReference->ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, initialRelativePosition);
 		spiderWebReference->ConstraintComp->UpdateConstraintFrames();
-		FVector HangingForce = FVector(0.0f,0.0f,0.0f) * 3000.0f;
+		FVector HangingForce = FVector(0.0f, 0.0f, 0.0f) * 3000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 
 		// Force an immediate update of component transforms
-		
+
 	}
 	else {
 		int ActionValue = Value.GetMagnitude();
@@ -208,14 +175,52 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 	}
 
 }
-#pragma optimize("", on)
+
+void ASlime_A::ModifyDamping() {
+	if (isHanging) {
+
+
+		// Get the positions of both agents
+		FVector Position1 = GetMesh()->GetSocketLocation("SpiderWebPoint");
+		FVector Position2 = spiderWebReference->ConstraintComp->GetComponentLocation();
+
+		// Create a vector from Agent1 to Agent2
+		FVector VectorFrom1To2 = Position2 - Position1;
+
+		// Normalize the vector
+		VectorFrom1To2.Normalize();
+
+		// To compare to vertical alignment, create a vertical vector. In Unreal, Z is usually up.
+		FVector VerticalVector = FVector(0, 0, 1);
+
+		// Calculate the dot product between the vertical vector and the vector from Agent1 to Agent2
+		float DotProduct = FVector::DotProduct(VectorFrom1To2, VerticalVector);
+
+		// Use the arccosine (acos) function to find the angle. Unreal Engine's math library uses radians, so convert it to degrees.
+		float AngleInDegrees = FMath::Acos(DotProduct) * (180.0f / PI);
+
+		// Map the clamped angle to the range of angular damping values (0 to 5)
+		// If the range of AngleInDegrees is -90 to 90, then we first add 90 to the angle to get a range from 0 to 180
+		// Then we divide by 180 to get a range from 0 to 1
+		// Finally, we multiply by 5 to get a range from 0 to 5
+		// Subtract the result from 5 to invert the mapping
+		float MappedAngularDamping = 5.0f - ((AngleInDegrees + 90.0f) / 180.0f) * 5.0f;
+
+		// Set the angular damping
+		GetCapsuleComponent()->SetAngularDamping(MappedAngularDamping);
+
+		
+
+	}
+}
+
 
 
 void ASlime_A::keepClimbing()
 {
 	FVector ActorLocation = GetActorLocation();
 
-	if (bIsClimbing)
+	if (bIsClimbing && bCanClimb)
 	{
 		PerformClimbingBehaviour(ActorLocation);
 	}
@@ -229,12 +234,18 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 {
 	ensure(TraceDistance > 0);
 
-	TMap<FVector, FHitResult> HitNormals = GenerateHitNormals(ActorLocation);
+	TPair<TMap<FVector, FHitResult>, int32> Result = GenerateHitNormals(ActorLocation);
+	TMap<FVector, FHitResult> HitNormals = Result.Key;
+	int32 ImpactCount = Result.Value;
 
 	FHitResult HitDirectionDiagonal = ExecuteDiagonalTrace(ActorLocation, TraceParams);
 
 	if (HitNormals.Num() > 0)
 	{
+		if (ImpactCount > 7) {
+			bCanClimb = false;
+			StopClimbing();
+		}
 		HandleNormalHits(HitNormals, ActorLocation, TraceParams);
 	}
 	else if (HitDirectionDiagonal.IsValidBlockingHit())
@@ -249,9 +260,10 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 	HandleFloorAndCeiling();
 }
 
-TMap<FVector, FHitResult> ASlime_A::GenerateHitNormals(FVector ActorLocation)
+TPair<TMap<FVector, FHitResult>, int32> ASlime_A::GenerateHitNormals(FVector ActorLocation)
 {
 	TMap<FVector, FHitResult> HitNormals;
+	int32 ImpactCount = 0;
 
 	for (const FVector& DiagonalDirection : DiagonalDirections)
 	{
@@ -263,9 +275,11 @@ TMap<FVector, FHitResult> ASlime_A::GenerateHitNormals(FVector ActorLocation)
 		if (bHit2)
 		{
 			HitNormals.Add(CurrentHitResult.Normal, CurrentHitResult);
+			ImpactCount++;
 		}
 	}
-	return HitNormals;
+
+	return TPair<TMap<FVector, FHitResult>, int32>(HitNormals, ImpactCount);
 }
 
 FHitResult ASlime_A::ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQueryParams& Params)
@@ -338,27 +352,45 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 	bool bHitSurface = false;
 	FVector SurfaceNormal;
 
-	for (const FVector& DiagonalDirection : DiagonalDirections)
-	{
-		FHitResult HitResult;
-		FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
-		bool bHit = ExecuteGroundTrace(ActorLocation, EndRayLocation, TraceParams, HitResult);
-		DrawDebugLinesIfNeeded(ActorLocation, EndRayLocation);
+	TPair<TMap<FVector, FHitResult>, int32> Result = GenerateHitNormals(ActorLocation);
+	TMap<FVector, FHitResult> HitNormals = Result.Key;
+	int32 ImpactCount = Result.Value;
 
-		if (bHit && GetCapsuleComponent()->IsSimulatingPhysics())
+	if (HitNormals.Num() > 0) {
+		FVector selectedNormal;
+		for (auto& It : HitNormals) {
+			selectedNormal = It.Value.Normal;
+			if (!IsFloor(It.Value.Normal)) {
+				selectedNormal = It.Value.Normal;
+				break;
+			}
+		}
+				
+			
+		if (GetCapsuleComponent()->IsSimulatingPhysics())
 		{
 			GetCapsuleComponent()->SetSimulatePhysics(false);
-			UpdateRotation(HitResult.Normal);
+			UpdateRotation(selectedNormal);
 		}
 
-		if (bHit && !IsFloor(HitResult.Normal))
+		if (IsFloor(selectedNormal))
 		{
-			bHitSurface = true;
-			SurfaceNormal = HitResult.Normal;
-			DrawDebugLinesIfNeeded(HitResult.Location, HitResult.Location + HitResult.Normal * TraceDistance);
-			break;
+			UpdateBaseCameraRotation(selectedNormal);
+			previousNormal = selectedNormal;
+			AlignToPlane(selectedNormal);
+		}
+
+		else if (!IsFloor(selectedNormal))
+		{
+			if (ImpactCount <= 6) {
+				bCanClimb = true;
+				bHitSurface = true;
+				SurfaceNormal = selectedNormal;
+			}
+				
 		}
 	}
+	
 
 	if (bHitSurface)
 	{
@@ -379,6 +411,22 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 		StopClimbing();
 	}
 }
+
+void ASlime_A::UpdateRotationOverTime(float DeltaTime) {
+	if (bIsRotating) {
+		FRotator CurrentRotation = GetActorRotation();
+		float RotationSpeed = 10.0f;  // Adjust this value as needed
+
+		FRotator NewRotation = FMath::RInterpTo(CurrentRotation, TargetRotation, DeltaTime, RotationSpeed);
+		SetActorRotation(NewRotation);
+
+		// If the rotation is close enough to the target rotation, stop rotating
+		if ((NewRotation - TargetRotation).IsNearlyZero()) {
+			bIsRotating = false;
+		}
+	}
+}
+
 
 bool ASlime_A::ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation, FCollisionQueryParams& Params, FHitResult& HitResult)
 {
@@ -438,8 +486,8 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	GetCapsuleComponent()->AddForce(Force);
 
 	// Rotate the character towards the target location
-	FRotator TargetRotation = FRotationMatrix::MakeFromX(Direction).Rotator();
-	SetActorRotation(TargetRotation);
+	FRotator Target_Rotation = FRotationMatrix::MakeFromX(Direction).Rotator();
+	SetActorRotation(Target_Rotation);
 
 }
 
@@ -465,8 +513,8 @@ void ASlime_A::UpdateRotation(FVector planeNormal)
 		FVector NewRightVector = FVector::CrossProduct(NewUpVector, NewForwardVector);
 
 		FMatrix NewRotationMatrix = FMatrix(NewForwardVector, NewRightVector, NewUpVector, FVector::ZeroVector);
-		FRotator NewRotation = NewRotationMatrix.Rotator();
-		SetActorRotation(NewRotation);
+		TargetRotation = NewRotationMatrix.Rotator();
+		bIsRotating = true;
 	}
 }
 
@@ -478,7 +526,66 @@ void ASlime_A::AlignToPlane(FVector planeNormal)
 	FVector newRight   = FVector::CrossProduct(planeNormal, newForward);
 
 	FMatrix RotMatrix(newForward, newRight, planeNormal, FVector::ZeroVector);
-	SetActorRotation(RotMatrix.Rotator());
+	TargetRotation = RotMatrix.Rotator();
+	bIsRotating = true;
+}
+
+void ASlime_A::StartClimbing() {
+	bIsClimbing = true;
+	bCanClimb = true;
+	GetCharacterMovement()->MaxStepHeight = 0;
+}
+void ASlime_A::StopClimbing() {
+	if (!bIsClimbing) { return; }
+	bIsClimbing = false;
+	GetCharacterMovement()->MaxStepHeight = DefaultMaxStepHeight;
+
+	AtCeiling = false;
+	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+
+	UpdateBaseCameraRotation(FVector::UpVector);
+
+	
+
+
+	AlignToPlane(FVector(0, 0, 1));
+}
+
+void ASlime_A::Climb(const FInputActionValue& Value)
+{
+
+	if (isHanging) {
+		CutSpiderWeb();
+	}
+	else if (attachedAtCeiling && AtCeiling) {
+
+		SelectedSpiderAbility = SLSpiderAbility::MeleeAttack;
+
+		isHanging = true;
+		bIsRotating = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCapsuleComponent()->SetSimulatePhysics(true);
+
+		spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
+
+		spiderWebReference->ConstraintComp->SetConstrainedComponents(
+			spiderWebReference->StartLocationCable, NAME_None,
+			GetCapsuleComponent(), NAME_None
+		);
+
+		// Set the linear motion types to 'limited'
+		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
+		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
+		// Enable the Angular Drive
+
+	}
+	else {
+		if (bIsClimbing) {
+			canTrace = false;
+			StopClimbing();
+		}
+	}
 }
 
 void ASlime_A::UpdateBaseCameraRotation(FVector CurrentNormal) {
@@ -495,32 +602,17 @@ void ASlime_A::UpdateCameraRotation() {
 	CameraBoom->SetRelativeRotation(InputRotator.Quaternion());
 }
 
+FHitResult ASlime_A::PerformLineTrace(FVector StartPosition, FVector EndPosition)
+{
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility);
+	return HitResult;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASlime_A::Move);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ASlime_A::StopMoving);
-
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlime_A::Look);
-
-		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ASlime_A::Climb);
-
-		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
-
-		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
-
-		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
-
-		// Slow Time Ability
-		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
-		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
-	}
-}
 
 void ASlime_A::ThrowSpiderWeb()
 {
@@ -599,12 +691,7 @@ FVector ASlime_A::GetLookDirection(FVector2D ScreenLocation)
 	return LookDirection;
 }
 
-FHitResult ASlime_A::PerformLineTrace(FVector StartPosition, FVector EndPosition)
-{
-	FHitResult HitResult;
-	GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility);
-	return HitResult;
-}
+
 
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached)
 {
@@ -785,7 +872,7 @@ void ASlime_A::MeleeAttackTriggered()
 			ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor);
 			if (Soldier)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Attack Impact")));
+				Soldier->ReceiveDamage();
 			}
 		}
 		
@@ -822,7 +909,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 
 	if (isHanging)
 	{
-		FVector HangingForce = MovementDirection * 30000.0f;
+		FVector HangingForce = MovementDirection * 10000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
 	else
@@ -851,60 +938,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 }
 
 
-void ASlime_A::StartClimbing() {
-	bIsClimbing = true;
-	GetCharacterMovement()->MaxStepHeight = 0;
-}
-void ASlime_A::StopClimbing() {
-	if (!bIsClimbing) { return; }
-	bIsClimbing = false;
-	GetCharacterMovement()->MaxStepHeight = DefaultMaxStepHeight;
 
-	AtCeiling = false;
-	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-
-	UpdateBaseCameraRotation(FVector::UpVector);
-
-	// Set actor rotation to controller's rotation
-	if (Controller) {
-		FRotator ControllerRotator = Controller->GetControlRotation();
-		FRotator NewRotator(0, ControllerRotator.Yaw, 0);
-		SetActorRotation(NewRotator);
-	}
-}
-
-#include <Kismet/KismetMathLibrary.h>
-void ASlime_A::Climb(const FInputActionValue& Value)
-{
-	
-
-	if (attachedAtCeiling && AtCeiling) {
-
-		isHanging = true;
-		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
-		GetCapsuleComponent()->SetSimulatePhysics(true);
-
-		spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
-
-		spiderWebReference->ConstraintComp->SetConstrainedComponents(
-			spiderWebReference->StartLocationCable, NAME_None,
-			GetCapsuleComponent(), NAME_None
-		);
-
-		// Set the linear motion types to 'limited'
-		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
-		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
-		// Enable the Angular Drive
-
-	}
-	else {
-		if (bIsClimbing) {
-			canTrace = false;
-			StopClimbing();
-		}
-	}
-}
 
 void ASlime_A::Look(const FInputActionValue& Value) {
 	if (Controller == nullptr) { return; }
@@ -916,6 +950,30 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 	if (InputRotator.Pitch < -MinCameraPitch) { InputRotator.Pitch = -MinCameraPitch; }
 
 	UpdateCameraRotation();
+}
+
+void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
+	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASlime_A::Move);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &ASlime_A::StopMoving);
+
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlime_A::Look);
+
+		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ASlime_A::Climb);
+
+		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
+
+		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
+
+		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
+
+		// Slow Time Ability
+		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started, this, &ASlime_A::SlowTime);
+		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
+	}
 }
 
 void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {

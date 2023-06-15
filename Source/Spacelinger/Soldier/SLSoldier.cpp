@@ -115,4 +115,22 @@ void ASLSoldier::StopAdaptToCeiling() {
 	*/
 }
 
+void ASLSoldier::ReceiveDamage()
+{
+	Die();
+}
+
+void ASLSoldier::Die()
+{
+	
+	GetController()->UnPossess();
+	
+
+
+	// Disable collision and physics-based movement for the soldier's components
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+}
+
 

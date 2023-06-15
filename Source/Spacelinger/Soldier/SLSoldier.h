@@ -23,6 +23,8 @@ public:
 	void MoveToCeiling();
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();
+	void ReceiveDamage();
+	void Die();
 
 	UFUNCTION()
 		void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
