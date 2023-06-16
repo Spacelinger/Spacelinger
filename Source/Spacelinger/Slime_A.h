@@ -161,6 +161,7 @@ private:
 
 
 public:
+	UPROPERTY(Config)
 	bool bDrawDebugLines = false;
 
 protected:
