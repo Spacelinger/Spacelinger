@@ -17,7 +17,7 @@ void UInteractingComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// Retrieve all components from my owner with the Tag "Interact Volume" of class PrimitiveComponent
-	// This tag has to be set from the actor BP
+	// This tag has to be manually set from the actor BP
 	TArray<UActorComponent*> Comps = GetOwner()->GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("Interact Volume"));
 
 	// In case there are multiple, for each one, bind myself to the Begin/End Overlap
@@ -50,10 +50,9 @@ void UInteractingComponent::OnBoundsBeginOverlap(UPrimitiveComponent* Overlapped
 {
 	if (UInteractableComponent* Candidate = OtherActor->FindComponentByClass<UInteractableComponent>())
 	{
-
 		CurrentInteractables.AddUnique(Candidate);
 		CurrentInteractables.StableSort([](const UInteractableComponent& A, const UInteractableComponent& B) {
-			return A.GetInteractPriority() < B.GetInteractPriority();
+			return A.GetInteractPriority() < B.GetInteractPriority();	// Can be improved implementing a custom function to calculate a priority given more data
 			});
 		Refresh();
 	}

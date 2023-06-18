@@ -6,7 +6,11 @@
 #include "Abilities/Tasks/AbilityTask.h"
 #include "AbilityTask_DoorBlock.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FWaitDoorBlockEventDelegate, FGameplayEventData, Payload);
+/*
+ * Wait for a time delay. A mashup between Wait Delay and Wait Gameplay Tag Removed ability tasks
+ */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDoorBlockEventDelegate);
 
 UCLASS()
 class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
@@ -14,42 +18,41 @@ class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
 	GENERATED_UCLASS_BODY()
 
 	UPROPERTY(BlueprintAssignable)
-	FWaitDoorBlockEventDelegate	SuccessEventReceived;
+	FWaitDoorBlockEventDelegate	ChannelingComplete;
 
 	UPROPERTY(BlueprintAssignable)
-	FWaitDoorBlockEventDelegate	FailedEventReceived;
-	
-	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UAbilityTask_DoorBlock* DoorBlockGameplayEvent(UGameplayAbility* OwningAbility, FGameplayTag SuccessTag, FGameplayTag FailedTag,
-			AActor* OptionalExternalTarget = nullptr, bool OnlyTriggerOnce = false, bool OnlyMatchExact = true);
+	FWaitDoorBlockEventDelegate	ChannelingCanceled;
 
-	void SetExternalTarget(AActor* Actor);
-
-	UAbilitySystemComponent* GetTargetASC();
+	//UPROPERTY()
+	//TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
 
 	virtual void Activate() override;
 
-	virtual void SuccessEventCallback(const FGameplayEventData* Payload);
-	virtual void SuccessEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
+	virtual void TickTask(float DeltaTime) override;
 
-	virtual void FailedEventCallback(const FGameplayEventData* Payload);
-	virtual void FailedEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload);
+	UAbilitySystemComponent* GetTargetASC();
 
-	//virtual void TickTask(float DeltaTime) override;
+	/** Return debug string describing task */
+	virtual FString GetDebugString() const override;	// Might want to delete
 
-	void OnDestroy(bool AbilityEnding) override;
+	virtual void GameplayTagCallback(const FGameplayTag Tag, int32 NewCount);
 
-	FGameplayTag SuccessTag;
-	FGameplayTag FailedTag;
+	//void SetExternalTarget(AActor* Actor);
 
-	UPROPERTY()
-		TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
+	/** Wait specified time OR until the Channeling Tag is removed from the Owning Ability owner. */
+	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
+	static UAbilityTask_DoorBlock* DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, /*AActor* OptionalExternalTarget = nullptr,*/ bool OnlyTriggerOnce = false);
 
+protected:
+	
+	void OnTimeFinish();
 
-	bool UseExternalTarget;
-	bool OnlyTriggerOnce;
-	bool OnlyMatchExact;
+	//bool bUseExternalTarget;
+	bool bOnlyTriggerOnce = false;
 
-	FDelegateHandle SuccessHandle;
-	FDelegateHandle FailedHandle;
+	float Time = 3.0f;	// TO-DO: Time cannot be <= 0
+	float TimeStarted = 0.0f;
+	FTimerHandle TimerHandle;
+
+	FGameplayTag ChannelingTag;
 };

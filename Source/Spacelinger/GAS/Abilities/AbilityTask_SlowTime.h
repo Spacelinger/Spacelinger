@@ -59,9 +59,9 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
 
 
-	bool UseExternalTarget;
-	bool OnlyTriggerOnce;
-	bool OnlyMatchExact;
+	bool bUseExternalTarget;
+	bool bOnlyTriggerOnce;
+	bool bOnlyMatchExact;
 
 	FDelegateHandle SuccessHandle;
 	FDelegateHandle FailedHandle;

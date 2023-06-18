@@ -30,9 +30,14 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UMaterialInterface* InteractPreviewMaterial;
-	
+
 	// Sets default values for this actor's properties
 	ADoorBlock();
+
+	UFUNCTION(BlueprintCallable)
+	void DoorBlockSuccess();
+	UFUNCTION(BlueprintCallable)
+	void DoorBlockFail();
 
 protected:
 	// Called when the game starts or when spawned
@@ -41,6 +46,10 @@ protected:
 	void SetAsCandidate(AActor* InteractingActor);
 	UFUNCTION()
 	void RemoveAsCandidate(AActor* InteractingActor);
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void Interact(AActor* InteractingActor);
+
+private:
+
+	void Reset();
 };

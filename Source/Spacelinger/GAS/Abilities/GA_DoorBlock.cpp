@@ -4,6 +4,8 @@
 #include "GAS/Abilities/GA_DoorBlock.h"
 #include "Components/InteractingComponent.h"
 #include "AbilitySystemComponent.h"
+#include "AbilityTask_DoorBlock.h"
+//#include "Actors/DoorBlock.h"
 
 UGA_DoorBlock::UGA_DoorBlock()
 {
@@ -12,13 +14,39 @@ UGA_DoorBlock::UGA_DoorBlock()
 
 void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	// Implemented in BP for testing purposes
+	K2_CheckAbilityCost(); // Check for cost without consuming it. Cost will be commited once the channeling task is completed
+	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
+
+	// Start AbilityTask_DoorBlock
+	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f);
 	
-	//Get the interactable component and perform sth
+	DoorBlockTask->ChannelingComplete.AddDynamic(this, &UGA_DoorBlock::AbilityChannelComplete);
+	DoorBlockTask->ChannelingCanceled.AddDynamic(this, &UGA_DoorBlock::AbilityChannelCanceled);
+	DoorBlockTask->ReadyForActivation();
+	
+	//DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
+
+	//UE_LOG(LogTemp, Warning, TEXT("TARGET: %s"), *InteractableObject.GetName());
+
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+}
+
+void UGA_DoorBlock::AbilityChannelComplete()
+{
+	//DoorToBlock->DoorBlockSuccess();
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+}
+
+void UGA_DoorBlock::AbilityChannelCanceled()
+{
+	//DoorToBlock->DoorBlockFail();
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_DoorBlock::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -33,7 +61,6 @@ bool UGA_DoorBlock::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	// Check from the InteractingComponent if has a CurrentInteractableComponent
 	if (!PlayerInteractComp->GetCurrentInteractable())
 		return false;	// Cancel if not
-	
 	
 	return true;		// Go on if so
 }

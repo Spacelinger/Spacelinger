@@ -31,8 +31,8 @@ UAbilityTask_SlowTime* UAbilityTask_SlowTime::SlowTimeGameplayEvent(UGameplayAbi
 	MyObj->SuccessTag = SuccessTag;
 	MyObj->FailedTag = FailedTag;
 	MyObj->SetExternalTarget(OptionalExternalTarget);
-	MyObj->OnlyTriggerOnce = OnlyTriggerOnce;
-	MyObj->OnlyMatchExact = OnlyMatchExact;
+	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
+	MyObj->bOnlyMatchExact = OnlyMatchExact;
 
 	return MyObj;
 }
@@ -41,14 +41,14 @@ void UAbilityTask_SlowTime::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)
 	{
-		UseExternalTarget = true;
+		bUseExternalTarget = true;
 		OptionalExternalTarget = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
 	}
 }
 
 UAbilitySystemComponent* UAbilityTask_SlowTime::GetTargetASC() 
 {
-	if (UseExternalTarget)
+	if (bUseExternalTarget)
 	{
 		return OptionalExternalTarget;
 	}
@@ -63,7 +63,7 @@ void UAbilityTask_SlowTime::Activate()
 	UAbilitySystemComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
-		if (OnlyMatchExact)
+		if (bOnlyMatchExact)
 		{
 			SuccessHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(SuccessTag).AddUObject(this, &UAbilityTask_SlowTime::SuccessEventCallback);
 			FailedHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(FailedTag).AddUObject(this, &UAbilityTask_SlowTime::FailedEventCallback);
@@ -134,7 +134,7 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 		TempPayload.EventTag = MatchingTag;
 		SuccessEventReceived.Broadcast(MoveTemp(TempPayload));
 	}
-	if (OnlyTriggerOnce)
+	if (bOnlyTriggerOnce)
 	{
 		EndTask();
 	}
@@ -171,7 +171,7 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 		TempPayload.EventTag = MatchingTag;
 		FailedEventReceived.Broadcast(MoveTemp(TempPayload));
 	}
-	if (OnlyTriggerOnce)
+	if (bOnlyTriggerOnce)
 	{
 		EndTask();
 	}
@@ -212,7 +212,7 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 	UAbilitySystemComponent* ASC = GetTargetASC();
 	if (ASC && SuccessHandle.IsValid())
 	{
-		if (OnlyMatchExact)
+		if (bOnlyMatchExact)
 		{
 			ASC->GenericGameplayEventCallbacks.FindOrAdd(SuccessTag).Remove(SuccessHandle);
 		}
@@ -225,7 +225,7 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 
 	if (ASC && FailedHandle.IsValid())
 	{
-		if (OnlyMatchExact)
+		if (bOnlyMatchExact)
 		{
 			ASC->GenericGameplayEventCallbacks.FindOrAdd(FailedTag).Remove(FailedHandle);
 		}

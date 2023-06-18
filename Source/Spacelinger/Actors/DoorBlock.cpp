@@ -27,10 +27,7 @@ void ADoorBlock::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	PreviewStaticMeshComponent->SetVisibility(false);
-	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	FinalStaticMeshComponent->SetVisibility(false);
-	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Reset();
 
 	InteractableComponent->OnSetCandidateDelegate.AddDynamic(this, &ADoorBlock::SetAsCandidate);
 	InteractableComponent->OnRemoveCandidateDelegate.AddDynamic(this, &ADoorBlock::RemoveAsCandidate);
@@ -53,13 +50,37 @@ void ADoorBlock::RemoveAsCandidate(AActor* InteractingActor)
 
 void ADoorBlock::Interact(AActor* InteractingActor)
 {
-	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	PreviewStaticMeshComponent->SetVisibility(false);
-
 	FGameplayEventData Payload;
+	Payload.Instigator = InteractingActor;
+	Payload.Target = this;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InteractingActor, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Started")), Payload);
 
 	//FinalStaticMeshComponent->SetVisibility(true);
-	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
+	UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
+	
+	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	PreviewStaticMeshComponent->SetVisibility(false);
+}
 
+void ADoorBlock::DoorBlockSuccess()
+{
+	UE_LOG(LogActor, Warning, TEXT("Success! To handle."));
+	FinalStaticMeshComponent->SetVisibility(true);
+	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ADoorBlock::DoorBlockFail()
+{
+	UE_LOG(LogActor, Warning, TEXT("Failed! To handle."));
+	Reset();	//Remove
+}
+
+void ADoorBlock::Reset()
+{
+	PreviewStaticMeshComponent->SetVisibility(false);
+	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	FinalStaticMeshComponent->SetVisibility(false);
+	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }

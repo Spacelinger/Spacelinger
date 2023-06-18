@@ -2,132 +2,124 @@
 
 
 #include "GAS/Abilities/AbilityTask_DoorBlock.h"
-#include "AbilitySystemComponent.h"
+#include "AbilitySystemComponent.h"	// Might not be needed
+#include "TimerManager.h"
 #include "AbilitySystemGlobals.h"
 
 UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	//bTickingTask = true;
+	bTickingTask = true;
+	Time = 0.0f;
+	TimeStarted = 0.0f;
 }
 
-UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockGameplayEvent(UGameplayAbility* OwningAbility, FGameplayTag SuccessTag, FGameplayTag FailedTag, AActor* OptionalExternalTarget, bool OnlyTriggerOnce, bool OnlyMatchExact)
+UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
 {
-	UAbilityTask_DoorBlock* MyObj = NewAbilityTask<UAbilityTask_DoorBlock>(OwningAbility);
-	MyObj->SuccessTag = SuccessTag;
-	MyObj->FailedTag = FailedTag;
-	MyObj->SetExternalTarget(OptionalExternalTarget);
-	MyObj->OnlyTriggerOnce = OnlyTriggerOnce;
-	MyObj->OnlyMatchExact = OnlyMatchExact;
+	UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Duration(Time);
 
+	UAbilityTask_DoorBlock* MyObj = NewAbilityTask<UAbilityTask_DoorBlock>(OwningAbility);
+	MyObj->ChannelingTag = ChannelingTag;
+	MyObj->Time = Time;
+	//MyObj->SetExternalTarget(OptionalExternalTarget);
+	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
 	return MyObj;
 }
 
-void UAbilityTask_DoorBlock::SetExternalTarget(AActor* Actor)
+void UAbilityTask_DoorBlock::Activate()
 {
-	if (Actor)
+	UAbilitySystemComponent* ASC = GetTargetASC();
+	if (ASC && ASC->HasMatchingGameplayTag(ChannelingTag) == false)
 	{
-		UseExternalTarget = true;
-		OptionalExternalTarget = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			ChannelingCanceled.Broadcast();
+		}
+		if (bOnlyTriggerOnce)
+		{
+			EndTask();
+			return;
+		}
+	}
+
+	UWorld* World = GetWorld();
+	TimeStarted = World->GetTimeSeconds();
+
+	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
+	World->GetTimerManager().SetTimer(TimerHandle, this, &UAbilityTask_DoorBlock::OnTimeFinish, Time, false);
+
+	Super::Activate();
+}
+
+void UAbilityTask_DoorBlock::TickTask(float DeltaTime)
+{
+	bool bIsInteractingActorMoving = GetTargetASC()->GetAvatarActor()->GetVelocity().Length() > 0;
+	if (bIsInteractingActorMoving)
+	{
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			ChannelingCanceled.Broadcast();	// Cancel channeling
+		}
+		if (bOnlyTriggerOnce)
+		{
+			EndTask();	// And end the task
+		}
+	}
+}
+
+void UAbilityTask_DoorBlock::OnTimeFinish()
+{
+	if (ShouldBroadcastAbilityTaskDelegates())
+	{
+		ChannelingComplete.Broadcast();
+	}
+	EndTask();
+}
+
+void UAbilityTask_DoorBlock::GameplayTagCallback(const FGameplayTag InTag, int32 NewCount)
+{
+	if (NewCount == 0)
+	{
+		if (ShouldBroadcastAbilityTaskDelegates())
+		{
+			ChannelingCanceled.Broadcast();
+		}
+		if (bOnlyTriggerOnce)
+		{
+			EndTask();
+		}
 	}
 }
 
 UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 {
-	if (UseExternalTarget)
+	/*
+	if (bUseExternalTarget)
 	{
 		return OptionalExternalTarget;
 	}
-
+	*/
 	return AbilitySystemComponent.Get();
 }
 
-void UAbilityTask_DoorBlock::Activate()
+/*void UAbilityTask_DoorBlock::SetExternalTarget(AActor* Actor)
 {
-	Super::Activate();
-
-	UAbilitySystemComponent* ASC = GetTargetASC();
-	if (ASC)
+	if (Actor)
 	{
-		if (OnlyMatchExact)
-		{
-			SuccessHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(SuccessTag).AddUObject(this, &UAbilityTask_DoorBlock::SuccessEventCallback);
-			FailedHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(FailedTag).AddUObject(this, &UAbilityTask_DoorBlock::FailedEventCallback);
-		}
-		else
-		{
-			SuccessHandle = ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(SuccessTag), FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UAbilityTask_DoorBlock::SuccessEventContainerCallback));
-			FailedHandle = ASC->AddGameplayEventTagContainerDelegate(FGameplayTagContainer(FailedTag), FGameplayEventTagMulticastDelegate::FDelegate::CreateUObject(this, &UAbilityTask_DoorBlock::FailedEventContainerCallback));
-		}
+		bUseExternalTarget = true;
+		OptionalExternalTarget = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
 	}
-}
+}*/
 
-void UAbilityTask_DoorBlock::SuccessEventCallback(const FGameplayEventData* Payload)
+FString UAbilityTask_DoorBlock::GetDebugString() const	// Consider Delete
 {
-	SuccessEventContainerCallback(SuccessTag, Payload);
-}
-
-void UAbilityTask_DoorBlock::SuccessEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
-{
-	if (ShouldBroadcastAbilityTaskDelegates())
+	if (UWorld* World = GetWorld())
 	{
-		FGameplayEventData TempPayload = *Payload;
-		TempPayload.EventTag = MatchingTag;
-		SuccessEventReceived.Broadcast(MoveTemp(TempPayload));
+		const float TimeLeft = Time - World->TimeSince(TimeStarted);
+		return FString::Printf(TEXT("WaitDelay. Time: %.2f. TimeLeft: %.2f"), Time, TimeLeft);
 	}
-	if (OnlyTriggerOnce)
+	else
 	{
-		EndTask();
+		return FString::Printf(TEXT("WaitDelay. Time: %.2f. Time Started: %.2f"), Time, TimeStarted);
 	}
-}
-
-void UAbilityTask_DoorBlock::FailedEventCallback(const FGameplayEventData* Payload)
-{
-	FailedEventContainerCallback(FailedTag, Payload);
-}
-
-void UAbilityTask_DoorBlock::FailedEventContainerCallback(FGameplayTag MatchingTag, const FGameplayEventData* Payload)
-{
-	if (ShouldBroadcastAbilityTaskDelegates())
-	{
-		FGameplayEventData TempPayload = *Payload;
-		TempPayload.EventTag = MatchingTag;
-		FailedEventReceived.Broadcast(MoveTemp(TempPayload));
-	}
-	if (OnlyTriggerOnce)
-	{
-		EndTask();
-	}
-}
-
-void UAbilityTask_DoorBlock::OnDestroy(bool AbilityEnding)
-{
-	UAbilitySystemComponent* ASC = GetTargetASC();
-	if (ASC && SuccessHandle.IsValid())
-	{
-		if (OnlyMatchExact)
-		{
-			ASC->GenericGameplayEventCallbacks.FindOrAdd(SuccessTag).Remove(SuccessHandle);
-		}
-		else
-		{
-			ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(SuccessTag), SuccessHandle);
-		}
-
-	}
-
-	if (ASC && FailedHandle.IsValid())
-	{
-		if (OnlyMatchExact)
-		{
-			ASC->GenericGameplayEventCallbacks.FindOrAdd(FailedTag).Remove(FailedHandle);
-		}
-		else
-		{
-			ASC->RemoveGameplayEventTagContainerDelegate(FGameplayTagContainer(FailedTag), FailedHandle);
-		}
-
-	}
-
-	Super::OnDestroy(AbilityEnding);
 }

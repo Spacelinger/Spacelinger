@@ -7,12 +7,13 @@
 #include "AbilitySystemComponent.h"
 #include "AbilityTask_SlowTime.h"
 
-UGA_SlowTime::UGA_SlowTime() {
-
+UGA_SlowTime::UGA_SlowTime() 
+{
+	//Currently a cost is not  set, as stamina is depleted through setting the stamina recovery value to a negative one
 	// TODO?: Check that a cost GE is set
-	if (!GetCostGameplayEffect()) {
-		//UE_LOG(LogTemp, Warning, TEXT("Cost Gameplay Effect not set for %s!"), *this->GetName());
-	}
+	/*if (!GetCostGameplayEffect()) {
+		UE_LOG(LogTemp, Warning, TEXT("Cost Gameplay Effect not set for %s!"), *this->GetName());
+	}*/
 }
 
 void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -64,6 +65,7 @@ bool UGA_SlowTime::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 		return false;
 	}
 
+	/* Additional checks pre-ability-commit are done here. Remove whole method if not necessary*/
 	bool bResult = true;
 
 	return bResult;
