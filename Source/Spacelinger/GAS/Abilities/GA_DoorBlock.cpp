@@ -9,12 +9,11 @@
 
 UGA_DoorBlock::UGA_DoorBlock()
 {
-
+	// Check if cost is set.
 }
 
 void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	// Implemented in BP for testing purposes
 	K2_CheckAbilityCost(); // Check for cost without consuming it. Cost will be commited once the channeling task is completed
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 
@@ -34,6 +33,7 @@ void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UGA_DoorBlock::AbilityChannelComplete()
 {
+	CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 	DoorToBlock->DoorBlockSuccess();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }

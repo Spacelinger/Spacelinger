@@ -16,7 +16,7 @@ class SPACELINGER_API UGA_DoorBlock : public UMCV_GameplayAbility
 public:
 	UGA_DoorBlock();
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (UIMin = "0.2", UIMax = "99"))
 	float TimeToChannel = 3.0f; // TO-DO: Cannot be < 0
 
 protected:
@@ -32,6 +32,4 @@ protected:
 
 	UPROPERTY()
 	TObjectPtr<ADoorBlock> DoorToBlock;
-	/*UPROPERTY()
-	ADoorBlock* DoorToBlock = nullptr;*/
 };
