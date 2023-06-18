@@ -6,8 +6,6 @@
 #include "Abilities/MCV_GameplayAbility.h"
 #include "GA_DoorBlock.generated.h"
 
-class ADoorBlock;
-
 UCLASS()
 class SPACELINGER_API UGA_DoorBlock : public UMCV_GameplayAbility
 {
@@ -30,8 +28,8 @@ protected:
 	UFUNCTION()
 	void AbilityChannelCanceled();
 
-	UPROPERTY()
-	TObjectPtr<ADoorBlock> DoorToBlock;
 	/*UPROPERTY()
+	TObjectPtr<ADoorBlock> DoorToBlock;
+	UPROPERTY()
 	ADoorBlock* DoorToBlock = nullptr;*/
 };

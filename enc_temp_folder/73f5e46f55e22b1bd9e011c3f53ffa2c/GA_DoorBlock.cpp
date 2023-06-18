@@ -5,7 +5,7 @@
 #include "Components/InteractingComponent.h"
 #include "AbilitySystemComponent.h"
 #include "AbilityTask_DoorBlock.h"
-#include "Actors/DoorBlock.h"
+//#include "Actors/DoorBlock.h"
 
 UGA_DoorBlock::UGA_DoorBlock()
 {
@@ -25,7 +25,7 @@ void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	DoorBlockTask->ChannelingCanceled.AddDynamic(this, &UGA_DoorBlock::AbilityChannelCanceled);
 	DoorBlockTask->ReadyForActivation();
 	
-	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
+	//DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
 
 	//UE_LOG(LogTemp, Warning, TEXT("TARGET: %s"), *InteractableObject.GetName());
 
@@ -34,13 +34,13 @@ void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UGA_DoorBlock::AbilityChannelComplete()
 {
-	DoorToBlock->DoorBlockSuccess();
+	//DoorToBlock->DoorBlockSuccess();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGA_DoorBlock::AbilityChannelCanceled()
 {
-	DoorToBlock->DoorBlockFail();
+	//DoorToBlock->DoorBlockFail();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
