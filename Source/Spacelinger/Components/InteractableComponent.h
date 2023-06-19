@@ -23,6 +23,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (UIMin = "1", UIMax = "99"))
 	int Priority = 50;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UWidgetComponent* InteractPromptWidget = nullptr;
+
 	UInteractableComponent();
 
 	virtual void BeginPlay() override;

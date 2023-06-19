@@ -8,6 +8,10 @@
 UInteractableComponent::UInteractableComponent()
 {
 	SetIsReplicatedByDefault(true);
+	
+	InteractPromptWidget = CreateDefaultSubobject<UWidgetComponent>(FName(TEXT("Interact UI Front")), true);
+	GetOwner()->AddActorComponentReplicatedSubObject(this, InteractPromptWidget);
+	//InteractPromptWidget->SetupAttachment(GetOwner()->GetRootComponent());
 }
 
 void UInteractableComponent::BeginPlay()
