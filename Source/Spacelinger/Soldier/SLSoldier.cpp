@@ -9,6 +9,7 @@ ASLSoldier::ASLSoldier() {
 	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
 }
 
+/** LUIS WAS HERE: Interacting has been heavily refactored. We can review together
 //------------------------//
 //     Interact stuff     //
 //------------------------//
@@ -34,6 +35,7 @@ void ASLSoldier::SetAsCandidate(bool IsCandidate) {
 		// Hide UI to interact
 	}
 }
+*/
 
 void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
 	// Check if OtherActor is a StaticMesh

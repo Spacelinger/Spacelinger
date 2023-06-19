@@ -625,16 +625,6 @@ FHitResult ASlime_A::PerformLineTrace(FVector StartPosition, FVector EndPosition
 	return HitResult;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-
-		// Slow Time Ability
-		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started,   this, &ASlime_A::SlowTime);
-		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
-	}
-}
-
 void ASlime_A::ThrowSpiderWeb()
 {
 	if (!bHasTrownSpiderWeb)
@@ -694,7 +684,6 @@ void ASlime_A::CutSpiderWeb()
 	bSetInitialRelativeLocation = false;
 }
 
-
 FVector2D ASlime_A::GetViewportCenter()
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
@@ -711,8 +700,6 @@ FVector ASlime_A::GetLookDirection(FVector2D ScreenLocation)
 	PlayerController->DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, LookDirection);
 	return LookDirection;
 }
-
-
 
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached)
 {
@@ -748,7 +735,6 @@ void ASlime_A::PutTrap()
 	}
 }
 
-
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
 
 	// Get the world space location of the physics constraint and the bone
@@ -769,8 +755,6 @@ FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, f
 	return inputAdapted;
 }
 
-
-
 FVector ASlime_A::getRelativePositionPhysicsConstraint() {
 
 	// Get the world space location of the physics constraint and the bone
@@ -784,12 +768,6 @@ FVector ASlime_A::getRelativePositionPhysicsConstraint() {
 
 	return LocalConstraintLocation;
 }
-
-
-
-
-
-
 
 void ASlime_A::JumpToPosition() {
 	bJumpToLocation = true;
@@ -1015,7 +993,6 @@ void ASlime_A::Interact(const FInputActionValue& Value)
 {
 	InteractingComponent->TryToInteract();
 }
-
 
 // ============== Slow Time Ability
 void ASlime_A::SlowTime(const FInputActionValue& Value)

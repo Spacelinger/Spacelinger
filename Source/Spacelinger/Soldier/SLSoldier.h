@@ -26,9 +26,9 @@ public:
 // Interact stuff
 public:
 	int InteractPriority = 99;
-	int GetInteractPriority() const;
-	void Interact(AActor* ActorInteracting);
-	void SetAsCandidate(bool IsCandidate);
+	//int GetInteractPriority() const;
+	//void Interact(AActor* ActorInteracting);	//LUIS: Interact has been refactored
+	//void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();
