@@ -8,6 +8,7 @@
 #include "Perception/AISenseConfig.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Slime_A.h"
+#include "Soldier\SLSoldier.h"
 
 ASoldierAIController::ASoldierAIController() {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
@@ -30,13 +31,22 @@ void ASoldierAIController::BeginPlay() {
 	UE_LOG(LogTemp, Warning, TEXT("Hola desde ASoldierAIController::BeginPlay()"));
 	AIPerceptionComponent->OnTargetPerceptionInfoUpdated.AddDynamic(this, &ASoldierAIController::OnTargetPerceptionInfoUpdated);
 
-	ensure(GetInstigator());
-	InitialTransform = GetInstigator()->GetTransform();
+	if (APawn *InstigatorPawn = GetInstigator())
+		InitialTransform = InstigatorPawn->GetTransform();
+}
+
+bool ASoldierAIController::CanPatrol() const
+{
+	APawn *InstigatorPawn = GetInstigator();
+	if (!InstigatorPawn) return false;
+
+	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(InstigatorPawn);
+	return (InstigatorSoldier && InstigatorSoldier->bCanPatrol);
 }
 
 void ASoldierAIController::ResumePatrol()
 {
-	if (bCanPatrol && PatrolPoints.Num() > 0 && bIsAlerted == false) {
+	if (CanPatrol() && PatrolPoints.Num() > 0 && bIsAlerted == false) {
 		GetWorldTimerManager().SetTimer(PatrolTimerHandle, this, &ASoldierAIController::Patrol, TimerTickRate, true);
 	}
 }
