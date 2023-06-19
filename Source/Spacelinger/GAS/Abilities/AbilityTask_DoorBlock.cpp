@@ -6,7 +6,7 @@
 #include "TimerManager.h"
 #include "AbilitySystemGlobals.h"
 
-UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer)
+UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer) 
 	: Super(ObjectInitializer)
 {
 	bTickingTask = true;
