@@ -2,11 +2,28 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Soldier/SLDetectionInterface.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
+	DetectionWidget->SetupAttachment(RootComponent);
+	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	
 	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
+}
+
+void ASLSoldier::BeginPlay() {
+	Super::BeginPlay();
+
+	if (USLDetectionInterface *DetectionInterface = Cast<USLDetectionInterface>(DetectionWidget->GetWidget())) {
+		DetectionInterface->OwningActor = this;
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's DetectionWidget is not USLDetectionInterface"));
+	}
 }
 
 //------------------------//

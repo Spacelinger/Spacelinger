@@ -5,6 +5,8 @@
 #include "Interact_Luis/Interfaces/InteractInterface.h"
 #include "SLSoldier.generated.h"
 
+class UWidgetComponent;
+
 UENUM()
 enum SoldierAIState {
 	IDLE,
@@ -22,6 +24,10 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 public:
 	ASLSoldier();
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* DetectionWidget;
 
 // Interact stuff
 public:

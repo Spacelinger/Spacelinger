@@ -8,10 +8,22 @@ ASLGameHUD::ASLGameHUD() { }
 void ASLGameHUD::BeginPlay() {
 	Super::BeginPlay();
 
-	if (PlayerInterfaceClass) {
-		PlayerInterface = CreateWidget(GetOwningPlayerController(), PlayerInterfaceClass);
-		if (PlayerInterface) {
-			PlayerInterface->AddToViewport();
-		}
+	PlayerInterface    = InstantiateWidget(PlayerInterfaceClass);
+	if (PlayerInterface) PlayerInterface->AddToViewport();
+
+	DetectionInterface = InstantiateWidget(DetectionInterfaceClass);
+}
+
+UUserWidget* ASLGameHUD::InstantiateWidget(UClass *InterfaceClass) {
+	if (!InterfaceClass) {
+		UE_LOG(LogTemp, Error, TEXT("UI Interface Widget Class not set in player character!"));
+		return nullptr;
 	}
+
+	UUserWidget* NewInterface = CreateWidget(GetOwningPlayerController(), InterfaceClass);
+	if (!NewInterface) {
+		UE_LOG(LogTemp, Error, TEXT("UI Interface Widget couldn't be created!"));
+		return nullptr;
+	}
+	return NewInterface;
 }

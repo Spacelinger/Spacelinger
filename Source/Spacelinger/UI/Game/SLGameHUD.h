@@ -14,14 +14,20 @@ class SPACELINGER_API ASLGameHUD : public AHUD
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Spacelinger, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UClass *PlayerInterfaceClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UClass *DetectionInterfaceClass;
 
 	UPROPERTY()
-		UUserWidget *PlayerInterface;
+	UUserWidget *PlayerInterface;
+	UPROPERTY()
+	UUserWidget *DetectionInterface;
 
 public:
 	ASLGameHUD();
+
+	UUserWidget* InstantiateWidget(UClass *InterfaceClass);
 
 protected:
 	virtual void BeginPlay() override;

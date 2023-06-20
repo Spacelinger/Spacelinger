@@ -27,8 +27,6 @@ ASoldierAIController::ASoldierAIController() {
 
 void ASoldierAIController::BeginPlay() {
 	Super::BeginPlay();
-	// Print a debug message INSIDE UNREAL ENGINE to ensure that this function is being called
-	UE_LOG(LogTemp, Warning, TEXT("Hola desde ASoldierAIController::BeginPlay()"));
 	AIPerceptionComponent->OnTargetPerceptionInfoUpdated.AddDynamic(this, &ASoldierAIController::OnTargetPerceptionInfoUpdated);
 
 	if (APawn *InstigatorPawn = GetInstigator())
