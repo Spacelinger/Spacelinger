@@ -72,6 +72,8 @@ ASlime_A::ASlime_A()
 	// Interact Collider component
 	InteractCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Interact Collision Component"));
 	InteractCollisionComponent->SetupAttachment(CameraBoom);
+	InteractCollisionComponent->ComponentTags.Add(FName(TEXT("Interact Volume")));
+
 
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));

@@ -18,13 +18,7 @@ class SPACELINGER_API UInteractableComponent : public UActorComponent, public II
 {
 	GENERATED_BODY()
 	
-public:	
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (UIMin = "1", UIMax = "99"))
-	int Priority = 50;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UWidgetComponent* InteractPromptWidget = nullptr;
+public:
 
 	UInteractableComponent();
 
@@ -34,6 +28,10 @@ public:
 	virtual void RemoveAsCandidate(AActor* ActorInteracting) override;
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const override { return Priority; }
+	virtual void OnRegister() override;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (UIMin = "1", UIMax = "99"))
+	int Priority = 50;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSetCandidate OnSetCandidateDelegate;
@@ -44,8 +42,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnInteract OnInteractDelegate;
 
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	//UWidgetComponent* InteractPromptWidget = nullptr;
+
 protected:
 
 	UPROPERTY()
 	AActor* CurrentInteractingActor = nullptr;
+
+	UPROPERTY()
+	TArray<UActorComponent*> InteractableWidgetComponents;
 };

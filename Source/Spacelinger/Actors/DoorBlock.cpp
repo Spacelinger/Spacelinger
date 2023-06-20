@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 //#include <AbilitySystemComponent.h>
 #include "AbilitySystemBlueprintLibrary.h"
+#include "Components/WidgetComponent.h"
 
 // Sets default values
 ADoorBlock::ADoorBlock()
@@ -20,6 +21,17 @@ ADoorBlock::ADoorBlock()
 	FinalStaticMeshComponent->SetupAttachment(ColliderComponent);
 	
 	InteractableComponent = CreateDefaultSubobject<UInteractableComponent>(FName(TEXT("Interactable Component")));
+	
+	InteractPromptWidget = CreateDefaultSubobject<UWidgetComponent>(FName(TEXT("Interact UI")));
+	InteractPromptWidget->SetupAttachment(ColliderComponent);
+	InteractPromptWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	InteractPromptWidget->ComponentTags.Add(FName(TEXT("Interact UI")));
+	
+	InteractingProgressBarWidget = CreateDefaultSubobject<UWidgetComponent>(FName(TEXT("Interact Progress Bar")));
+	InteractingProgressBarWidget->SetupAttachment(ColliderComponent);
+	InteractingProgressBarWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	InteractingProgressBarWidget->ComponentTags.Add(FName(TEXT("Interact Progress Bar")));
+
 }
 
 // Called when the game starts or when spawned
@@ -72,7 +84,7 @@ void ADoorBlock::DoorBlockSuccess()
 void ADoorBlock::DoorBlockFail()
 {
 	UE_LOG(LogActor, Warning, TEXT("Failed! To handle."));
-	Reset();	//Remove
+	Reset();	//Remove?
 }
 
 void ADoorBlock::Reset()
@@ -81,6 +93,8 @@ void ADoorBlock::Reset()
 	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FinalStaticMeshComponent->SetVisibility(false);
 	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	InteractPromptWidget->SetVisibility(false);
+	InteractingProgressBarWidget->SetVisibility(false);
 
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }

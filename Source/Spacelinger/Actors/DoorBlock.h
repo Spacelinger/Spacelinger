@@ -8,6 +8,7 @@
 
 class UInteractableComponent;
 class UBoxComponent;
+class UWidgetComponent;
 
 UCLASS()
 class SPACELINGER_API ADoorBlock : public AActor
@@ -29,9 +30,14 @@ public:
 	UStaticMeshComponent* FinalStaticMeshComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInterface* InteractPreviewMaterial;
+	UMaterialInterface* InteractPreviewMaterial = nullptr;
 
-	// Sets default values for this actor's properties
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UWidgetComponent* InteractPromptWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UWidgetComponent* InteractingProgressBarWidget = nullptr;
+
 	ADoorBlock();
 
 	UFUNCTION(BlueprintCallable)
@@ -40,7 +46,6 @@ public:
 	void DoorBlockFail();
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
 	void SetAsCandidate(AActor* InteractingActor);
