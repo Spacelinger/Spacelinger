@@ -12,6 +12,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDoorBlockEventDelegate);
 
+class UWidgetComponent;
+
 UCLASS()
 class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
 {
@@ -41,18 +43,22 @@ class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
 
 	/** Wait specified time OR until the Channeling Tag is removed from the Owning Ability owner. */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UAbilityTask_DoorBlock* DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, /*AActor* OptionalExternalTarget = nullptr,*/ bool OnlyTriggerOnce = false);
+	static UAbilityTask_DoorBlock* DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, UWidgetComponent* ChannelingProgressBar = nullptr, /*AActor* OptionalExternalTarget = nullptr,*/ bool OnlyTriggerOnce = false);
 
 protected:
 	
 	void OnTimeFinish();
+	const float GetNormalizedTimeElapsed();
 
 	//bool bUseExternalTarget;
 	bool bOnlyTriggerOnce = false;
 
 	float Time = 3.0f;	// TO-DO: Time cannot be <= 0
 	float TimeStarted = 0.0f;
+
 	FTimerHandle TimerHandle;
 
 	FGameplayTag ChannelingTag;
+
+	UWidgetComponent* WidgetChannelingProgressBar = nullptr;
 };

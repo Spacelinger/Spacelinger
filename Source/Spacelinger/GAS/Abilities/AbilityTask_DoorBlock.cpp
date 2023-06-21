@@ -5,6 +5,7 @@
 #include "AbilitySystemComponent.h"	// Might not be needed
 #include "TimerManager.h"
 #include "AbilitySystemGlobals.h"
+#include "Components/WidgetComponent.h"
 
 UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer) 
 	: Super(ObjectInitializer)
@@ -14,13 +15,14 @@ UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectI
 	TimeStarted = 0.0f;
 }
 
-UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
+UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, UWidgetComponent* ChannelingProgressBar, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
 {
 	UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Duration(Time);
 
 	UAbilityTask_DoorBlock* MyObj = NewAbilityTask<UAbilityTask_DoorBlock>(OwningAbility);
 	MyObj->ChannelingTag = ChannelingTag;
 	MyObj->Time = Time;
+	MyObj->WidgetChannelingProgressBar = ChannelingProgressBar;
 	//MyObj->SetExternalTarget(OptionalExternalTarget);
 	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
 	return MyObj;
@@ -53,6 +55,9 @@ void UAbilityTask_DoorBlock::Activate()
 
 void UAbilityTask_DoorBlock::TickTask(float DeltaTime)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Normalized time elapsed: %.2f"), GetNormalizedTimeElapsed());
+
+	// If the actor interacting moves, cancel the task
 	bool bIsInteractingActorMoving = GetTargetASC()->GetAvatarActor()->GetVelocity().Length() > 0;
 	if (bIsInteractingActorMoving)
 	{
@@ -110,6 +115,19 @@ UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 		OptionalExternalTarget = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
 	}
 }*/
+
+const float UAbilityTask_DoorBlock::GetNormalizedTimeElapsed()
+{
+	if (UWorld* World = GetWorld())
+	{
+		return World->TimeSince(TimeStarted) / Time;
+	}
+	else
+	{
+		return 0.f;
+	}
+}
+
 
 FString UAbilityTask_DoorBlock::GetDebugString() const	// Consider Delete
 {
