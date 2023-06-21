@@ -66,6 +66,8 @@ void ADoorBlock::Interact(AActor* InteractingActor)
 	Payload.Instigator = InteractingActor;
 	Payload.Target = this;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InteractingActor, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Started")), Payload);
+	
+	InteractingProgressBarWidget->SetVisibility(true);
 
 	//FinalStaticMeshComponent->SetVisibility(true);
 	UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
@@ -77,6 +79,7 @@ void ADoorBlock::Interact(AActor* InteractingActor)
 void ADoorBlock::DoorBlockSuccess()
 {
 	UE_LOG(LogActor, Warning, TEXT("Success! To handle."));
+	InteractingProgressBarWidget->SetVisibility(false);
 	FinalStaticMeshComponent->SetVisibility(true);
 	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

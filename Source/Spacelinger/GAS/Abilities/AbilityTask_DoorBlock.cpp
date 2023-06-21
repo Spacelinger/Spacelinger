@@ -6,6 +6,8 @@
 #include "TimerManager.h"
 #include "AbilitySystemGlobals.h"
 #include "Components/WidgetComponent.h"
+#include "UI/ChannelingProgressBar.h"
+#include "Components/ProgressBar.h"
 
 UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer) 
 	: Super(ObjectInitializer)
@@ -22,7 +24,9 @@ UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGamepla
 	UAbilityTask_DoorBlock* MyObj = NewAbilityTask<UAbilityTask_DoorBlock>(OwningAbility);
 	MyObj->ChannelingTag = ChannelingTag;
 	MyObj->Time = Time;
-	MyObj->WidgetChannelingProgressBar = ChannelingProgressBar;
+	MyObj->WidgetChannelingProgressBar = Cast<UChannelingProgressBar>(ChannelingProgressBar->GetUserWidgetObject());
+	if (!Cast<UChannelingProgressBar>(ChannelingProgressBar->GetUserWidgetObject()))
+		UE_LOG(LogTemp, Warning, TEXT("Cast not working"));
 	//MyObj->SetExternalTarget(OptionalExternalTarget);
 	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
 	return MyObj;
@@ -50,12 +54,15 @@ void UAbilityTask_DoorBlock::Activate()
 	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
 	World->GetTimerManager().SetTimer(TimerHandle, this, &UAbilityTask_DoorBlock::OnTimeFinish, Time, false);
 
+	WidgetChannelingProgressBar->SetVisibility(ESlateVisibility::Visible);
 	Super::Activate();
 }
 
 void UAbilityTask_DoorBlock::TickTask(float DeltaTime)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Normalized time elapsed: %.2f"), GetNormalizedTimeElapsed());
+	//UE_LOG(LogTemp, Warning, TEXT("Normalized time elapsed: %.2f"), GetNormalizedTimeElapsed());
+
+	UpdateProgressBar();
 
 	// If the actor interacting moves, cancel the task
 	bool bIsInteractingActorMoving = GetTargetASC()->GetAvatarActor()->GetVelocity().Length() > 0;
@@ -78,6 +85,7 @@ void UAbilityTask_DoorBlock::OnTimeFinish()
 	{
 		ChannelingComplete.Broadcast();
 	}
+	WidgetChannelingProgressBar->SetVisibility(ESlateVisibility::Collapsed);
 	EndTask();
 }
 
@@ -92,6 +100,7 @@ void UAbilityTask_DoorBlock::GameplayTagCallback(const FGameplayTag InTag, int32
 		if (bOnlyTriggerOnce)
 		{
 			EndTask();
+			WidgetChannelingProgressBar->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 }
@@ -116,7 +125,15 @@ UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 	}
 }*/
 
-const float UAbilityTask_DoorBlock::GetNormalizedTimeElapsed()
+void UAbilityTask_DoorBlock::UpdateProgressBar()
+{
+	if (WidgetChannelingProgressBar)
+	{
+		WidgetChannelingProgressBar->GetProgressBar()->SetPercent(GetNormalizedTimeElapsed());
+	}
+}
+
+float UAbilityTask_DoorBlock::GetNormalizedTimeElapsed() const
 {
 	if (UWorld* World = GetWorld())
 	{

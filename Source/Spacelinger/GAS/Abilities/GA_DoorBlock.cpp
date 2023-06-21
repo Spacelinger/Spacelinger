@@ -17,14 +17,15 @@ void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	K2_CheckAbilityCost(); // Check for cost without consuming it. Cost will be commited once the channeling task is completed
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 
+	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
+
 	// Start AbilityTask_DoorBlock
-	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f);
+	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f, DoorToBlock->InteractingProgressBarWidget);
 	
 	DoorBlockTask->ChannelingComplete.AddDynamic(this, &UGA_DoorBlock::AbilityChannelComplete);
 	DoorBlockTask->ChannelingCanceled.AddDynamic(this, &UGA_DoorBlock::AbilityChannelCanceled);
 	DoorBlockTask->ReadyForActivation();
 	
-	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
 
 	//UE_LOG(LogTemp, Warning, TEXT("TARGET: %s"), *InteractableObject.GetName());
 

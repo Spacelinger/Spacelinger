@@ -12,7 +12,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDoorBlockEventDelegate);
 
-class UWidgetComponent;
+class UChannelingProgressBar;
 
 UCLASS()
 class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
@@ -48,7 +48,8 @@ class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
 protected:
 	
 	void OnTimeFinish();
-	const float GetNormalizedTimeElapsed();
+	float GetNormalizedTimeElapsed() const;
+	void UpdateProgressBar();
 
 	//bool bUseExternalTarget;
 	bool bOnlyTriggerOnce = false;
@@ -60,5 +61,5 @@ protected:
 
 	FGameplayTag ChannelingTag;
 
-	UWidgetComponent* WidgetChannelingProgressBar = nullptr;
+	UChannelingProgressBar* WidgetChannelingProgressBar = nullptr;
 };
