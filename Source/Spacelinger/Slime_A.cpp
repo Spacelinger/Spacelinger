@@ -625,6 +625,12 @@ FHitResult ASlime_A::PerformLineTrace(FVector StartPosition, FVector EndPosition
 	return HitResult;
 }
 
+FVector ASlime_A::ReturnCenterScreen() {
+	FVector2D ScreenLocation = GetViewportCenter();
+	FVector LookDirection = GetLookDirection(ScreenLocation);
+	return LookDirection;
+}
+
 void ASlime_A::ThrowSpiderWeb()
 {
 	if (!bHasTrownSpiderWeb)
@@ -700,6 +706,91 @@ FVector ASlime_A::GetLookDirection(FVector2D ScreenLocation)
 	PlayerController->DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, LookDirection);
 	return LookDirection;
 }
+
+float ASlime_A::GetHorizontalAngleToCenterScreen()
+{
+	FVector CharacterLocation = GetActorLocation();
+	FVector CenterScreenLocation = ReturnCenterScreen();
+
+	// Calculate the direction vector from the character to the center of the screen in world space
+	FVector CameraLookAtWorldDir = CenterScreenLocation - CharacterLocation;
+	CameraLookAtWorldDir.Normalize();
+
+	// Convert it to the character's local space
+	FVector CameraLookAtLocalDir = GetActorTransform().InverseTransformVectorNoScale(CameraLookAtWorldDir);
+
+	// Get the forward vector of the actor
+	FVector ActorForwardVector = GetActorForwardVector();
+	ActorForwardVector.Normalize();
+
+	// Calculate the dot product between the direction vector and the forward vector to get the cosine of the angle
+	float DotProduct = FVector::DotProduct(CameraLookAtLocalDir, ActorForwardVector);
+
+	// Calculate the horizontal angle in radians using the dot product
+	float HorizontalAngleRad = FMath::Acos(FMath::Clamp(DotProduct, -1.0f, 1.0f));
+
+	// Convert the angle to degrees
+	float HorizontalAngleDeg = FMath::RadiansToDegrees(HorizontalAngleRad);
+
+	// Get the cross product to determine the direction of the angle
+	FVector CrossProduct = FVector::CrossProduct(ActorForwardVector, CameraLookAtLocalDir);
+
+	// If the Z component of the cross product is negative, make the angle negative
+	if (CrossProduct.Z < 0)
+	{
+		HorizontalAngleDeg = -HorizontalAngleDeg;
+	}
+
+	// Clamp the angle to be within the range [-70, 70]
+	HorizontalAngleDeg = FMath::Clamp(HorizontalAngleDeg, -70.0f, 70.0f);
+
+	return HorizontalAngleDeg;
+}
+
+
+
+float ASlime_A::GetVerticalAngleToCenterScreen()
+{
+	FVector CharacterLocation = GetActorLocation();
+	FVector CenterScreenLocation = ReturnCenterScreen();
+
+	// Calculate the direction vector from the character to the center of the screen in world space
+	FVector CameraLookAtWorldDir = CenterScreenLocation - CharacterLocation;
+	CameraLookAtWorldDir.Normalize();
+
+	// Convert it to the character's local space
+	FVector CameraLookAtLocalDir = GetActorTransform().InverseTransformVectorNoScale(CameraLookAtWorldDir);
+
+	// Get the up vector of the actor
+	FVector ActorUpVector = GetActorUpVector();
+	ActorUpVector.Normalize();
+
+	// Calculate the dot product between the direction vector and the up vector to get the cosine of the angle
+	float DotProduct = FVector::DotProduct(CameraLookAtLocalDir, ActorUpVector);
+
+	// Calculate the vertical angle in radians using the dot product
+	float VerticalAngleRad = FMath::Acos(FMath::Clamp(DotProduct, -1.0f, 1.0f));
+
+	// Convert the angle to degrees
+	float VerticalAngleDeg = FMath::RadiansToDegrees(VerticalAngleRad);
+
+	// Get the cross product to determine the direction of the angle
+	FVector CrossProduct = FVector::CrossProduct(ActorUpVector, CameraLookAtLocalDir);
+
+	// If the Z component of the cross product is negative, make the angle negative
+	if (CrossProduct.Z < 0)
+	{
+		VerticalAngleDeg = -VerticalAngleDeg;
+	}
+
+	// Clamp the angle to be within the range [-70, 70]
+	VerticalAngleDeg = FMath::Clamp(VerticalAngleDeg, -70.0f, 70.0f);
+
+	return VerticalAngleDeg;
+}
+
+
+
 
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached)
 {

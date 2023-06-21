@@ -105,6 +105,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void MeleeAttackTriggered();
 
+	UFUNCTION(BlueprintCallable, Category = "Angles")
+		FVector ReturnCenterScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Angles")
+		float GetVerticalAngleToCenterScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Angles")
+		float GetHorizontalAngleToCenterScreen();
 
 protected:
 	// Input callbacks
