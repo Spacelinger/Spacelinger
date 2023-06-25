@@ -22,10 +22,14 @@
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
 
+#include "Blueprint/UserWidget.h"
+#include "UI/Game/SLCrosshair.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 // ASlime
+
+class ASLCrosshair;
 
 ASlime_A::ASlime_A()
 {
@@ -702,6 +706,14 @@ void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bo
 	spiderWebReference->setFuturePosition(HitLocation, this, bAttached);
 }
 
+void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
+{
+	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	spiderWebReference->CableComponent->bAttachEnd = true;
+	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
+	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
+}
+
 void ASlime_A::PutTrap()
 {
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
@@ -829,11 +841,22 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
 	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
+	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
 
 	default:
 		break;
 	}
-	
+}
+
+void ASlime_A::AimAbility(const FInputActionValue& value)
+{
+	switch (SelectedSpiderAbility)
+	{
+		case SLSpiderAbility::ThrowStunningWeb: AimStunningWeb(); break;
+
+		default:
+			break;
+	}
 }
 
 void ASlime_A::MeleeAttack() {
@@ -966,6 +989,8 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 
 		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
 
+		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
+
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
 
 		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
@@ -1003,94 +1028,45 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 }
 
-/*
+
 // Stunning Web Ability
-void ASlime_A::AimStunningWeb(const FInputActionValue& Value)
+void ASlime_A::AimStunningWeb()
 {
-	if (Value.Get<float>() > 0.0f)
+	ASLCrosshair* CrosshairWidget = Cast<ASLCrosshair>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	
+	if (CrosshairWidget != nullptr)
 	{
-		isAimingStunningWeb = true;
-		// Spawn the reticle if it doesn't exist
-		if (!reticleReference)
-		{
-			reticleReference = GetWorld()->SpawnActor<AReticle>(AReticle::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
-		}
+		CrosshairWidget->DrawHUD();
+	}
+}
+	
 
-		// Get the mouse position and convert it to a world position
-		FVector2D mousePosition;
-		APlayerController* playerController = Cast<APlayerController>(GetController());
-		if (playerController)
-		{
-			playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
-		}
-		FVector worldPosition;
-		FVector worldDirection;
-		FVector worldUp;
-		playerController->DeprojectMousePositionToWorld(worldPosition, worldDirection, worldUp);
 
-		// Trace from the camera to the world position
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, worldPosition, worldPosition + worldDirection * 10000.0f, ECC_Visibility, Params);
+void ASlime_A::ThrowStunningWeb()
+{
+	if (spiderWebReference != nullptr) {
+		CutSpiderWeb();
+	}
 
-		// If the trace hit something, set the reticle's location to the hit location
-		if (bHit)
-		{
-			reticleReference->SetActorLocation(Hit.Location);
+	bHasTrownSpiderWeb = true;
+	FVector2D ScreenLocation = GetViewportCenter();
+	FVector LookDirection = GetLookDirection(ScreenLocation);
+	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
+	float LineTraceDistance = 1000.0f;
+	FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
+	FHitResult HitResult = PerformLineTrace(StartPosition, EndPosition);
+
+	if (HitResult.bBlockingHit)
+	{
+		if (ASLSoldier* Soldier = Cast<ASLSoldier>(HitResult.GetActor())) {
+			SpawnStunningWeb(StartPosition, HitResult.Location);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
+			Soldier->Stun(StunningWebStunDuration);
 		}
 	}
 	else
 	{
-		bIsAimingStunningWeb = false;
-		// Destroy the reticle if it exists
-		if (reticleReference)
-		{
-			reticleReference->Destroy();
-			reticleReference = nullptr;
-		}
-	}
-}
-	
-
-
-void ASlime_A::ThrowStunningWeb(const FInputActionValue& Value)
-{
-	// If the player is aiming the web, throw it
-	if (reticleReference)
-	{
-		// Get the mouse position and convert it to a world position
-		FVector2D mousePosition;
-		APlayerController* playerController = Cast<APlayerController>(GetController());
-		if (playerController)
-		{
-			playerController->GetMousePosition(mousePosition.X, mousePosition.Y);
-		}
-		FVector worldPosition;
-		FVector worldDirection;
-		FVector worldUp;
-		playerController->DeprojectMousePositionToWorld(worldPosition, worldDirection, worldUp);
-
-		// Trace from the camera to the world position
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, worldPosition, worldPosition + worldDirection * 10000.0f, ECC_Visibility, Params);
-
-		// If the trace hit something, throw the web
-		if (bHit)
-		{
-			// Spawn the web
-			AStunningWeb* web = GetWorld()->SpawnActor<AStunningWeb>(AStunningWeb::StaticClass(), GetActorLocation(), FRotator::ZeroRotator);
-
-			// Set the web's target location
-			web->SetTargetLocation(Hit.Location);
-
-			// Destroy the reticle
-			reticleReference->Destroy();
-			reticleReference = nullptr;
-		}
+		// SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false);
 	}
 	
 }
-*/

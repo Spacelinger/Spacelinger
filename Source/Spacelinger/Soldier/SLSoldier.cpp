@@ -120,6 +120,20 @@ void ASLSoldier::ReceiveDamage()
 	Die();
 }
 
+void ASLSoldier::Stun(float StunDuration)
+{
+	bIsStunned = true;
+	FTimerHandle TimerHandle;
+	GetCharacterMovement()->DisableMovement();
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
+}
+
+void ASLSoldier::Unstun()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+}
+
+
 void ASLSoldier::Die()
 {
 	GetController()->UnPossess();

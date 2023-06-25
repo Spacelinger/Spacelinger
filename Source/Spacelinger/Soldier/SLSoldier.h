@@ -33,6 +33,8 @@ public:
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();
 	void ReceiveDamage();
+	void Stun(float StunDuration);
+	void Unstun();
 	void Die();
 
 	UFUNCTION()
@@ -43,6 +45,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	bool bCanPatrol = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	bool bIsStunned = false;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TEnumAsByte<SoldierAIState> AnimationState = SoldierAIState::IDLE;
 };

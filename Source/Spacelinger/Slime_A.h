@@ -26,6 +26,7 @@ enum SLSpiderAbility {
 	PutTrap,
 	ThrowSpiderWeb,
 	MeleeAttack,
+	ThrowStunningWeb,
 	COUNT UMETA(Hidden),
 };
 
@@ -56,6 +57,8 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInputAction* DebugAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* throwAbilityAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AimAbilityAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -99,6 +102,7 @@ protected:
 	void Climb(const FInputActionValue& Value);
 	void ToggleDrawDebugLines(const FInputActionValue& Value);
 	void ThrowAbility(const FInputActionValue& Value);
+	void AimAbility(const FInputActionValue& Value);
 	
 	void SwitchAbility(const FInputActionValue& Value);
 	void StopJumpToPosition();
@@ -111,6 +115,8 @@ protected:
 	void HandleHangingBehaviour();
 	void HandleJumpToLocationBehaviour();
 	void ThrowSpiderWeb();
+	void ThrowStunningWeb();
+	void AimStunningWeb();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
@@ -119,6 +125,7 @@ protected:
 	FVector GetLookDirection(FVector2D ScreenLocation);
 	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
 	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached);
+	void SpawnStunningWeb(FVector Location, FVector HitLocation);
 	void PutSpiderWebAbility();
 
 	// Helpers
@@ -158,6 +165,7 @@ private:
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
+	const float StunningWebStunDuration = 10.0f;
 
 
 public:
@@ -251,4 +259,7 @@ protected:
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
 	void SlowTimeFunc(float DeltaTime);
+
+
+	
 };
