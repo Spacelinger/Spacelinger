@@ -3,7 +3,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
 #include "Components/WidgetComponent.h"
-#include "UI/Soldier/SLDetectionInterface.h"
+#include "UI/Soldier/SLDetectionWidget.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -18,7 +18,7 @@ ASLSoldier::ASLSoldier() {
 void ASLSoldier::BeginPlay() {
 	Super::BeginPlay();
 
-	if (USLDetectionInterface *DetectionInterface = Cast<USLDetectionInterface>(DetectionWidget->GetWidget())) {
+	if (USLDetectionWidget *DetectionInterface = Cast<USLDetectionWidget>(DetectionWidget->GetWidget())) {
 		DetectionInterface->OwningActor = this;
 	}
 	else {
@@ -26,11 +26,14 @@ void ASLSoldier::BeginPlay() {
 	}
 
 	if (OffscreenDetectionWidgetClass) {
-		OffscreenDetectionWidget = Cast<USLDetectionInterface>(CreateWidget(GetGameInstance()->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
+		OffscreenDetectionWidget = Cast<USLDetectionWidget>(CreateWidget(GetGameInstance()->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
 		if (OffscreenDetectionWidget) {
 			OffscreenDetectionWidget->AddToViewport();
 			OffscreenDetectionWidget->OwningActor = this;
 		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's OffscreenDetectionWidgetClass is not set"));
 	}
 }
 

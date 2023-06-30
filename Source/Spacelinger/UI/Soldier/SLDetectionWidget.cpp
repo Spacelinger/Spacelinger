@@ -1,7 +1,7 @@
 // Without Copyright. Project SpaceLinger, Master en Creacion de Videojuegos (MCV) at Universitat Pompeu Fabra (UPF)
 
 
-#include "UI/Soldier/SLDetectionInterface.h"
+#include "UI/Soldier/SLDetectionWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 #include "Soldier/SoldierAIController.h"
@@ -12,18 +12,18 @@
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
-float USLDetectionInterface::GetBarPercent() const {
+float USLDetectionWidget::GetBarPercent() const {
 	if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
 		return AIController->CurrentAwareness;
 	}
 	return .0f;
 }
 
-ESlateVisibility USLDetectionInterface::GetBarVisibility() const {
+ESlateVisibility USLDetectionWidget::GetBarVisibility() const {
 	return IsActorAware(OwningActor) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden;
 }
 
-ESlateVisibility USLDetectionInterface::GetBarVisibilityOffscreen() const {
+ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() const {
 	if (!OwningActor || !IsActorAware(OwningActor)) 
 		return ESlateVisibility::Hidden;
 
@@ -59,21 +59,21 @@ ESlateVisibility USLDetectionInterface::GetBarVisibilityOffscreen() const {
 	return Result;
 }
 
-FLinearColor USLDetectionInterface::GetBarColor() const {
+FLinearColor USLDetectionWidget::GetBarColor() const {
 	if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
 		return AIController->bIsAlerted ? AlertedColor : DetectedColor;
 	}
 	return DetectedColor;
 }
 
-bool USLDetectionInterface::IsActorAware(AActor *Actor) const {
+bool USLDetectionWidget::IsActorAware(AActor *Actor) const {
 	if (ASoldierAIController *AIController = GetAIController(Actor)) {
 		return AIController->CurrentAwareness > .01f;
 	}
 	return false;
 }
 
-ASoldierAIController* USLDetectionInterface::GetAIController(AActor *Actor) const {
+ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
 	APawn* AsPawn = Cast<APawn>(Actor);
 	if (AsPawn) {
 		return Cast<ASoldierAIController>(AsPawn->GetController());

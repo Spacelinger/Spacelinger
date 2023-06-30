@@ -4,13 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "SLDetectionInterface.generated.h"
+#include "SLDetectionWidget.generated.h"
 
 class ASoldierAIController;
 class UCanvasPanel;
 
 UCLASS()
-class SPACELINGER_API USLDetectionInterface : public UUserWidget
+class SPACELINGER_API USLDetectionWidget : public UUserWidget
 {
 	GENERATED_BODY()
 
