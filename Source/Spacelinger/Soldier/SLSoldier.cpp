@@ -8,11 +8,11 @@
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
+	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
+
 	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
 	DetectionWidget->SetupAttachment(RootComponent);
 	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
-	
-	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
 }
 
 void ASLSoldier::BeginPlay() {
@@ -23,6 +23,14 @@ void ASLSoldier::BeginPlay() {
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's DetectionWidget is not USLDetectionInterface"));
+	}
+
+	if (OffscreenDetectionWidgetClass) {
+		OffscreenDetectionWidget = Cast<USLDetectionInterface>(CreateWidget(GetGameInstance()->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
+		if (OffscreenDetectionWidget) {
+			OffscreenDetectionWidget->AddToViewport();
+			OffscreenDetectionWidget->OwningActor = this;
+		}
 	}
 }
 
@@ -139,6 +147,9 @@ void ASLSoldier::ReceiveDamage()
 
 void ASLSoldier::Die()
 {
+	DetectionWidget->Deactivate();
+	OffscreenDetectionWidget->RemoveFromParent();
+
 	GetController()->UnPossess();
 
 	// Disable collision and physics-based movement for the soldier's components

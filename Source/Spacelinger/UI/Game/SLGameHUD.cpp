@@ -10,8 +10,6 @@ void ASLGameHUD::BeginPlay() {
 
 	PlayerInterface    = InstantiateWidget(PlayerInterfaceClass);
 	if (PlayerInterface) PlayerInterface->AddToViewport();
-
-	DetectionInterface = InstantiateWidget(DetectionInterfaceClass);
 }
 
 UUserWidget* ASLGameHUD::InstantiateWidget(UClass *InterfaceClass) {

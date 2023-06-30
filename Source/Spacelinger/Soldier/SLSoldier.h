@@ -6,6 +6,7 @@
 #include "SLSoldier.generated.h"
 
 class UWidgetComponent;
+class USLDetectionInterface;
 
 UENUM()
 enum SoldierAIState {
@@ -28,6 +29,11 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* DetectionWidget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UClass *OffscreenDetectionWidgetClass;
+	UPROPERTY()
+	USLDetectionInterface *OffscreenDetectionWidget;
 
 // Interact stuff
 public:
