@@ -19,6 +19,7 @@ ASoldierAIController::ASoldierAIController() {
 	AISenseConfigSight->DetectionByAffiliation.bDetectFriendlies = false;
 	AISenseConfigSight->SightRadius     = 800;
 	AISenseConfigSight->LoseSightRadius = 1000;
+	AISenseConfigSight->AutoSuccessRangeFromLastSeenLocation = 50.0f;
 	AIPerceptionComponent->ConfigureSense(*AISenseConfigSight);
 
 	// Initialize patrol parameters
@@ -99,6 +100,7 @@ void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionU
 	if (!PlayerCharacter) { return; }
 
 	if (UpdateInfo.Stimulus.WasSuccessfullySensed()) {
+		UE_LOG(LogTemp, Display, TEXT("Actor detected!"));
 		DetectedActor = TWeakObjectPtr<AActor>(UpdateInfo.Target);
 		// If it's alerted we just set up the awareness to max without calling our timer
 		if (bIsAlerted) {
@@ -110,6 +112,7 @@ void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionU
 		}
 	}
 	else {
+		UE_LOG(LogTemp, Display, TEXT("Actor undetected!"));
 		// It doesn't matter if it's alerted or not, we're going to reduce the awareness gradually
 		DetectedActor.Reset();
 		GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &ASoldierAIController::OnActorUndetected, TimerTickRate, true);

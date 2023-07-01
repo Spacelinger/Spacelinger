@@ -21,17 +21,15 @@ void UBTDec_Soldier_AtShootingDistance::InitializeFromAsset(UBehaviorTree& Asset
 }
 
 bool UBTDec_Soldier_AtShootingDistance::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const {
-	ASoldierAIController *AIController = Cast<ASoldierAIController>(OwnerComp.GetAIOwner());
-	if (!AIController || !AIController->DetectedActor.IsValid()) return false;
+	if(!PlayerActorKey.IsSet()) return false;
+	UBlackboardComponent *BB = OwnerComp.GetBlackboardComponent();
+	AActor *BBPlayer = Cast<AActor>(BB->GetValueAsObject(PlayerActorKey.SelectedKeyName));
 
+	ASoldierAIController *AIController = Cast<ASoldierAIController>(OwnerComp.GetAIOwner());
+	if (!AIController) return false;
 	AActor *AIActor = AIController->GetInstigator();
 	if (!AIActor) return false;
 
-	UBlackboardComponent *BB = OwnerComp.GetBlackboardComponent();
-	if (!BB) return false;
-	AActor *PlayerActor = Cast<AActor>(BB->GetValueAsObject(PlayerActorKey.SelectedKeyName));
-	if (!PlayerActor) return false;
-
-	double Distance = FVector::Dist(PlayerActor->GetActorLocation(), AIActor->GetActorLocation());
+	double Distance = FVector::Dist(BBPlayer->GetActorLocation(), AIActor->GetActorLocation());
 	return Distance <= AIController->ShootingAcceptanceRadius;
 }
