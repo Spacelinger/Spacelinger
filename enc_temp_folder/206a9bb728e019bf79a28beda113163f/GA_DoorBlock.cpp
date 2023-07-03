@@ -14,12 +14,7 @@ UGA_DoorBlock::UGA_DoorBlock()
 
 void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	if (!K2_CheckAbilityCost()) // Check for cost without consuming it. Cost will be commited once the channeling task is completed
-	{
-		// If can't spend the ability cost, notifying it as a fail
-		DoorToBlock->DoorBlockFail();
-		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
-	}
+	K2_CheckAbilityCost(); // Check for cost without consuming it. Cost will be commited once the channeling task is completed
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 
 	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);

@@ -31,7 +31,7 @@ void UInteractableComponent::BeginPlay()
 
 void UInteractableComponent::SetAsCandidate(AActor* ActorInteracting)
 {
-	//UE_LOG(LogActor, Warning, TEXT("Actor %s can engage an interaction with %s"), *ActorInteracting->GetName(), *GetOwner()->GetName());
+	UE_LOG(LogActor, Warning, TEXT("Actor %s can engage an interaction with %s"), *ActorInteracting->GetName(), *GetOwner()->GetName());
 	for (UActorComponent* WidgetComponent : InteractableWidgetComponents)
 	{
 		Cast<UWidgetComponent>(WidgetComponent)->SetVisibility(true);
@@ -42,7 +42,7 @@ void UInteractableComponent::SetAsCandidate(AActor* ActorInteracting)
 
 void UInteractableComponent::RemoveAsCandidate(AActor* ActorInteracting)
 {
-	//UE_LOG(LogActor, Warning, TEXT("Actor %s can no longer engage an interaction with %s"), *ActorInteracting->GetName(), *GetOwner()->GetName());
+	UE_LOG(LogActor, Warning, TEXT("Actor %s can no longer engage an interaction with %s"), *ActorInteracting->GetName(), *GetOwner()->GetName());
 	for (UActorComponent* WidgetComponent : InteractableWidgetComponents)
 	{
 		Cast<UWidgetComponent>(WidgetComponent)->SetVisibility(false);

@@ -28,10 +28,14 @@ public:
 	virtual void RemoveAsCandidate(AActor* ActorInteracting) override;
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const override { return Priority; }
+	virtual bool CanInteract() const override { return bCanInteract; }
 	virtual void OnRegister() override;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (UIMin = "1", UIMax = "99"))
 	int Priority = 50;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	bool bCanInteract = true;
 
 	UPROPERTY(BlueprintAssignable)
 	FOnSetCandidate OnSetCandidateDelegate;

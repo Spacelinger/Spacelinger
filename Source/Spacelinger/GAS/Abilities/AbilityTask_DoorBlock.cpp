@@ -8,6 +8,7 @@
 #include "Components/WidgetComponent.h"
 #include "UI/ChannelingProgressBar.h"
 #include "Components/ProgressBar.h"
+#include <Actors/DoorBlock.h>
 
 UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer) 
 	: Super(ObjectInitializer)
@@ -17,17 +18,15 @@ UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectI
 	TimeStarted = 0.0f;
 }
 
-UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, UWidgetComponent* ChannelingProgressBar, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
+UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, ADoorBlock* DoorToBlock, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
 {
 	UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Duration(Time);
 
 	UAbilityTask_DoorBlock* MyObj = NewAbilityTask<UAbilityTask_DoorBlock>(OwningAbility);
 	MyObj->ChannelingTag = ChannelingTag;
 	MyObj->Time = Time;
-	MyObj->WidgetChannelingProgressBar = Cast<UChannelingProgressBar>(ChannelingProgressBar->GetUserWidgetObject());
-	if (!Cast<UChannelingProgressBar>(ChannelingProgressBar->GetUserWidgetObject()))
-		UE_LOG(LogTemp, Warning, TEXT("Cast not working"));
-	//MyObj->SetExternalTarget(OptionalExternalTarget);
+	MyObj->DoorToBlock = DoorToBlock;
+	//MyObj->SetExternalTarget(OptionalExternalTarget);	// Not used
 	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
 	return MyObj;
 }
@@ -54,7 +53,6 @@ void UAbilityTask_DoorBlock::Activate()
 	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
 	World->GetTimerManager().SetTimer(TimerHandle, this, &UAbilityTask_DoorBlock::OnTimeFinish, Time, false);
 
-	WidgetChannelingProgressBar->SetVisibility(ESlateVisibility::Visible);
 	Super::Activate();
 }
 
@@ -85,7 +83,6 @@ void UAbilityTask_DoorBlock::OnTimeFinish()
 	{
 		ChannelingComplete.Broadcast();
 	}
-	WidgetChannelingProgressBar->SetVisibility(ESlateVisibility::Collapsed);
 	EndTask();
 }
 
@@ -100,14 +97,13 @@ void UAbilityTask_DoorBlock::GameplayTagCallback(const FGameplayTag InTag, int32
 		if (bOnlyTriggerOnce)
 		{
 			EndTask();
-			WidgetChannelingProgressBar->SetVisibility(ESlateVisibility::Collapsed);
 		}
 	}
 }
 
 UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 {
-	/*
+	/* External Target is not used
 	if (bUseExternalTarget)
 	{
 		return OptionalExternalTarget;
@@ -116,7 +112,7 @@ UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 	return AbilitySystemComponent.Get();
 }
 
-/*void UAbilityTask_DoorBlock::SetExternalTarget(AActor* Actor)
+/*void UAbilityTask_DoorBlock::SetExternalTarget(AActor* Actor)		External Target is not used
 {
 	if (Actor)
 	{
@@ -127,10 +123,8 @@ UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 
 void UAbilityTask_DoorBlock::UpdateProgressBar()
 {
-	if (WidgetChannelingProgressBar)
-	{
-		WidgetChannelingProgressBar->GetProgressBar()->SetPercent(GetNormalizedTimeElapsed());
-	}
+	if (DoorToBlock)
+		DoorToBlock->UpdateDoorBlockProgress(GetNormalizedTimeElapsed());
 }
 
 float UAbilityTask_DoorBlock::GetNormalizedTimeElapsed() const

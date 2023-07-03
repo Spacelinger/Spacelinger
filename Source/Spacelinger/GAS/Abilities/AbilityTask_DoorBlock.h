@@ -13,6 +13,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FWaitDoorBlockEventDelegate);
 
 class UChannelingProgressBar;
+class ADoorBlock;
 
 UCLASS()
 class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
@@ -39,11 +40,11 @@ class SPACELINGER_API UAbilityTask_DoorBlock : public UAbilityTask
 
 	virtual void GameplayTagCallback(const FGameplayTag Tag, int32 NewCount);
 
-	//void SetExternalTarget(AActor* Actor);
+	//void SetExternalTarget(AActor* Actor);	// not used
 
 	/** Wait specified time OR until the Channeling Tag is removed from the Owning Ability owner. */
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
-	static UAbilityTask_DoorBlock* DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, UWidgetComponent* ChannelingProgressBar = nullptr, /*AActor* OptionalExternalTarget = nullptr,*/ bool OnlyTriggerOnce = false);
+	static UAbilityTask_DoorBlock* DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, ADoorBlock* DoorToBlock, /*AActor* OptionalExternalTarget = nullptr,*/ bool OnlyTriggerOnce = false);
 
 protected:
 	
@@ -54,12 +55,12 @@ protected:
 	//bool bUseExternalTarget;
 	bool bOnlyTriggerOnce = false;
 
-	float Time = 3.0f;	// TO-DO: Time cannot be <= 0
+	float Time = 3.0f;	// Placeholder. Time is set by the constructor
 	float TimeStarted = 0.0f;
 
 	FTimerHandle TimerHandle;
 
 	FGameplayTag ChannelingTag;
 
-	UChannelingProgressBar* WidgetChannelingProgressBar = nullptr;
+	ADoorBlock* DoorToBlock = nullptr;
 };

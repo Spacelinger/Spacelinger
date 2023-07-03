@@ -19,4 +19,6 @@ public:
 	virtual void RemoveAsCandidate(AActor* ActorInteracting) {}
 	virtual void Interact(AActor* ActorInteracting) {}
 	virtual int GetInteractPriority() const { return 50; }
+	virtual bool CanInteract() const { return true; }
+
 };

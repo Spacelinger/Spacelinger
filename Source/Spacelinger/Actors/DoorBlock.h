@@ -15,28 +15,24 @@ class SPACELINGER_API ADoorBlock : public AActor
 {
 	GENERATED_BODY()
 
-
 public:	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UInteractableComponent* InteractableComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UBoxComponent* ColliderComponent = nullptr;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* PreviewStaticMeshComponent = nullptr;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UStaticMeshComponent* FinalStaticMeshComponent = nullptr;
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInterface* InteractPreviewMaterial = nullptr;
+	UBoxComponent* ColliderComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UWidgetComponent* InteractPromptWidget = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UWidgetComponent* InteractingProgressBarWidget = nullptr;
+	float TimeToUnblock = 3.0f;
 
 	ADoorBlock();
 
@@ -44,6 +40,8 @@ public:
 	void DoorBlockSuccess();
 	UFUNCTION(BlueprintCallable)
 	void DoorBlockFail();
+
+	void UpdateDoorBlockProgress(float NormalizedProgress);
 
 protected:
 	virtual void BeginPlay() override;
@@ -57,4 +55,6 @@ protected:
 private:
 
 	void Reset();
+	UMaterialInstanceDynamic* DynamicChannelingProgressMaterial = nullptr;
+
 };
