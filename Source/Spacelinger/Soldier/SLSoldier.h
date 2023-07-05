@@ -5,6 +5,9 @@
 #include "Interfaces/InteractInterface.h"
 #include "SLSoldier.generated.h"
 
+class UWidgetComponent;
+class USLDetectionWidget;
+
 UENUM()
 enum SoldierAIState {
 	IDLE,
@@ -22,6 +25,15 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 public:
 	ASLSoldier();
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* DetectionWidget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UClass *OffscreenDetectionWidgetClass;
+	UPROPERTY()
+	USLDetectionWidget *OffscreenDetectionWidget;
 
 // Interact stuff
 public:

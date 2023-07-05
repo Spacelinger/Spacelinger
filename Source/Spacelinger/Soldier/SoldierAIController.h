@@ -33,7 +33,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
 	float DetectionSpeed = 0.5f;
 	UPROPERTY(VisibleAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
-	float UndetectionSpeed = 0.5f;
+	float UndetectionSpeed = 0.2f;
 
 	// Awareness goes from 0 to 1
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
