@@ -18,7 +18,7 @@ UENUM(BlueprintType)
 enum SLHumanoidAbility {
 	StickyPuddle = 0,
 	CorrosiveSpit,
-	COUNT UMETA(Hidden),
+	HumanoidCOUNT UMETA(Hidden),
 };
 
 class IInteractInterface;

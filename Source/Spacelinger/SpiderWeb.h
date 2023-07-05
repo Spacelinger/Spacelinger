@@ -43,7 +43,7 @@ public:
 	UFUNCTION()
 		void OnEndPointCollision(class UPrimitiveComponent* HitComponent, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	void setFuturePosition(FVector futurePosition, ASlime_A* spider, bool attached);
+	void setFuturePosition(FVector futurePosition, ASlime_A* spider, bool attached, bool bIsHook);
 	void SetTrap();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
@@ -64,6 +64,8 @@ public:
 		bool bInitialRelativePositionSet = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool bTrapFinished = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		bool bIsHook;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		ASLSoldier* Soldier;
