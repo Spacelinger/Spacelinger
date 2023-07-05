@@ -9,6 +9,7 @@
 class UBoxComponent;
 class UStaticMeshComponent;
 class USpotLightComponent;
+class USceneComponent;
 
 UCLASS()
 class SPACELINGER_API ASLDoor : public AActor
@@ -73,7 +74,7 @@ private:
 	void DoorTickClose();
 	FTimerHandle DoorTickHandle; // Timers are going to be set to loop
 
-	AActor* GetPlayerActor();
+	USceneComponent* GetPlayerRoot();
 	void UpdateDoorLocation();
 
 };

@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/SceneComponent.h"
 
 ASLDoor::ASLDoor() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -47,7 +48,7 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 	bool bFromSweep,
 	const FHitResult & SweepResult)
 {
-	if (OtherActor != GetPlayerActor()) return;
+	if (OtherComp != GetPlayerRoot()) return;
 
 	ActorsOnTrigger += 1;
 	if (ActorsOnTrigger == 1) {
@@ -61,7 +62,7 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
-	if (OtherActor != GetPlayerActor()) return;
+	if (OtherComp != GetPlayerRoot()) return;
 
 	ActorsOnTrigger -= 1;
 	ensure(ActorsOnTrigger >= 0);
@@ -96,12 +97,15 @@ void ASLDoor::UpdateDoorLocation() {
 	DoorMesh->SetRelativeLocation(NewLocation);
 }
 
-AActor* ASLDoor::GetPlayerActor() {
+USceneComponent* ASLDoor::GetPlayerRoot() {
 	UWorld *W = GetWorld();
 	if (!W) return nullptr;
 
 	APlayerController* PC = W->GetFirstPlayerController();
 	if (!PC) return nullptr;
 
-	return Cast<AActor>(PC->GetPawnOrSpectator());
+	APawn *PlayerPawn = PC->GetPawnOrSpectator();
+	if (!PlayerPawn) return nullptr;
+
+	return PlayerPawn->GetRootComponent();
 }
