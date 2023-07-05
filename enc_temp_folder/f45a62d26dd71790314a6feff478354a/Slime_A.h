@@ -28,7 +28,7 @@ enum SLSpiderAbility {
 	PutSpiderWeb = 0,
 	PutTrap,
 	ThrowSpiderWeb,
-	Hook,
+	MeleeAttack,
 	COUNT UMETA(Hidden),
 };
 
@@ -65,8 +65,6 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInputAction* SwitchAbilityAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* MeleeAttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInteractingComponent* InteractingComponent;
@@ -92,7 +90,7 @@ protected:
 	float MaxStamina = 100.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	float StaminaRecoveryBaseRate = 2.5f;
+	float DefaultStaminaRecovertRate = 2.5f;
 
 	// Interact
 	IInteractInterface* CurrentInteractable = nullptr;
@@ -103,19 +101,10 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 	UPostProcessComponent* GetPostProcessComponent() const;
 	void JumpToPosition();
-	void HandleThrownSpiderWeb();
 
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void MeleeAttackTriggered();
 
-	UFUNCTION(BlueprintCallable, Category = "Angles")
-		FVector ReturnCenterScreen();
-
-	UFUNCTION(BlueprintCallable, Category = "Angles")
-		float GetVerticalAngleToCenterScreen();
-
-	UFUNCTION(BlueprintCallable, Category = "Angles")
-		float GetHorizontalAngleToCenterScreen();
 
 protected:
 	// Input callbacks
@@ -137,17 +126,15 @@ protected:
 	void HandleAttachedBehaviour();
 	void HandleHangingBehaviour();
 	void HandleJumpToLocationBehaviour();
-	void ThrowSpiderWeb(bool bisHook);
+	void ThrowSpiderWeb();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//ThrowSpiderWeb
 	FVector2D GetViewportCenter();
 	FVector GetLookDirection(FVector2D ScreenLocation);
-	FVector GetLookAtLocation(FVector2D ScreenLocation);
 	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
-	FVector ReturnCenterScreenWorld();
-	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHock);
+	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached);
 	void PutSpiderWebAbility();
 
 	// Helpers
@@ -168,10 +155,8 @@ protected:
 	void ModifyDamping();
 	void MeleeAttack();
 
-
 	void AlignToPlane(FVector planeNormal);
 	void CutSpiderWeb();
-	void CutThrownSpiderWeb();
 	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
 	FVector getRelativePositionPhysicsConstraint();
 
@@ -261,16 +246,12 @@ public:
 		float fBlendingFactor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
-		bool bhangingAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float StateChangeCooldown = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float LastStateChangeTime = 0.0f;
 	
-	AActor* previousActorCollision;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
@@ -288,5 +269,5 @@ protected:
 
 public:
 	void SetStaminaRecoveryValue(float Value);
-	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(StaminaRecoveryBaseRate); }
+	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(DefaultStaminaRecovertRate); }
 };

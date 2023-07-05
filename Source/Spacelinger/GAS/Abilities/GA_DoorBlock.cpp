@@ -14,17 +14,25 @@ UGA_DoorBlock::UGA_DoorBlock()
 
 void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	K2_CheckAbilityCost(); // Check for cost without consuming it. Cost will be commited once the channeling task is completed
+	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
+	
+	if (!K2_CheckAbilityCost()) // Check for cost without consuming it. Cost will be commited once the channeling task is completed
+	{
+		// If can't spend the ability cost, notifying it as a fail == BUG! NOT WORKING
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+
+	DoorToBlock->BeginDoorBlock();
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 
+
 	// Start AbilityTask_DoorBlock
-	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f);
+	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f, DoorToBlock);
 	
 	DoorBlockTask->ChannelingComplete.AddDynamic(this, &UGA_DoorBlock::AbilityChannelComplete);
 	DoorBlockTask->ChannelingCanceled.AddDynamic(this, &UGA_DoorBlock::AbilityChannelCanceled);
 	DoorBlockTask->ReadyForActivation();
 	
-	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
 
 	//UE_LOG(LogTemp, Warning, TEXT("TARGET: %s"), *InteractableObject.GetName());
 
@@ -54,7 +62,10 @@ bool UGA_DoorBlock::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	const bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	if (bCanActivate == false)
+	{
+		DoorToBlock->DoorBlockFail();	// Return as the current stamina cost is less than the ability's cost
 		return false;
+	}
 	
 	// Check if owning player has the InteractingComponent
 	UInteractingComponent* PlayerInteractComp = GetAvatarActorFromActorInfo()->FindComponentByClass<UInteractingComponent>();

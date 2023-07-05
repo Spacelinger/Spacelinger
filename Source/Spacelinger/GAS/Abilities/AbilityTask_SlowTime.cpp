@@ -196,14 +196,16 @@ void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 	if (CurrentSlowTimeDilation <= CustomTimeDilation) {
 		WorldSettings->SetTimeDilation(CustomTimeDilation);
 		Player->CustomTimeDilation = 1.0f / CustomTimeDilation;
-		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", SlowTimeEffectLineDensity);
+		if (DynamicSpeedLinesMaterial)
+			DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", SlowTimeEffectLineDensity);
 		bSlowingTime = false;
 		CurrentSlowTimeDilation = 1.0f;
 	}
 	else {
 		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
 		Player->CustomTimeDilation = 1.0f / CurrentSlowTimeDilation;
-		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", CurrentLineStep);
+		if (DynamicSpeedLinesMaterial)
+			DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", CurrentLineStep);
 	}
 }
 

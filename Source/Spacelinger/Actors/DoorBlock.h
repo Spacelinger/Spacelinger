@@ -8,39 +8,44 @@
 
 class UInteractableComponent;
 class UBoxComponent;
+class UWidgetComponent;
 
 UCLASS()
 class SPACELINGER_API ADoorBlock : public AActor
 {
 	GENERATED_BODY()
 
-
 public:	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UInteractableComponent* InteractableComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMeshComponent* PreviewStaticMeshComponent = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UStaticMeshComponent* FinalStaticMeshComponent = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UBoxComponent* ColliderComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UStaticMeshComponent* PreviewStaticMeshComponent = nullptr;
+	UWidgetComponent* InteractPromptWidget = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UStaticMeshComponent* FinalStaticMeshComponent = nullptr;
+	float TimeToUnblock = 3.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UMaterialInterface* InteractPreviewMaterial;
-
-	// Sets default values for this actor's properties
 	ADoorBlock();
 
+	UFUNCTION(BlueprintCallable)
+	void BeginDoorBlock();
 	UFUNCTION(BlueprintCallable)
 	void DoorBlockSuccess();
 	UFUNCTION(BlueprintCallable)
 	void DoorBlockFail();
 
+	void UpdateDoorBlockProgress(float NormalizedProgress);
+
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	UFUNCTION()
 	void SetAsCandidate(AActor* InteractingActor);
@@ -52,4 +57,6 @@ protected:
 private:
 
 	void Reset();
+	UMaterialInstanceDynamic* DynamicChannelingProgressMaterial = nullptr;
+
 };

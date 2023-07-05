@@ -5,6 +5,10 @@
 #include "AbilitySystemComponent.h"	// Might not be needed
 #include "TimerManager.h"
 #include "AbilitySystemGlobals.h"
+#include "Components/WidgetComponent.h"
+#include "UI/ChannelingProgressBar.h"
+#include "Components/ProgressBar.h"
+#include <Actors/DoorBlock.h>
 
 UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectInitializer) 
 	: Super(ObjectInitializer)
@@ -14,14 +18,15 @@ UAbilityTask_DoorBlock::UAbilityTask_DoorBlock(const FObjectInitializer& ObjectI
 	TimeStarted = 0.0f;
 }
 
-UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
+UAbilityTask_DoorBlock* UAbilityTask_DoorBlock::DoorBlockChannelingTask(UGameplayAbility* OwningAbility, FGameplayTag ChannelingTag, float Time, ADoorBlock* DoorToBlock, /*AActor* OptionalExternalTarget,*/ bool OnlyTriggerOnce)
 {
 	UAbilitySystemGlobals::NonShipping_ApplyGlobalAbilityScaler_Duration(Time);
 
 	UAbilityTask_DoorBlock* MyObj = NewAbilityTask<UAbilityTask_DoorBlock>(OwningAbility);
 	MyObj->ChannelingTag = ChannelingTag;
 	MyObj->Time = Time;
-	//MyObj->SetExternalTarget(OptionalExternalTarget);
+	MyObj->DoorToBlock = DoorToBlock;
+	//MyObj->SetExternalTarget(OptionalExternalTarget);	// Not used
 	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
 	return MyObj;
 }
@@ -45,7 +50,7 @@ void UAbilityTask_DoorBlock::Activate()
 	UWorld* World = GetWorld();
 	TimeStarted = World->GetTimeSeconds();
 
-	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
+	// May be better to use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
 	World->GetTimerManager().SetTimer(TimerHandle, this, &UAbilityTask_DoorBlock::OnTimeFinish, Time, false);
 
 	Super::Activate();
@@ -53,6 +58,11 @@ void UAbilityTask_DoorBlock::Activate()
 
 void UAbilityTask_DoorBlock::TickTask(float DeltaTime)
 {
+	//UE_LOG(LogTemp, Warning, TEXT("Normalized time elapsed: %.2f"), GetNormalizedTimeElapsed());
+
+	UpdateProgressBar();
+
+	// If the actor interacting moves, cancel the task
 	bool bIsInteractingActorMoving = GetTargetASC()->GetAvatarActor()->GetVelocity().Length() > 0;
 	if (bIsInteractingActorMoving)
 	{
@@ -93,7 +103,7 @@ void UAbilityTask_DoorBlock::GameplayTagCallback(const FGameplayTag InTag, int32
 
 UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 {
-	/*
+	/* External Target is not used
 	if (bUseExternalTarget)
 	{
 		return OptionalExternalTarget;
@@ -102,7 +112,7 @@ UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 	return AbilitySystemComponent.Get();
 }
 
-/*void UAbilityTask_DoorBlock::SetExternalTarget(AActor* Actor)
+/*void UAbilityTask_DoorBlock::SetExternalTarget(AActor* Actor)		External Target is not used
 {
 	if (Actor)
 	{
@@ -110,6 +120,25 @@ UAbilitySystemComponent* UAbilityTask_DoorBlock::GetTargetASC()
 		OptionalExternalTarget = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
 	}
 }*/
+
+void UAbilityTask_DoorBlock::UpdateProgressBar()
+{
+	if (DoorToBlock)
+		DoorToBlock->UpdateDoorBlockProgress(GetNormalizedTimeElapsed());
+}
+
+float UAbilityTask_DoorBlock::GetNormalizedTimeElapsed() const
+{
+	if (UWorld* World = GetWorld())
+	{
+		return World->TimeSince(TimeStarted) / Time;
+	}
+	else
+	{
+		return 0.f;
+	}
+}
+
 
 FString UAbilityTask_DoorBlock::GetDebugString() const	// Consider Delete
 {

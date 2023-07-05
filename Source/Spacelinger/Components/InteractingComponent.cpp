@@ -50,11 +50,14 @@ void UInteractingComponent::OnBoundsBeginOverlap(UPrimitiveComponent* Overlapped
 {
 	if (UInteractableComponent* Candidate = OtherActor->FindComponentByClass<UInteractableComponent>())
 	{
-		CurrentInteractables.AddUnique(Candidate);
-		CurrentInteractables.StableSort([](const UInteractableComponent& A, const UInteractableComponent& B) {
-			return A.GetInteractPriority() < B.GetInteractPriority();	// Can be improved implementing a custom function to calculate a priority given more data
-			});
-		Refresh();
+		if (Candidate->CanInteract())
+		{
+			CurrentInteractables.AddUnique(Candidate);
+			CurrentInteractables.StableSort([](const UInteractableComponent& A, const UInteractableComponent& B) {
+				return A.GetInteractPriority() < B.GetInteractPriority();	// Can be improved implementing a custom function to calculate a priority given more data
+				});
+			Refresh();
+		}
 	}
 }
 

@@ -12,8 +12,15 @@ void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribut
 	if (Attribute == GetStaminaAttribute()) {
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxStamina());
 	}
-	
-
+	/*
+	GetOwningAbilitySystemComponent()->GetOwnedGameplayTags(ActiveTags);
+	TArray<FGameplayTag> TagArray;
+	ActiveTags.GetGameplayTagArray(TagArray);
+	for (FGameplayTag Tag : TagArray)
+	{
+		if (Tag.MatchesTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime"))))
+			UE_LOG(LogTemp, Warning, TEXT("SUCCESS"));
+	}*/
 }
 
 void UStaminaAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const {
@@ -39,17 +46,7 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 
 				// Here or at abilities end might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0.x values of it
 			}
-
-			if (CurrentStamina < GetMaxStamina())
-			{
-				if (!GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime"))))
-				{
-					SetStaminaRecoveryValue(StaminaRecoveryBaseRate);
-				}
-			}
 		}
-
-		
 }
 
 void UStaminaAttributeSet::SetStaminaRecoveryValue(float Value)
