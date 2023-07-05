@@ -1080,7 +1080,7 @@ void ASlime_A::MeleeAttackTriggered()
 	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, TraceStart, TraceStart, FQuat::Identity, ECC_Visibility, TraceShape, TraceParameters);
 
 	// DrawDebugSphere for visualization
-	DrawDebugSphere(GetWorld(), TraceStart, TraceRadius, 12, FColor::Red, false, 1.0f, 0, 1.0f);
+	//DrawDebugSphere(GetWorld(), TraceStart, TraceRadius, 12, FColor::Red, false, 1.0f, 0, 1.0f);
 
 	if (bHit)
 	{
