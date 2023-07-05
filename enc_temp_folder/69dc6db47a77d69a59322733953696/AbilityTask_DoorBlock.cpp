@@ -50,7 +50,7 @@ void UAbilityTask_DoorBlock::Activate()
 	UWorld* World = GetWorld();
 	TimeStarted = World->GetTimeSeconds();
 
-	// May be better to use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
+	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
 	World->GetTimerManager().SetTimer(TimerHandle, this, &UAbilityTask_DoorBlock::OnTimeFinish, Time, false);
 
 	Super::Activate();

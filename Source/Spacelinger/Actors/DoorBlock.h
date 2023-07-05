@@ -37,6 +37,8 @@ public:
 	ADoorBlock();
 
 	UFUNCTION(BlueprintCallable)
+	void BeginDoorBlock();
+	UFUNCTION(BlueprintCallable)
 	void DoorBlockSuccess();
 	UFUNCTION(BlueprintCallable)
 	void DoorBlockFail();

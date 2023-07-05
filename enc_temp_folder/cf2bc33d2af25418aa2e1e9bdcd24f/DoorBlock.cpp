@@ -71,16 +71,20 @@ void ADoorBlock::RemoveAsCandidate(AActor* InteractingActor)
 
 void ADoorBlock::Interact(AActor* InteractingActor)
 {	
+	InteractableComponent->bCanInteract = false;
+
 	FGameplayEventData Payload;
 	Payload.Instigator = InteractingActor;
 	Payload.Target = this;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InteractingActor, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Started")), Payload);
-	
+	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
+}
+
+void ADoorBlock::BeginDoorBlock()
+{
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewStaticMeshComponent->SetVisibility(false);
 	FinalStaticMeshComponent->SetVisibility(true);
-
-	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
 }
 
 void ADoorBlock::DoorBlockSuccess()
@@ -88,7 +92,7 @@ void ADoorBlock::DoorBlockSuccess()
 	//UE_LOG(LogActor, Warning, TEXT("Success!"));
 
 	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);	// BUG: This collision affects the query to try to interact, so prompts to interact again
-																						// Might need to add a flag to disable from the actor the ability to be interactable
+																						// Currently using InteractableComponent->bCanInteract flag to disable from the actor the ability to be interactable
 
 	// Dummy timer to handle reset
 	UWorld* World = GetWorld();
@@ -105,6 +109,8 @@ void ADoorBlock::DoorBlockFail()
 
 void ADoorBlock::Reset()
 {
+	InteractableComponent->bCanInteract = true;
+
 	PreviewStaticMeshComponent->SetVisibility(false);
 	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FinalStaticMeshComponent->SetVisibility(false);

@@ -14,10 +14,18 @@ UGA_DoorBlock::UGA_DoorBlock()
 
 void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	K2_CheckAbilityCost(); // Check for cost without consuming it. Cost will be commited once the channeling task is completed
+	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
+	
+	if (!K2_CheckAbilityCost()) // Check for cost without consuming it. Cost will be commited once the channeling task is completed
+	{
+		// If can't spend the ability cost, notifying it as a fail == BUG! NOT WORKING
+		DoorToBlock->DoorBlockFail();
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+
+	DoorToBlock->BeginDoorBlock();
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 
-	DoorToBlock = Cast<ADoorBlock>(TriggerEventData->Target);
 
 	// Start AbilityTask_DoorBlock
 	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f, DoorToBlock);
@@ -60,6 +68,10 @@ bool UGA_DoorBlock::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	// Check if owning player has the InteractingComponent
 	UInteractingComponent* PlayerInteractComp = GetAvatarActorFromActorInfo()->FindComponentByClass<UInteractingComponent>();
 	// Check from the InteractingComponent if has a CurrentInteractableComponent
+	bool test = (PlayerInteractComp->GetCurrentInteractable() != nullptr);
+
+	UE_LOG(LogTemp, Warning, TEXT("Can Activate is %s"), test ? TEXT("true") : TEXT("false"));
+
 	if (!PlayerInteractComp->GetCurrentInteractable())
 		return false;	// Cancel if not
 	

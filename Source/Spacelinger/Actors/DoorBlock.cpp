@@ -77,12 +77,14 @@ void ADoorBlock::Interact(AActor* InteractingActor)
 	Payload.Instigator = InteractingActor;
 	Payload.Target = this;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InteractingActor, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Started")), Payload);
-	
+	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
+}
+
+void ADoorBlock::BeginDoorBlock()
+{
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewStaticMeshComponent->SetVisibility(false);
 	FinalStaticMeshComponent->SetVisibility(true);
-
-	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
 }
 
 void ADoorBlock::DoorBlockSuccess()
@@ -101,7 +103,11 @@ void ADoorBlock::DoorBlockSuccess()
 void ADoorBlock::DoorBlockFail()
 {
 	//UE_LOG(LogActor, Warning, TEXT("Failed!"));
-
+	UWorld* World = GetWorld();
+	FTimerHandle TimerHandle;
+	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
+	// Hard coded a 1s cooldown on reset after a failed attempt to block a door. May want to turn into parameter
+	World->GetTimerManager().SetTimer(TimerHandle, this, &ADoorBlock::Reset, 1.0f, false);
 	Reset();
 }
 
