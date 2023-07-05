@@ -90,7 +90,7 @@ protected:
 	float MaxStamina = 100.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	float StaminaRecoveryBaseRate = 2.5f;
+	float DefaultStaminaRecovertRate = 2.5f;
 
 	// Interact
 	IInteractInterface* CurrentInteractable = nullptr;
@@ -269,5 +269,5 @@ protected:
 
 public:
 	void SetStaminaRecoveryValue(float Value);
-	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(StaminaRecoveryBaseRate); }
+	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(DefaultStaminaRecovertRate); }
 };

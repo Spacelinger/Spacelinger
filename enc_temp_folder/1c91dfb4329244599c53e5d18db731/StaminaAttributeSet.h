@@ -29,13 +29,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FActiveGameplayEffectHandle StaminaRecoveryEffect;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float StaminaRecoveryBaseRate = 5.0f;
-
 public:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 	void SetStaminaRecoveryValue(float Value);
+
+private:
+	FGameplayTagContainer ActiveTags;
 };
