@@ -1078,6 +1078,11 @@ void ASlime_A::AimAbility(const FInputActionValue& value)
 	}
 }
 
+void ASlime_A::StopAimingAbility(const FInputActionValue& value)
+{
+	SetCrosshairVisibility(false);
+}
+
 void ASlime_A::MeleeAttack() {
 	if (fBlendingFactor == 0) {
 
@@ -1210,6 +1215,7 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
 
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
+		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::StopAimingAbility);
 
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
 
@@ -1261,15 +1267,8 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value)
 // Stunning Web Ability
 void ASlime_A::AimStunningWeb()
 {
-	ASLCrosshair* CrosshairWidget = Cast<ASLCrosshair>(GetWorld()->GetFirstPlayerController()->GetHUD());
-	
-	if (CrosshairWidget != nullptr)
-	{
-		CrosshairWidget->DrawHUD();
-	}
+	SetCrosshairVisibility(true);
 }
-	
-
 
 void ASlime_A::ThrowStunningWeb()
 {

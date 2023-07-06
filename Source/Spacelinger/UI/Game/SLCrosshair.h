@@ -16,12 +16,13 @@ class SPACELINGER_API ASLCrosshair : public AHUD
 	GENERATED_BODY()
 
 public:
+	ASLCrosshair();
+	
 	// Primary draw call for the HUD.
 	virtual void DrawHUD() override;
 
 protected:
 	// This will be drawn at the center of the screen.
-	UPROPERTY(EditDefaultsOnly)
 	UTexture2D* CrosshairTexture;
 	
 };

@@ -42,6 +42,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	bool bIsAlerted = false;
 
+	// If the AI is stunned by the player
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	bool bIsStunned = false;
+
 	// AI Guarding
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	FTransform InitialTransform;
@@ -68,6 +72,14 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;
+
+	// Stun
+	UFUNCTION(BlueprintCallable)
+	void StopLogic();
+	UFUNCTION(BlueprintCallable)
+	void ResumeLogic();
+	UFUNCTION(BlueprintCallable)
+	void IsStunned();
 
 private:
 	UFUNCTION()

@@ -9,6 +9,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Slime_A.h"
 #include "Soldier\SLSoldier.h"
+#include "BrainComponent.h"
 
 ASoldierAIController::ASoldierAIController() {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
@@ -137,5 +138,23 @@ void ASoldierAIController::Patrol() {
 		// Find a new patrol point
 		bFoundPatrolPoint = UNavigationSystemV1::K2_GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), CurrentPatrolPoint, 500.0f);
 	}
+}
+
+void ASoldierAIController::StopLogic()
+{
+	UBrainComponent* Brain = AAIController::GetBrainComponent();
+	Brain->StopLogic("Stunned");
+}
+
+void ASoldierAIController::ResumeLogic()
+{
+	UBrainComponent* Brain = AAIController::GetBrainComponent();
+	Brain->RestartLogic();
+}
+
+void ASoldierAIController::IsStunned()
+{
+	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(GetInstigator());
+	bIsStunned = InstigatorSoldier->bIsStunned;
 }
 

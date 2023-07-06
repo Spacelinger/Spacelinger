@@ -48,6 +48,7 @@ public:
 	void ReceiveDamage();
 	void Stun(float StunDuration);
 	void Unstun();
+	bool IsStunned();
 	void Die();
 
 	UFUNCTION()

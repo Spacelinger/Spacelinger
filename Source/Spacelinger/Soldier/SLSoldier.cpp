@@ -1,4 +1,6 @@
 #include "SLSoldier.h"
+
+#include "SoldierAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -155,20 +157,24 @@ void ASLSoldier::Stun(float StunDuration)
 	bIsStunned = true;
 	FTimerHandle TimerHandle;
 	GetCharacterMovement()->DisableMovement();
-	// The character movement is disabled as expected, but animations need to be disabled too
-	// Print the animation mode in green letters in the top left corner of the screen
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Animation mode: %d"), GetMesh()->GetAnimationMode()));
-	// Disable animations in a way that allows us to enable them again later
-	GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
+	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
+	ControllerReference->StopLogic();
 	
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
 }
+	
 
 void ASLSoldier::Unstun()
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-	// Enable animations again
-	
+	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
+	ControllerReference->ResumeLogic();
+}
+
+bool ASLSoldier::IsStunned()
+{
+	return bIsStunned;
 }
 
 

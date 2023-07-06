@@ -121,6 +121,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Angles")
 		float GetHorizontalAngleToCenterScreen();
 
+	// Hide the crosshair when it doesn't need to be shown
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="HUD")
+	void SetCrosshairVisibility(bool bVisible);
+
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);
@@ -130,6 +134,7 @@ protected:
 	void ToggleDrawDebugLines(const FInputActionValue& Value);
 	void ThrowAbility(const FInputActionValue& Value);
 	void AimAbility(const FInputActionValue& Value);
+	void StopAimingAbility(const FInputActionValue& Value);
 	void Interact(const FInputActionValue& Value);
 	void SwitchAbility(const FInputActionValue& Value);
 	void StopJumpToPosition();
