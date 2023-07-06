@@ -1,0 +1,84 @@
+<html>
+<head>
+<title>API Reference | UFMODSettings</title>
+<link rel="stylesheet" href="style/docs.css">
+<link rel="stylesheet" href="style/code_highlight.css">
+<script type="text/javascript" src="scripts/language-selector.js"></script></head>
+<body>
+<div class="docs-body">
+<div class="manual-toc">
+<p>Unreal Integration 2.02</p>
+<ul>
+<li><a href="welcome.html">Welcome to FMOD for Unreal</a></li>
+<li><a href="user-guide.html">User Guide</a></li>
+<li><a href="settings.html">Settings</a></li>
+<li><a href="plugins.html">Plugins</a></li>
+<li class="manual-current-chapter manual-inactive-chapter"><a href="api-reference.html">API Reference</a><ul class="subchapters"><li><a href="api-reference-common.html">Common</a></li><li><a href="api-reference-ifmodstudiomodule.html">IFMODStudioModule</a></li><li><a href="api-reference-ufmodblueprintstatics.html">UFMODBlueprintStatics</a></li><li><a href="api-reference-ufmodaudiocomponent.html">UFMODAudioComponent</a></li><li><a href="api-reference-afmodambientsound.html">AFMODAmbientSound</a></li><li><a href="api-reference-ufmodanimnotifyplay.html">UFMODAnimNotifyPlay</a></li><li><a href="api-reference-ufmodbank.html">UFMODBank</a></li><li><a href="api-reference-ufmodbus.html">UFMODBus</a></li><li><a href="api-reference-ufmodvca.html">UFMODVCA</a></li><li><a href="api-reference-ufmodevent.html">UFMODEvent</a></li><li><a href="api-reference-ufmodport.html">UFMODPort</a></li><li><a href="api-reference-ufmodsnapshot.html">UFMODSnapshot</a></li><li><a href="api-reference-ufmodsnapshotreverb.html">UFMODSnapshotReverb</a></li><li><a href="api-reference-ufmodasset.html">UFMODAsset</a></li><li class="manual-current-chapter manual-active-chapter"><a href="api-reference-ufmodsettings.html">UFMODSettings</a></li></ul></li>
+<li><a href="blueprint-reference.html">Blueprint Reference</a></li>
+<li><a href="platform-specifics.html">Platform Specifics</a></li>
+<li><a href="troubleshooting.html">Troubleshooting</a></li>
+<li><a href="glossary.html">Glossary</a></li>
+</ul>
+</div>
+<div class="manual-content api">
+<h1>5. API Reference | UFMODSettings</h1>
+<p>This class inherits from <a href="">UObject</a>.</p>
+<p><strong>Defines:</strong></p>
+<ul>
+<li><span class="dead-link" class="apilink" href="#efmodlogging">EFMODLogging</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#efmodspeakermode">EFMODSpeakerMode</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#efmodoutput">EFMODOutput</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#efmodplatforms">EFMODPlatforms</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#efmodcodec">EFMODCodec</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#fcustompoolsizes">FCustomPoolSizes</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ffmodprojectlocale">FFMODProjectLocale</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#fplatformsettings">FPlatformSettings</span class="dead-link"></li>
+</ul>
+<p><strong>Properties:</strong></p>
+<ul>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_bloadallbanks">UFMODSettings::bLoadAllBanks</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_bloadallsampledata">UFMODSettings::bLoadAllSampleData</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_benableliveupdate">UFMODSettings::bEnableLiveUpdate</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_benableeditorliveupdate">UFMODSettings::bEnableEditorLiveUpdate</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_benableapierrorlogging">UFMODSettings::bEnableAPIErrorLogging</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_benablememorytracking">UFMODSettings::bEnableMemoryTracking</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_bankoutputdirectory">UFMODSettings::BankOutputDirectory</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_outputformat">UFMODSettings::OutputFormat</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_outputtype">UFMODSettings::OutputType</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_locales">UFMODSettings::Locales</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_bvol0virtual">UFMODSettings::bVol0Virtual</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_vol0virtuallevel">UFMODSettings::Vol0VirtualLevel</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_samplerate">UFMODSettings::SampleRate</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_bmatchhardwaresamplerate">UFMODSettings::bMatchHardwareSampleRate</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_realchannelcount">UFMODSettings::RealChannelCount</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_totalchannelcount">UFMODSettings::TotalChannelCount</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_dspbufferlength">UFMODSettings::DSPBufferLength</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_dspbuffercount">UFMODSettings::DSPBufferCount</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_filebuffersize">UFMODSettings::FileBufferSize</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_studioupdateperiod">UFMODSettings::StudioUpdatePeriod</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_initialoutputdrivername">UFMODSettings::InitialOutputDriverName</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_blockallbuses">UFMODSettings::bLockAllBuses</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_memorypoolsizes">UFMODSettings::MemoryPoolSizes</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_liveupdateport">UFMODSettings::LiveUpdatePort</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_editorliveupdateport">UFMODSettings::EditorLiveUpdatePort</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_reloadbanksdelay">UFMODSettings::ReloadBanksDelay</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_benablememorytracking">UFMODSettings::bEnableMemoryTracking</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_pluginfiles">UFMODSettings::PluginFiles</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_contentbrowserprefix">UFMODSettings::ContentBrowserPrefix</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_forceplatformname">UFMODSettings::ForcePlatformName</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_masterbankname">UFMODSettings::MasterBankName</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_skiploadbankname">UFMODSettings::SkipLoadBankName</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_studiobankkey">UFMODSettings::StudioBankKey</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_wavwriterpath">UFMODSettings::WavWriterPath</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_logginglevel">UFMODSettings::LoggingLevel</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_occlusionparameter">UFMODSettings::OcclusionParameter</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_ambientvolumeparameter">UFMODSettings::AmbientVolumeParameter</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_ambientlpfparameter">UFMODSettings::AmbientLPFParameter</span class="dead-link"></li>
+<li><span class="dead-link" class="apilink" href="#ufmodsettings_platforms">UFMODSettings::Platforms</span class="dead-link"></li>
+</ul></div>
+
+<p class="manual-footer">Unreal Integration 2.02.13 (2023-03-20). &copy; 2023 Firelight Technologies Pty Ltd.</p>
+</body>
+</html>
+
+</div>
