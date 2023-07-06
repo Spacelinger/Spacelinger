@@ -4,12 +4,14 @@
 #include "Soldier/SoldierAIController.h"
 
 #include "NavigationSystem.h"
+#include "BrainComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Slime_A.h"
 #include "Soldier\SLSoldier.h"
 #include "GameFramework/CharacterMovementComponent.h"
+
 
 ASoldierAIController::ASoldierAIController() {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
@@ -155,3 +157,21 @@ void ASoldierAIController::SetIsAlerted(bool NewState) {
 }
 
 ASLSoldier* ASoldierAIController::GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
+
+void ASoldierAIController::StopLogic()
+{
+	UBrainComponent* Brain = AAIController::GetBrainComponent();
+	Brain->StopLogic("Stunned");
+}
+
+void ASoldierAIController::ResumeLogic()
+{
+	UBrainComponent* Brain = AAIController::GetBrainComponent();
+	Brain->RestartLogic();
+}
+
+void ASoldierAIController::IsStunned()
+{
+	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(GetInstigator());
+	bIsStunned = InstigatorSoldier->bIsStunned;
+}

@@ -1,4 +1,6 @@
 #include "SLSoldier.h"
+
+#include "SoldierAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
@@ -149,6 +151,32 @@ void ASLSoldier::ReceiveDamage()
 {
 	Die();
 }
+
+void ASLSoldier::Stun(float StunDuration)
+{
+	bIsStunned = true;
+	FTimerHandle TimerHandle;
+	GetCharacterMovement()->DisableMovement();
+	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
+	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
+	ControllerReference->StopLogic();
+	
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
+}
+	
+
+void ASLSoldier::Unstun()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
+	ControllerReference->ResumeLogic();
+}
+
+bool ASLSoldier::IsStunned()
+{
+	return bIsStunned;
+}
+
 
 void ASLSoldier::Die()
 {

@@ -26,10 +26,14 @@
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
 
+#include "Blueprint/UserWidget.h"
+#include "UI/Game/SLCrosshair.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 // ASlime
+
+class ASLCrosshair;
 
 ASlime_A::ASlime_A()
 {
@@ -929,6 +933,14 @@ void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bo
 	spiderWebReference->setFuturePosition(HitLocation, this, bAttached, bIsHook);
 }
 
+void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
+{
+	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	spiderWebReference->CableComponent->bAttachEnd = true;
+	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
+	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
+}
+
 void ASlime_A::PutTrap()
 {
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
@@ -1047,11 +1059,28 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	case SLSpiderAbility::Hook: ThrowSpiderWeb(true); break;
 	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(false); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
+	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
+	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
 
 	default:
 		break;
 	}
-	
+}
+
+void ASlime_A::AimAbility(const FInputActionValue& value)
+{
+	switch (SelectedSpiderAbility)
+	{
+		case SLSpiderAbility::ThrowStunningWeb: AimStunningWeb(); break;
+
+		default:
+			break;
+	}
+}
+
+void ASlime_A::StopAimingAbility(const FInputActionValue& value)
+{
+	SetCrosshairVisibility(false);
 }
 
 void ASlime_A::MeleeAttack() {
@@ -1185,6 +1214,9 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
 		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
 
+		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
+		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::StopAimingAbility);
+
 		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
 
 		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
@@ -1232,6 +1264,43 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value)
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 }
 
+// Stunning Web Ability
+void ASlime_A::AimStunningWeb()
+{
+	SetCrosshairVisibility(true);
+}
+
+void ASlime_A::ThrowStunningWeb()
+{
+	if (spiderWebReference != nullptr) {
+		CutSpiderWeb();
+	}
+
+	bHasTrownSpiderWeb = true;
+	FVector2D ScreenLocation = GetViewportCenter();
+	FVector LookDirection = GetLookDirection(ScreenLocation);
+	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
+	float LineTraceDistance = 1000.0f;
+	FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
+	FHitResult HitResult = PerformLineTrace(StartPosition, EndPosition);
+
+	if (HitResult.bBlockingHit)
+	{
+		if (ASLSoldier* Soldier = Cast<ASLSoldier>(HitResult.GetActor())) {
+			HitResult = PerformLineTrace(StartPosition, Soldier->GetActorLocation());
+			SpawnStunningWeb(StartPosition, HitResult.Location);
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
+			CutSpiderWeb();
+			Soldier->Stun(StunningWebStunDuration);
+		}
+	}
+	else
+	{
+		SpawnStunningWeb(StartPosition, HitResult.Location);
+		CutSpiderWeb();
+	}
+}
+	
 void ASlime_A::SetStaminaRecoveryValue(float Value)
 {
 	StaminaAttributeSet->SetStaminaRecoveryValue(Value);
