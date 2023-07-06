@@ -15,10 +15,14 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/HealthAttributeSet.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
+#include "GAS/Effects/GE_StaminaRecovery.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "DrawDebugHelpers.h" 
 #include "Engine/StaticMeshActor.h"
+#include "Components/BoxComponent.h"
+#include "Components/InteractingComponent.h"
+
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
 
@@ -65,10 +69,21 @@ ASlime_A::ASlime_A()
 	PostProcessComponent = CreateDefaultSubobject<UPostProcessComponent>(TEXT("PostProcessComponent"));
 	PostProcessComponent->bUnbound = true;	// set to unbound so PPFX take whole map/screen
 
+	// Interact Component
+
+	InteractingComponent = CreateDefaultSubobject<UInteractingComponent>(TEXT("Interacting Component"));
+	
+	// Interact Collider component
+	InteractCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Interact Collision Component"));
+	InteractCollisionComponent->SetupAttachment(CameraBoom);
+	InteractCollisionComponent->ComponentTags.Add(FName(TEXT("Interact Volume")));
+
+
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
 	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("HealthAttributeSet"));
 	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
+	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -117,6 +132,10 @@ void ASlime_A::BeginPlay()
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+		
+		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
+		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
+		StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 	}
 }
 
@@ -142,14 +161,25 @@ void ASlime_A::Tick(float DeltaTime)
 
 void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
 	AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
-	if (StaticMeshActor && bJumpToLocation) {
-		StopJumpToPosition();
+
+	if (previousActorCollision != StaticMeshActor) {
+		if (StaticMeshActor && bJumpToLocation) {
+			StopJumpToPosition();
+		}
+		if (StaticMeshActor && isHanging) {
+			CutSpiderWeb();
+			GetCapsuleComponent()->SetNotifyRigidBodyCollision(false);
+
+		}
+		canTrace = true;
 	}
+	previousActorCollision = nullptr;
+
 }
 
 void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 {
-	if (isHanging && AtCeiling && attachedAtCeiling && spiderWebReference != nullptr)
+	if (isHanging)
 	{
 		if (!bSetInitialRelativeLocation) {
 			bSetInitialRelativeLocation = true;
@@ -192,6 +222,7 @@ void ASlime_A::ModifyDamping() {
 		FVector VectorFrom1To2 = Position2 - Position1;
 
 		// Normalize the vector
+		VectorFrom1To2.Normalize();
 		VectorFrom1To2.Normalize();
 
 		// To compare to vertical alignment, create a vertical vector. In Unreal, Z is usually up.
@@ -559,13 +590,33 @@ void ASlime_A::StopClimbing() {
 void ASlime_A::Climb(const FInputActionValue& Value)
 {
 
+	SelectedSpiderAbility = SLSpiderAbility::ThrowSpiderWeb;
+
 	if (isHanging) {
 		CutSpiderWeb();
 	}
 	else if (attachedAtCeiling && AtCeiling) {
+		FVector CharacterPosition = GetActorLocation();
+		FVector TargetPosition = spiderWebReference->ConstraintComp->GetComponentLocation();
 
-		SelectedSpiderAbility = SLSpiderAbility::MeleeAttack;
+		// Calculate the direction from the character to the target point.
+		FVector TargetDirection = (TargetPosition - CharacterPosition).GetSafeNormal();
 
+		// Get the current forward vector of the character.
+		FVector CharacterForward = GetActorForwardVector();
+
+		// Calculate the desired rotation.
+		FRotator DesiredRotation = UKismetMathLibrary::FindLookAtRotation(CharacterForward, TargetDirection);
+
+		// Get the second component of the physics constraint.
+		TWeakObjectPtr<UPrimitiveComponent> Component2 = spiderWebReference->ConstraintComp->OverrideComponent2;
+
+		// Check if the component is valid before applying the rotation.
+		if (Component2.IsValid())
+		{
+			Component2->SetWorldRotation(DesiredRotation);
+		}
+		bhangingAnimation = true;
 		isHanging = true;
 		bIsRotating = false;
 		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
@@ -581,6 +632,11 @@ void ASlime_A::Climb(const FInputActionValue& Value)
 		// Set the linear motion types to 'limited'
 		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
 		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
+
+
+		
+
+
 		// Enable the Angular Drive
 
 	}
@@ -613,14 +669,21 @@ FHitResult ASlime_A::PerformLineTrace(FVector StartPosition, FVector EndPosition
 	return HitResult;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
+FVector ASlime_A::ReturnCenterScreen() {
+	FVector2D ScreenLocation = GetViewportCenter();
+	FVector LookDirection = GetLookDirection(ScreenLocation);
+	return LookDirection;
+}
 
+FVector ASlime_A::ReturnCenterScreenWorld() {
+	FVector2D ScreenLocation = GetViewportCenter();
+	FVector LookDirection = GetLookAtLocation(ScreenLocation);
+	return LookDirection;
+}
 
-
-void ASlime_A::ThrowSpiderWeb()
+void ASlime_A::ThrowSpiderWeb(bool bisHook)
 {
-	if (!bHasTrownSpiderWeb)
+	if (!bHasTrownSpiderWeb || bisHook==false )
 	{
 		if (spiderWebReference != nullptr) {
 			CutSpiderWeb();
@@ -632,51 +695,63 @@ void ASlime_A::ThrowSpiderWeb()
 		float LineTraceDistance = 1000.0f;
 		FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
 		FHitResult HitResult = PerformLineTrace(StartPosition, EndPosition);
+		
+
+		// Perform ray trace in the direction of the negative Actor Up Vector.
+		FVector StartPositionRayTrace = GetActorLocation(); // Start at the actor's location.
+		FVector EndPositionRayTrace = StartPositionRayTrace - (GetActorUpVector() * LineTraceDistance); // Move in the direction of the negative Actor Up Vector.
+
+		// Perform the ray trace.
+		FHitResult RayTraceHitResult;
+		GetWorld()->LineTraceSingleByChannel(RayTraceHitResult, StartPositionRayTrace, EndPositionRayTrace, ECC_Visibility);
+
+		// If the ray trace hits a static mesh, store the actor in the global variable.
+		if (RayTraceHitResult.bBlockingHit && RayTraceHitResult.GetActor() != nullptr && RayTraceHitResult.GetActor()->IsA(AStaticMeshActor::StaticClass()))
+		{
+			previousActorCollision = RayTraceHitResult.GetActor();
+		}
 
 		if (HitResult.bBlockingHit)
 		{
-			SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true);
+			SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true, bisHook);
 		}
 		else
 		{
-			SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false);
+			SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false, bisHook);
 		}
 	}
 }
 
+void ASlime_A::CutThrownSpiderWeb() {
+	if (SelectedSpiderAbility == SLSpiderAbility::ThrowSpiderWeb) {
+		CutSpiderWeb();
+	}
+}
+
+
+
+
 void ASlime_A::CutSpiderWeb()
 {
 	GetCapsuleComponent()->SetAngularDamping(0.0f);
+	bHasTrownSpiderWeb = false;
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
 	if (isHanging)
 	{
 		isHanging = false;
-		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		bhangingAnimation = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 		spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
 	}
 	else if(spiderWebReference)
 	{
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
-
-		if (bHit)
-		{
-			spiderWebReference->CableComponent->EndLocation = Hit.Location - spiderWebReference->CableComponent->GetComponentLocation();
-			spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
-		}
-		else
-		{
-			spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
-		}
+		spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
 	}
 	attached = false;
 	attachedAtCeiling = false;
 	spiderWebReference = nullptr;
 	bSetInitialRelativeLocation = false;
 }
-
 
 FVector2D ASlime_A::GetViewportCenter()
 {
@@ -695,15 +770,167 @@ FVector ASlime_A::GetLookDirection(FVector2D ScreenLocation)
 	return LookDirection;
 }
 
+FVector ASlime_A::GetLookAtLocation(FVector2D ScreenLocation)
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	FVector LookDirection;
+	FVector WorldLocation;
+	PlayerController->DeprojectScreenPositionToWorld(ScreenLocation.X, ScreenLocation.Y, WorldLocation, LookDirection);
+
+	// Calculate the look at location using the camera's location and the look direction
+	FVector LookAtLocation = PlayerController->PlayerCameraManager->GetCameraLocation() + (LookDirection * 1000); // 1000 is a placeholder distance, adjust it to your needs.
+
+	return LookAtLocation;
+}
+
+float ASlime_A::GetHorizontalAngleToCenterScreen()
+{
+	FVector CharacterLocation = GetActorLocation();
+	FVector CenterScreenLocation = ReturnCenterScreenWorld();
+
+	// Calculate the direction vector from the character to the center of the screen in world space
+	FVector CameraLookAtWorldDir = CenterScreenLocation - CharacterLocation;
+	CameraLookAtWorldDir.Normalize();
+
+	// Get the character's forward vector
+	FVector CharacterForwardVector = GetActorForwardVector();
+	CharacterForwardVector.Normalize();
+
+	// Calculate the dot product between the direction vector and the character's forward vector
+	float DotProduct = FVector::DotProduct(CameraLookAtWorldDir, CharacterForwardVector);
+
+	// Calculate the vertical angle in radians using the dot product
+	float HorizontaAngleRad = FMath::Acos(FMath::Clamp(DotProduct, -1.0f, 1.0f));
+
+	// Convert the angle to degrees
+	float HorizontalAngleDeg = FMath::RadiansToDegrees(HorizontaAngleRad);
+
+	// Get the cross product to determine the direction of the angle
+	FVector CrossProduct = FVector::CrossProduct(CharacterForwardVector, CameraLookAtWorldDir);
+
+	// If the dot product between the cross product and the character's up vector is negative, the angle should be negative
+	if (FVector::DotProduct(CrossProduct, GetActorUpVector()) < 0)
+	{
+		HorizontalAngleDeg = -HorizontalAngleDeg;
+	}
 
 
-void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached)
+	HorizontalAngleDeg = FMath::Clamp(HorizontalAngleDeg, -70.0f, 70.0f);
+
+
+	FString AngleString = FString::Printf(TEXT("Horizontal Angle: %f degrees"), HorizontalAngleDeg);
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, AngleString);
+
+	return HorizontalAngleDeg;
+}
+
+
+
+float ASlime_A::GetVerticalAngleToCenterScreen()
+{
+	FVector CharacterLocation = GetActorLocation();
+	FVector CenterScreenLocation = ReturnCenterScreenWorld();
+
+	// Calculate the direction vector from the character to the center of the screen in world space
+	FVector CameraLookAtWorldDir = CenterScreenLocation - CharacterLocation;
+	CameraLookAtWorldDir.Normalize();
+
+	// Get the character's up vector
+	FVector CharacterUpVector = GetActorUpVector();
+	CharacterUpVector.Normalize();
+
+	// Calculate the dot product between the direction vector and the character's up vector
+	float DotProduct = FVector::DotProduct(CameraLookAtWorldDir, CharacterUpVector);
+
+	// Calculate the vertical angle in radians using the dot product
+	float VerticalAngleRad = FMath::Acos(FMath::Clamp(DotProduct, -1.0f, 1.0f));
+
+	// Convert the angle to degrees
+	float VerticalAngleDeg = FMath::RadiansToDegrees(VerticalAngleRad);
+
+	// Get the cross product to determine the direction of the angle
+	FVector CrossProduct = FVector::CrossProduct(CharacterUpVector, CameraLookAtWorldDir);
+
+	// If the dot product between the cross product and the character's forward vector is negative, the angle should be negative
+	if (FVector::DotProduct(CrossProduct, GetActorUpVector()) < 0)
+	{
+		VerticalAngleDeg = -VerticalAngleDeg;
+	}
+
+	VerticalAngleDeg -= 90;
+	VerticalAngleDeg *= -1;
+
+	VerticalAngleDeg = FMath::Clamp(VerticalAngleDeg, -70.0f, 70.0f);
+
+
+	FString AngleString = FString::Printf(TEXT("Vertical Angle: %f degrees"), VerticalAngleDeg);
+
+
+
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, AngleString);
+
+	return VerticalAngleDeg;
+}
+
+void ASlime_A::HandleThrownSpiderWeb() {
+
+	if (spiderWebReference != nullptr) {
+		FVector CharacterPosition = GetActorLocation();
+		FVector TargetPosition = spiderWebReference->ConstraintComp->GetComponentLocation();
+
+		// Calculate the direction from the character to the target point.
+		FVector TargetDirection = (TargetPosition - CharacterPosition).GetSafeNormal();
+
+		// Get the current forward vector of the character.
+		FVector CharacterForward = GetActorForwardVector();
+
+		// Calculate the desired rotation.
+		FRotator DesiredRotation = UKismetMathLibrary::FindLookAtRotation(CharacterForward, TargetDirection);
+
+		// Get the second component of the physics constraint.
+		TWeakObjectPtr<UPrimitiveComponent> Component2 = spiderWebReference->ConstraintComp->OverrideComponent2;
+
+		// Check if the component is valid before applying the rotation.
+		if (Component2.IsValid())
+		{
+			Component2->SetWorldRotation(DesiredRotation);
+		}
+
+		isHanging = true;
+		bIsRotating = false;
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCapsuleComponent()->SetSimulatePhysics(true);
+		GetCapsuleComponent()->SetNotifyRigidBodyCollision(true);
+
+		spiderWebReference->ConstraintComp->SetWorldLocation(spiderWebReference->StartLocationCable->GetComponentLocation());
+
+		spiderWebReference->ConstraintComp->SetConstrainedComponents(
+			spiderWebReference->StartLocationCable, NAME_None,
+			GetCapsuleComponent(), NAME_None
+		);
+
+		// Set the linear motion types to 'limited'
+		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
+		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
+
+	}
+	
+}
+
+
+
+
+
+
+
+void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHook)
 {
 	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
 	spiderWebReference->CableComponent->bAttachEnd = true;
 	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
-	spiderWebReference->setFuturePosition(HitLocation, this, bAttached);
+	spiderWebReference->setFuturePosition(HitLocation, this, bAttached, bIsHook);
 }
 
 void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
@@ -739,7 +966,6 @@ void ASlime_A::PutTrap()
 	}
 }
 
-
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
 
 	// Get the world space location of the physics constraint and the bone
@@ -760,8 +986,6 @@ FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, f
 	return inputAdapted;
 }
 
-
-
 FVector ASlime_A::getRelativePositionPhysicsConstraint() {
 
 	// Get the world space location of the physics constraint and the bone
@@ -775,12 +999,6 @@ FVector ASlime_A::getRelativePositionPhysicsConstraint() {
 
 	return LocalConstraintLocation;
 }
-
-
-
-
-
-
 
 void ASlime_A::JumpToPosition() {
 	bJumpToLocation = true;
@@ -838,7 +1056,8 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	switch (SelectedSpiderAbility)
 	{
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
-	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(); break;
+	case SLSpiderAbility::Hook: ThrowSpiderWeb(true); break;
+	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(false); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
 	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
 	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
@@ -885,7 +1104,7 @@ void ASlime_A::MeleeAttackTriggered()
 	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, TraceStart, TraceStart, FQuat::Identity, ECC_Visibility, TraceShape, TraceParameters);
 
 	// DrawDebugSphere for visualization
-	DrawDebugSphere(GetWorld(), TraceStart, TraceRadius, 12, FColor::Red, false, 1.0f, 0, 1.0f);
+	//DrawDebugSphere(GetWorld(), TraceStart, TraceRadius, 12, FColor::Red, false, 1.0f, 0, 1.0f);
 
 	if (bHit)
 	{
@@ -917,7 +1136,7 @@ void ASlime_A::StopMoving(const FInputActionValue& Value) {
 
 void ASlime_A::Move(const FInputActionValue& Value)
 {
-	if (!Controller || !canTrace) return;
+	if (!Controller) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	if (MovementVector.IsNearlyZero()) return; // No movement input, early return
@@ -932,7 +1151,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 
 	if (isHanging)
 	{
-		FVector HangingForce = MovementDirection * 10000.0f;
+		FVector HangingForce = MovementDirection * 15000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
 	else
@@ -988,6 +1207,7 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ASlime_A::Climb);
 
 		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
+		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
 
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
 
@@ -998,6 +1218,11 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		// Slow Time Ability
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started, this, &ASlime_A::SlowTime);
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Completed, this, &ASlime_A::SlowTimeEnd);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASlime_A::Interact);
+
+		EnhancedInputComponent->BindAction(MeleeAttackAction, ETriggerEvent::Started, this, &ASlime_A::MeleeAttack);
+
 	}
 }
 
@@ -1015,19 +1240,23 @@ UPostProcessComponent* ASlime_A::GetPostProcessComponent() const
 	return PostProcessComponent;
 }
 
+void ASlime_A::Interact(const FInputActionValue& Value)
+{
+	InteractingComponent->TryToInteract();
+}
+
 // ============== Slow Time Ability
-void ASlime_A::SlowTime(const FInputActionValue& Value) {
-	
+void ASlime_A::SlowTime(const FInputActionValue& Value)
+{	
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Started")), Payload);
 }
 
-void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) {
-
+void ASlime_A::SlowTimeEnd(const FInputActionValue& Value) 
+{
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 }
-
 
 // Stunning Web Ability
 void ASlime_A::AimStunningWeb()
@@ -1059,14 +1288,21 @@ void ASlime_A::ThrowStunningWeb()
 	if (HitResult.bBlockingHit)
 	{
 		if (ASLSoldier* Soldier = Cast<ASLSoldier>(HitResult.GetActor())) {
+			HitResult = PerformLineTrace(StartPosition, Soldier->GetActorLocation());
 			SpawnStunningWeb(StartPosition, HitResult.Location);
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
+			CutSpiderWeb();
 			Soldier->Stun(StunningWebStunDuration);
 		}
 	}
 	else
 	{
-		// SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false);
+		SpawnStunningWeb(StartPosition, HitResult.Location);
+		CutSpiderWeb();
 	}
+}
 	
+void ASlime_A::SetStaminaRecoveryValue(float Value)
+{
+	StaminaAttributeSet->SetStaminaRecoveryValue(Value);
 }

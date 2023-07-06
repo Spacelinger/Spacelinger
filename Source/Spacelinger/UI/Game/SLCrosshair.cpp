@@ -3,6 +3,13 @@
 
 #include "UI/Game/SLCrosshair.h"
 
+ASLCrosshair::ASLCrosshair()
+{
+	// Set the crosshair texture
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Game/UI/Textures/FirstPersonCrosshair"));
+	CrosshairTexture = CrosshairTexObj.Object;
+}
+
 void ASLCrosshair::DrawHUD()
 {
 	Super::DrawHUD();
@@ -18,6 +25,6 @@ void ASLCrosshair::DrawHUD()
 		// Draw the crosshair at the centerpoint.
 		FCanvasTileItem TileItem(CrossHairDrawPosition, CrosshairTexture->Resource, FLinearColor::White);
 		TileItem.BlendMode = SE_BLEND_Translucent;
-		Canvas->DrawItem(TileItem);
+		// Canvas->DrawItem(TileItem);
 	}
 }

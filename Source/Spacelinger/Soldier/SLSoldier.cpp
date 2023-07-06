@@ -2,13 +2,42 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Soldier/SLDetectionWidget.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
+
+	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
+	DetectionWidget->SetupAttachment(RootComponent);
+	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
 
+void ASLSoldier::BeginPlay() {
+	Super::BeginPlay();
+
+	if (USLDetectionWidget *DetectionInterface = Cast<USLDetectionWidget>(DetectionWidget->GetWidget())) {
+		DetectionInterface->OwningActor = this;
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's DetectionWidget is not USLDetectionInterface"));
+	}
+
+	if (OffscreenDetectionWidgetClass) {
+		OffscreenDetectionWidget = Cast<USLDetectionWidget>(CreateWidget(GetGameInstance()->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
+		if (OffscreenDetectionWidget) {
+			OffscreenDetectionWidget->AddToViewport();
+			OffscreenDetectionWidget->OwningActor = this;
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's OffscreenDetectionWidgetClass is not set"));
+	}
+}
+
+/** LUIS WAS HERE: Interacting has been heavily refactored. We can review together
 //------------------------//
 //     Interact stuff     //
 //------------------------//
@@ -34,6 +63,7 @@ void ASLSoldier::SetAsCandidate(bool IsCandidate) {
 		// Hide UI to interact
 	}
 }
+*/
 
 void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
 	// Check if OtherActor is a StaticMesh
@@ -125,17 +155,28 @@ void ASLSoldier::Stun(float StunDuration)
 	bIsStunned = true;
 	FTimerHandle TimerHandle;
 	GetCharacterMovement()->DisableMovement();
+	// The character movement is disabled as expected, but animations need to be disabled too
+	// Print the animation mode in green letters in the top left corner of the screen
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Animation mode: %d"), GetMesh()->GetAnimationMode()));
+	// Disable animations in a way that allows us to enable them again later
+	GetMesh()->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+	
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
 }
 
 void ASLSoldier::Unstun()
 {
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	// Enable animations again
+	
 }
 
 
 void ASLSoldier::Die()
 {
+	DetectionWidget->Deactivate();
+	OffscreenDetectionWidget->RemoveFromParent();
+
 	GetController()->UnPossess();
 
 	// Disable collision and physics-based movement for the soldier's components

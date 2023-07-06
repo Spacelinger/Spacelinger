@@ -19,6 +19,9 @@ class UPostProcessComponent;
 class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
 class UHealthAttributeSet;
+class IInteractInterface;
+class UInteractingComponent;
+class UBoxComponent;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -27,6 +30,7 @@ enum SLSpiderAbility {
 	ThrowSpiderWeb,
 	MeleeAttack,
 	ThrowStunningWeb,
+	Hook,
 	COUNT UMETA(Hidden),
 };
 
@@ -40,7 +44,7 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UPostProcessComponent* PostProcessComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -63,8 +67,16 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInputAction* SlowTimeAbility;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchAbilityAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* MeleeAttackAction;
 
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UInteractingComponent* InteractingComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* InteractCollisionComponent;
 
 protected:
 	// GAS
@@ -83,16 +95,31 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
 	float MaxStamina = 100.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	float StaminaRecoveryBaseRate = 2.5f;
+
+	// Interact
+	IInteractInterface* CurrentInteractable = nullptr;
+
 public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
 	virtual void Landed(const FHitResult& Hit) override;
 	UPostProcessComponent* GetPostProcessComponent() const;
 	void JumpToPosition();
+	void HandleThrownSpiderWeb();
 
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void MeleeAttackTriggered();
 
+	UFUNCTION(BlueprintCallable, Category = "Angles")
+		FVector ReturnCenterScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Angles")
+		float GetVerticalAngleToCenterScreen();
+
+	UFUNCTION(BlueprintCallable, Category = "Angles")
+		float GetHorizontalAngleToCenterScreen();
 
 protected:
 	// Input callbacks
@@ -103,7 +130,7 @@ protected:
 	void ToggleDrawDebugLines(const FInputActionValue& Value);
 	void ThrowAbility(const FInputActionValue& Value);
 	void AimAbility(const FInputActionValue& Value);
-	
+	void Interact(const FInputActionValue& Value);
 	void SwitchAbility(const FInputActionValue& Value);
 	void StopJumpToPosition();
 
@@ -114,18 +141,22 @@ protected:
 	void HandleAttachedBehaviour();
 	void HandleHangingBehaviour();
 	void HandleJumpToLocationBehaviour();
-	void ThrowSpiderWeb();
+	void ThrowSpiderWeb(bool bisHook);
 	void ThrowStunningWeb();
 	void AimStunningWeb();
+
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//ThrowSpiderWeb
 	FVector2D GetViewportCenter();
 	FVector GetLookDirection(FVector2D ScreenLocation);
+	FVector GetLookAtLocation(FVector2D ScreenLocation);
 	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
-	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached);
+	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHock);
 	void SpawnStunningWeb(FVector Location, FVector HitLocation);
+	FVector ReturnCenterScreenWorld();
+
 	void PutSpiderWebAbility();
 
 	// Helpers
@@ -146,8 +177,10 @@ protected:
 	void ModifyDamping();
 	void MeleeAttack();
 
+
 	void AlignToPlane(FVector planeNormal);
 	void CutSpiderWeb();
+	void CutThrownSpiderWeb();
 	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
 	FVector getRelativePositionPhysicsConstraint();
 
@@ -238,28 +271,33 @@ public:
 		float fBlendingFactor;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
+		bool bhangingAnimation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float StateChangeCooldown = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float LastStateChangeTime = 0.0f;
 	
+	AActor* previousActorCollision;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Abilities")
 		TEnumAsByte<SLSpiderAbility> SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
 
 	FCollisionQueryParams TraceParams;
 	
-	// ============== Slow Time Ability
 	UFUNCTION()
 		void OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	// ============== Slow Time Ability
 protected:
 
 	void SlowTime(const FInputActionValue& Value);
 	void SlowTimeEnd(const FInputActionValue& Value);
 	void SlowTimeFunc(float DeltaTime);
 
-
-	
+public:
+	void SetStaminaRecoveryValue(float Value);
+	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(StaminaRecoveryBaseRate); }
 };

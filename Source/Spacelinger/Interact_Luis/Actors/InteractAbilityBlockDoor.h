@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interact_Luis/Interfaces/InteractInterface.h"
+#include "Interfaces/InteractInterface.h"
 #include "InteractAbilityBlockDoor.generated.h"
 
 class UWidgetComponent;
@@ -40,7 +40,7 @@ public:
 
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const { return InteractPriorityValue; }
-	virtual void SetAsCandidate(bool IsCandidate) override; // TO-DO
+	//virtual void SetAsCandidate(bool IsCandidate) override; // TO-DO
 
 
 protected:

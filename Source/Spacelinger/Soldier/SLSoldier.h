@@ -2,8 +2,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interact_Luis/Interfaces/InteractInterface.h"
+#include "Interfaces/InteractInterface.h"
 #include "SLSoldier.generated.h"
+
+class UWidgetComponent;
+class USLDetectionWidget;
 
 UENUM()
 enum SoldierAIState {
@@ -11,7 +14,8 @@ enum SoldierAIState {
 	SUSPICIOUS,
 	ALERTED,
 	AIMING,
-	ATTACK
+	ATTACK,
+	STUNNED
 };
 
 UCLASS(config=Game)
@@ -22,13 +26,22 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 public:
 	ASLSoldier();
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* DetectionWidget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UClass *OffscreenDetectionWidgetClass;
+	UPROPERTY()
+	USLDetectionWidget *OffscreenDetectionWidget;
 
 // Interact stuff
 public:
 	int InteractPriority = 99;
-	int GetInteractPriority() const;
-	void Interact(AActor* ActorInteracting);
-	void SetAsCandidate(bool IsCandidate);
+	//int GetInteractPriority() const;
+	//void Interact(AActor* ActorInteracting);	//LUIS: Interact has been refactored
+	//void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();

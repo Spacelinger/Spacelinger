@@ -7,25 +7,24 @@
 #include "AbilitySystemComponent.h"
 #include "AbilityTask_SlowTime.h"
 
-UGA_SlowTime::UGA_SlowTime() {
-
+UGA_SlowTime::UGA_SlowTime() 
+{
+	//Currently a cost is not  set, as stamina is depleted through setting the stamina recovery value to a negative one
 	// TODO?: Check that a cost GE is set
-
+	/*if (!GetCostGameplayEffect()) {
+		UE_LOG(LogTemp, Warning, TEXT("Cost Gameplay Effect not set for %s!"), *this->GetName());
+	}*/
 }
 
 void UGA_SlowTime::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Player);
-
-	GetAbilitySystemComponentFromActorInfo();
 	GetAvatarActorFromActorInfo();
 
 	if (CommitAbility(Handle, ActorInfo, ActivationInfo)) {
 
-		ASC->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
+		GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
 
 		// Start AbilityTask_SlowTime
 		UAbilityTask_SlowTime* SlowTimeTask = UAbilityTask_SlowTime::SlowTimeGameplayEvent(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), 
@@ -51,9 +50,9 @@ void UGA_SlowTime::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	// Removing Cost GameplayEffect
 	FGameplayTagContainer TagContainer;
 	TagContainer.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Cost.SlowTime")));	// Hardcoded, couldn't find how to link with GetCostGameEffect()
-	ASC->RemoveActiveEffectsWithSourceTags(TagContainer);
+	GetAbilitySystemComponentFromActorInfo()->RemoveActiveEffectsWithSourceTags(TagContainer);
 
-	ASC->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime")));
+	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime"))); 
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
@@ -66,6 +65,7 @@ bool UGA_SlowTime::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 		return false;
 	}
 
+	/* Additional checks pre-ability-commit are done here. Remove whole method if not necessary*/
 	bool bResult = true;
 
 	return bResult;

@@ -10,7 +10,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "GameFramework/SpringArmComponent.h"
-
+#include "GAS/Attributes/StaminaAttributeSet.h"
 
 UAbilityTask_SlowTime::UAbilityTask_SlowTime(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -31,8 +31,8 @@ UAbilityTask_SlowTime* UAbilityTask_SlowTime::SlowTimeGameplayEvent(UGameplayAbi
 	MyObj->SuccessTag = SuccessTag;
 	MyObj->FailedTag = FailedTag;
 	MyObj->SetExternalTarget(OptionalExternalTarget);
-	MyObj->OnlyTriggerOnce = OnlyTriggerOnce;
-	MyObj->OnlyMatchExact = OnlyMatchExact;
+	MyObj->bOnlyTriggerOnce = OnlyTriggerOnce;
+	MyObj->bOnlyMatchExact = OnlyMatchExact;
 
 	return MyObj;
 }
@@ -41,14 +41,14 @@ void UAbilityTask_SlowTime::SetExternalTarget(AActor* Actor)
 {
 	if (Actor)
 	{
-		UseExternalTarget = true;
+		bUseExternalTarget = true;
 		OptionalExternalTarget = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Actor);
 	}
 }
 
 UAbilitySystemComponent* UAbilityTask_SlowTime::GetTargetASC() 
 {
-	if (UseExternalTarget)
+	if (bUseExternalTarget)
 	{
 		return OptionalExternalTarget;
 	}
@@ -63,7 +63,7 @@ void UAbilityTask_SlowTime::Activate()
 	UAbilitySystemComponent* ASC = GetTargetASC();
 	if (ASC)
 	{
-		if (OnlyMatchExact)
+		if (bOnlyMatchExact)
 		{
 			SuccessHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(SuccessTag).AddUObject(this, &UAbilityTask_SlowTime::SuccessEventCallback);
 			FailedHandle = ASC->GenericGameplayEventCallbacks.FindOrAdd(FailedTag).AddUObject(this, &UAbilityTask_SlowTime::FailedEventCallback);
@@ -93,6 +93,8 @@ void UAbilityTask_SlowTime::Activate()
 		
 		PPComp->Settings.WeightedBlendables.Array.Add(WeightedBlendable);
 	}
+	
+	Slime->SetStaminaRecoveryValue(StaminaCostOverTime);
 
 	/*
 	USpringArmComponent* CameraBoom;
@@ -124,13 +126,15 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
 	}
 
+	Cast<ASlime_A>(Player)->ResetStaminaRecoveryValue();
+
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		FGameplayEventData TempPayload = *Payload;
 		TempPayload.EventTag = MatchingTag;
 		SuccessEventReceived.Broadcast(MoveTemp(TempPayload));
 	}
-	if (OnlyTriggerOnce)
+	if (bOnlyTriggerOnce)
 	{
 		EndTask();
 	}
@@ -159,13 +163,15 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
 	}
 
+	Cast<ASlime_A>(Player)->ResetStaminaRecoveryValue();
+
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
 		FGameplayEventData TempPayload = *Payload;
 		TempPayload.EventTag = MatchingTag;
 		FailedEventReceived.Broadcast(MoveTemp(TempPayload));
 	}
-	if (OnlyTriggerOnce)
+	if (bOnlyTriggerOnce)
 	{
 		EndTask();
 	}
@@ -190,14 +196,16 @@ void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 	if (CurrentSlowTimeDilation <= CustomTimeDilation) {
 		WorldSettings->SetTimeDilation(CustomTimeDilation);
 		Player->CustomTimeDilation = 1.0f / CustomTimeDilation;
-		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", SlowTimeEffectLineDensity);
+		if (DynamicSpeedLinesMaterial)
+			DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", SlowTimeEffectLineDensity);
 		bSlowingTime = false;
 		CurrentSlowTimeDilation = 1.0f;
 	}
 	else {
 		WorldSettings->SetTimeDilation(CurrentSlowTimeDilation);
 		Player->CustomTimeDilation = 1.0f / CurrentSlowTimeDilation;
-		DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", CurrentLineStep);
+		if (DynamicSpeedLinesMaterial)
+			DynamicSpeedLinesMaterial->SetScalarParameterValue("Line Density", CurrentLineStep);
 	}
 }
 
@@ -206,7 +214,7 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 	UAbilitySystemComponent* ASC = GetTargetASC();
 	if (ASC && SuccessHandle.IsValid())
 	{
-		if (OnlyMatchExact)
+		if (bOnlyMatchExact)
 		{
 			ASC->GenericGameplayEventCallbacks.FindOrAdd(SuccessTag).Remove(SuccessHandle);
 		}
@@ -219,7 +227,7 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 
 	if (ASC && FailedHandle.IsValid())
 	{
-		if (OnlyMatchExact)
+		if (bOnlyMatchExact)
 		{
 			ASC->GenericGameplayEventCallbacks.FindOrAdd(FailedTag).Remove(FailedHandle);
 		}

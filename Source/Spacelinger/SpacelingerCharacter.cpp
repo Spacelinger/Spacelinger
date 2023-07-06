@@ -6,7 +6,7 @@
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
-#include "Interact_Luis/Interfaces/InteractInterface.h"
+#include "Interfaces/InteractInterface.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -217,7 +217,7 @@ void ASpacelingerCharacter::SwitchAbility(const FInputActionValue& Value)
 {
 	int ActionValue = Value.GetMagnitude();
 	int CurrentAbility = SelectedHumanoidAbility.GetValue();
-	CurrentAbility = (ActionValue + CurrentAbility + SLHumanoidAbility::COUNT) % SLHumanoidAbility::COUNT;
+	CurrentAbility = (ActionValue + CurrentAbility + SLHumanoidAbility::HumanoidCOUNT) % SLHumanoidAbility::HumanoidCOUNT;
 	SelectedHumanoidAbility = static_cast<SLHumanoidAbility>(CurrentAbility);
 	bIsAimingAbility = false;
 }
@@ -284,7 +284,7 @@ FSLAbilityDT* ASpacelingerCharacter::GetAbilityRow(SLHumanoidAbility Ability) {
 	switch(Ability) {
 		case StickyPuddle:  { AbilityName = TEXT("StickyPuddle");  } break;
 		case CorrosiveSpit: { AbilityName = TEXT("CorrosiveSpit"); } break;
-		case COUNT:
+		case HumanoidCOUNT:
 		default:
 			ensure(false);
 	}

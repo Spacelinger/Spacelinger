@@ -4,6 +4,7 @@
 #include "GAS/Attributes/StaminaAttributeSet.h"
 #include "GameplayEffectExtension.h"
 #include <AbilitySystemBlueprintLibrary.h>
+#include "GAS/Effects/GE_StaminaRecovery.h"
 
 void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) {
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -11,6 +12,8 @@ void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribut
 	if (Attribute == GetStaminaAttribute()) {
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxStamina());
 	}
+	
+
 }
 
 void UStaminaAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const {
@@ -24,17 +27,34 @@ void UStaminaAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attr
 void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) {
 	Super::PostGameplayEffectExecute(Data);
 	
-	
 		if (Data.EvaluatedData.Attribute == GetStaminaAttribute()) 
 		{
+			AActor* PlayerActor = GetWorld()->GetFirstPlayerController()->GetPawn();
+			FGameplayEventData Payload;
+
 			const float CurrentStamina = GetStamina();
 			if (CurrentStamina <= 0.0f) 
 			{
-				AActor* PlayerActor = GetWorld()->GetFirstPlayerController()->GetPawn();
-				FGameplayEventData Payload;
 				UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(PlayerActor, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.Empty")), Payload);
-			
+
 				// Here or at abilities end might want to add a cooldown effect so abilities depending on Stamina (ie. slowtime) can't be spammed on 0.x values of it
 			}
+
+			if (CurrentStamina < GetMaxStamina())
+			{
+				if (!GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime"))))
+				{
+					SetStaminaRecoveryValue(StaminaRecoveryBaseRate);
+				}
+			}
 		}
+
+		
 }
+
+void UStaminaAttributeSet::SetStaminaRecoveryValue(float Value)
+{
+	GetOwningAbilitySystemComponent()->
+		UpdateActiveGameplayEffectSetByCallerMagnitude(StaminaRecoveryEffect, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.RecoveryValue")), Value);
+}
+

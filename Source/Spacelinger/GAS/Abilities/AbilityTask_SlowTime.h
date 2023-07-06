@@ -31,6 +31,7 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	 * It will keep listening as long as OnlyTriggerOnce = false
 	 * If OnlyMatchExact = false it will trigger for nested tags
 	 */
+
 	UFUNCTION(BlueprintCallable, Category = "Ability|Tasks", meta = (HidePin = "OwningAbility", DefaultToSelf = "OwningAbility", BlueprintInternalUseOnly = "TRUE"))
 		static UAbilityTask_SlowTime* SlowTimeGameplayEvent(UGameplayAbility* OwningAbility, FGameplayTag SuccessTag, FGameplayTag FailedTag,
 			AActor* OptionalExternalTarget = nullptr, bool OnlyTriggerOnce = false, bool OnlyMatchExact = true);
@@ -58,16 +59,18 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	TObjectPtr<UAbilitySystemComponent> OptionalExternalTarget;
 
 
-	bool UseExternalTarget;
-	bool OnlyTriggerOnce;
-	bool OnlyMatchExact;
+	bool bUseExternalTarget;
+	bool bOnlyTriggerOnce;
+	bool bOnlyMatchExact;
 
 	FDelegateHandle SuccessHandle;
 	FDelegateHandle FailedHandle;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float StaminaCostOverTime = -5.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float CustomTimeDilation = 0.2f;
+	float CustomTimeDilation = 0.4f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlowTimeFadeInRate = 0.5f;
