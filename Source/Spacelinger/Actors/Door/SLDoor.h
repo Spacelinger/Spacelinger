@@ -20,20 +20,7 @@ public:
 	ASLDoor();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent *FrameMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent *DoorMesh;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent *LightMesh1;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USpotLightComponent *Light1;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent *LightMesh2;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	USpotLightComponent *Light2;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UBoxComponent* BoxTrigger;

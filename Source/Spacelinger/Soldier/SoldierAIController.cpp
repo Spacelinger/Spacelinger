@@ -4,12 +4,14 @@
 #include "Soldier/SoldierAIController.h"
 
 #include "NavigationSystem.h"
+#include "BrainComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Slime_A.h"
 #include "Soldier\SLSoldier.h"
-#include "BrainComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 ASoldierAIController::ASoldierAIController() {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
@@ -31,22 +33,28 @@ void ASoldierAIController::BeginPlay() {
 	Super::BeginPlay();
 	AIPerceptionComponent->OnTargetPerceptionInfoUpdated.AddDynamic(this, &ASoldierAIController::OnTargetPerceptionInfoUpdated);
 
-	if (APawn *InstigatorPawn = GetInstigator())
+	if (APawn *InstigatorPawn = GetInstigator()) {
 		InitialTransform = InstigatorPawn->GetTransform();
+	}
+
+	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
+		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
+			RunningSpeed = InstigatorComponent->MaxWalkSpeed;
+		}
+	}
+
+	SetIsAlerted(false);
 }
 
 bool ASoldierAIController::CanPatrol() const
 {
-	APawn *InstigatorPawn = GetInstigator();
-	if (!InstigatorPawn) return false;
-
-	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(InstigatorPawn);
+	ASLSoldier *InstigatorSoldier = GetInstigatorSoldier();
 	return (InstigatorSoldier && InstigatorSoldier->bCanPatrol);
 }
 
 void ASoldierAIController::ResumePatrol()
 {
-	if (CanPatrol() && PatrolPoints.Num() > 0 && bIsAlerted == false) {
+	if (!bIsAlerted && CanPatrol() && PatrolPoints.Num() > 0) {
 		GetWorldTimerManager().SetTimer(PatrolTimerHandle, this, &ASoldierAIController::Patrol, TimerTickRate, true);
 	}
 }
@@ -70,7 +78,7 @@ void ASoldierAIController::OnActorDetected() {
 
 	if (CurrentAwareness >= 1.0f) {
 		CurrentAwareness = 1.0f;
-		bIsAlerted = true;
+		SetIsAlerted(true);
 		GetWorldTimerManager().ClearTimer(DetectionTimerHandle);
 	}
 
@@ -83,7 +91,7 @@ void ASoldierAIController::OnActorUndetected() {
 	CurrentAwareness -= TimeSecondsElapsed * UndetectionSpeed;
 	if (CurrentAwareness <= 0.0f) {
 		CurrentAwareness = 0.0f;
-		bIsAlerted = false;
+		SetIsAlerted(false);
 		GetWorldTimerManager().ClearTimer(DetectionTimerHandle);
 	}
 	
@@ -101,7 +109,6 @@ void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionU
 	if (!PlayerCharacter) { return; }
 
 	if (UpdateInfo.Stimulus.WasSuccessfullySensed()) {
-		UE_LOG(LogTemp, Display, TEXT("Actor detected!"));
 		DetectedActor = TWeakObjectPtr<AActor>(UpdateInfo.Target);
 		// If it's alerted we just set up the awareness to max without calling our timer
 		if (bIsAlerted) {
@@ -113,7 +120,6 @@ void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionU
 		}
 	}
 	else {
-		UE_LOG(LogTemp, Display, TEXT("Actor undetected!"));
 		// It doesn't matter if it's alerted or not, we're going to reduce the awareness gradually
 		DetectedActor.Reset();
 		GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, &ASoldierAIController::OnActorUndetected, TimerTickRate, true);
@@ -140,6 +146,18 @@ void ASoldierAIController::Patrol() {
 	}
 }
 
+void ASoldierAIController::SetIsAlerted(bool NewState) {
+	bIsAlerted = NewState;
+
+	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
+		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
+			InstigatorComponent->MaxWalkSpeed = bIsAlerted ? RunningSpeed : WalkingSpeed;
+		}
+	}
+}
+
+ASLSoldier* ASoldierAIController::GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
+
 void ASoldierAIController::StopLogic()
 {
 	UBrainComponent* Brain = AAIController::GetBrainComponent();
@@ -157,4 +175,3 @@ void ASoldierAIController::IsStunned()
 	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(GetInstigator());
 	bIsStunned = InstigatorSoldier->bIsStunned;
 }
-
