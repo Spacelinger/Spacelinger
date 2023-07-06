@@ -9,24 +9,12 @@
 
 ASLDoor::ASLDoor() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-
-	FrameMesh  = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Frame Mesh"));
 	DoorMesh   = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Door Mesh"));
-	LightMesh1 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Light Mesh 1"));
-	LightMesh2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Light Mesh 2"));
-
-	Light1     = CreateDefaultSubobject<USpotLightComponent>(TEXT("Light 1"));
-	Light2     = CreateDefaultSubobject<USpotLightComponent>(TEXT("Light 2"));
 
 	BoxTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Trigger"));
 
-	FrameMesh ->SetupAttachment(RootComponent);
 	DoorMesh  ->SetupAttachment(RootComponent);
-	LightMesh1->SetupAttachment(RootComponent);
-	LightMesh2->SetupAttachment(RootComponent);
 	BoxTrigger->SetupAttachment(RootComponent);
-	Light1->SetupAttachment(LightMesh1);
-	Light2->SetupAttachment(LightMesh2);
 }
 
 void ASLDoor::BeginPlay() {
