@@ -26,7 +26,7 @@ void UGA_DoorBlock::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
 
 
-	// Start AbilityTask_DoorBlock
+	// Start AbilityTask_DoorBlock TODO: Channel duration is hard coded at 3.0f. Promote to variable
 	UAbilityTask_DoorBlock* DoorBlockTask = UAbilityTask_DoorBlock::DoorBlockChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")), 3.0f, DoorToBlock);
 	
 	DoorBlockTask->ChannelingComplete.AddDynamic(this, &UGA_DoorBlock::AbilityChannelComplete);
