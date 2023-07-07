@@ -83,7 +83,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void ResumeLogic();
 	UFUNCTION(BlueprintCallable)
-	void IsStunned();
+	bool IsStunned();
 
 private:
 	UFUNCTION()

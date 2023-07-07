@@ -167,6 +167,7 @@ void ASLSoldier::Stun(float StunDuration)
 
 void ASLSoldier::Unstun()
 {
+	bIsStunned = false;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
 	ControllerReference->ResumeLogic();
