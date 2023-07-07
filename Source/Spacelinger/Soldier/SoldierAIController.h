@@ -9,6 +9,7 @@
 class UAIPerceptionComponent;
 struct FActorPerceptionUpdateInfo;
 class UAISenseConfig_Sight;
+class ASLSoldier;
 
 UCLASS()
 class SPACELINGER_API ASoldierAIController : public AAIController
@@ -27,13 +28,13 @@ protected:
 	
 public:
 	// If we see the player and they are at this distance or closer, they will be detected instanly.
-	UPROPERTY(VisibleAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0"))
 	float DistanceInstantDetection = 200.0f;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
 	float DetectionSpeed = 0.5f;
-	UPROPERTY(VisibleAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
-	float UndetectionSpeed = 0.5f;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
+	float UndetectionSpeed = 0.2f;
 
 	// Awareness goes from 0 to 1
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
@@ -42,32 +43,47 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	bool bIsAlerted = false;
 
+	// If the AI is stunned by the player (currently not in use, but might be considered useful if the stun implementation is changed -- else delete)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	bool bIsStunned = false;
+
 	// AI Guarding
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	FTransform InitialTransform;
 
-	// AI Shooting
+	// AI Alerted
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	float ShootingAcceptanceRadius = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
+	float WalkingSpeed = 180.0f;
+	float RunningSpeed = 400.0f; // Obtained in BeginPlay()
 
 	// AI Patrol
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
 	TArray<AActor*> PatrolPoints; // To be used in the future
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
 	float PatrolAcceptanceRadius = 5.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
 	bool bFoundPatrolPoint = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
 	FVector CurrentPatrolPoint;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
 
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;
+
+	// Stun
+	UFUNCTION(BlueprintCallable)
+	void StopLogic();
+	UFUNCTION(BlueprintCallable)
+	void ResumeLogic();
+	UFUNCTION(BlueprintCallable)
+	void IsStunned();
 
 private:
 	UFUNCTION()
@@ -85,6 +101,10 @@ private:
 	FTimerHandle PatrolTimerHandle;
 	void Patrol();
 	void ResumePatrol();
+	
+	void SetIsAlerted(bool NewState);
 
 	const float TimerTickRate = 0.001f; // We want to make our timers tick every frame
+
+	ASLSoldier* GetInstigatorSoldier() const;
 };

@@ -5,13 +5,17 @@
 #include "Interfaces/InteractInterface.h"
 #include "SLSoldier.generated.h"
 
+class UWidgetComponent;
+class USLDetectionWidget;
+
 UENUM()
 enum SoldierAIState {
 	IDLE,
 	SUSPICIOUS,
 	ALERTED,
 	AIMING,
-	ATTACK
+	ATTACK,
+	STUNNED
 };
 
 UCLASS(config=Game)
@@ -22,6 +26,15 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 public:
 	ASLSoldier();
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* DetectionWidget;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
+	UClass *OffscreenDetectionWidgetClass;
+	UPROPERTY()
+	USLDetectionWidget *OffscreenDetectionWidget;
 
 // Interact stuff
 public:
@@ -33,6 +46,9 @@ public:
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();
 	void ReceiveDamage();
+	void Stun(float StunDuration);
+	void Unstun();
+	bool IsStunned();
 	void Die();
 
 	UFUNCTION()
@@ -43,6 +59,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	bool bCanPatrol = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	bool bIsStunned = false;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TEnumAsByte<SoldierAIState> AnimationState = SoldierAIState::IDLE;
 };

@@ -46,14 +46,20 @@ void ASpiderWeb::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (bSetPosition) {
 		FVector CurrentLocation = GetActorLocation();
-		FVector NewLocation = FMath::Lerp(CurrentLocation, initialPosition, 0.5f);
+		FVector Direction = initialPosition - CurrentLocation;
+		Direction.Normalize();
+		FVector Velocity = Direction * 2000.0f; // Speed is a scalar value determining the movement speed
+		FVector NewLocation = CurrentLocation + Velocity * DeltaTime;
 		SetActorLocation(NewLocation);
 
 		// Check if the actor has reached the final position
-		if (FVector::DistSquared(CurrentLocation, initialPosition) <= FMath::Square(0.1f)) {
+		if (FVector::DistSquared(CurrentLocation, initialPosition) <= FMath::Square(10.0f)) {
 			bSetPosition = false; // Stop updating the position
-			if(bAttached)
-				spider->JumpToPosition();
+			if (bAttached)
+				if (bIsHook)
+					spider->JumpToPosition();
+				else
+					spider->HandleThrownSpiderWeb();
 			else {
 				spider->bHasTrownSpiderWeb = false;
 				spider->spiderWebReference = nullptr;
@@ -126,15 +132,17 @@ FVector ASpiderWeb::getRelativePositionPhysicsConstraint() {
 
 void ASpiderWeb::ResetConstraint()
 {
-	ConstraintComp->SetLinearXLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-	ConstraintComp->SetLinearYLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-	ConstraintComp->SetLinearZLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
-	ConstraintComp->SetConstrainedComponents(
-		nullptr, NAME_None,
-		nullptr, NAME_None
-	);
-	CableComponent->bAttachEnd = false;
-	ConstraintComp = nullptr;
+	if (ConstraintComp != nullptr) {
+		ConstraintComp->SetLinearXLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
+		ConstraintComp->SetLinearYLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
+		ConstraintComp->SetLinearZLimit(ELinearConstraintMotion::LCM_Free, 0.0f);
+		ConstraintComp->SetConstrainedComponents(
+			nullptr, NAME_None,
+			nullptr, NAME_None
+		);
+		CableComponent->bAttachEnd = false;
+		ConstraintComp = nullptr;
+	}
 }
 
 void ASpiderWeb::SetTrap()
@@ -196,9 +204,10 @@ void ASpiderWeb::BeginPlay()
 	}
 }
 
-void ASpiderWeb::setFuturePosition(FVector futurePosition, ASlime_A* spiderRef, bool attached) {
+void ASpiderWeb::setFuturePosition(FVector futurePosition, ASlime_A* spiderRef, bool attached, bool bHook) {
 	bSetPosition = true;
 	initialPosition = futurePosition;
 	spider = spiderRef;
 	bAttached = attached;
+	bIsHook = bHook;
 }

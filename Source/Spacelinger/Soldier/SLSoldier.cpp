@@ -1,12 +1,42 @@
 #include "SLSoldier.h"
+
+#include "SoldierAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/StaticMeshActor.h"
+#include "Components/WidgetComponent.h"
+#include "UI/Soldier/SLDetectionWidget.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
 	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
+
+	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
+	DetectionWidget->SetupAttachment(RootComponent);
+	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
+}
+
+void ASLSoldier::BeginPlay() {
+	Super::BeginPlay();
+
+	if (USLDetectionWidget *DetectionInterface = Cast<USLDetectionWidget>(DetectionWidget->GetWidget())) {
+		DetectionInterface->OwningActor = this;
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's DetectionWidget is not USLDetectionInterface"));
+	}
+
+	if (OffscreenDetectionWidgetClass) {
+		OffscreenDetectionWidget = Cast<USLDetectionWidget>(CreateWidget(GetGameInstance()->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
+		if (OffscreenDetectionWidget) {
+			OffscreenDetectionWidget->AddToViewport();
+			OffscreenDetectionWidget->OwningActor = this;
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's OffscreenDetectionWidgetClass is not set"));
+	}
 }
 
 /** LUIS WAS HERE: Interacting has been heavily refactored. We can review together
@@ -122,8 +152,37 @@ void ASLSoldier::ReceiveDamage()
 	Die();
 }
 
+void ASLSoldier::Stun(float StunDuration)
+{
+	bIsStunned = true;
+	FTimerHandle TimerHandle;
+	GetCharacterMovement()->DisableMovement();
+	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
+	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
+	ControllerReference->StopLogic();
+	
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
+}
+	
+
+void ASLSoldier::Unstun()
+{
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
+	ControllerReference->ResumeLogic();
+}
+
+bool ASLSoldier::IsStunned()
+{
+	return bIsStunned;
+}
+
+
 void ASLSoldier::Die()
 {
+	DetectionWidget->Deactivate();
+	OffscreenDetectionWidget->RemoveFromParent();
+
 	GetController()->UnPossess();
 
 	// Disable collision and physics-based movement for the soldier's components
