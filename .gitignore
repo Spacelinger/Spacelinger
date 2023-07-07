@@ -82,3 +82,8 @@ Platforms/HoloLens/*
 
 # SpaceLinger builds go here for now
 GameExecutable/*
+
+# FMODStudio Files
+!Plugins/FMODStudio/**
+Plugins/FMODStudio/Intermediate/*
+Plugins/FMODStudio/Binaries/Win64/UnrealEditor-FMODStudio*
