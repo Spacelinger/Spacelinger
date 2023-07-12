@@ -193,7 +193,10 @@ protected:
 	void UpdateCameraRotation();
 	void UpdateRotationOverTime(float DeltaTime);
 	double FloorThreshold = 0.9;
-	FORCEINLINE bool IsFloor(FVector Normal) { return Normal == FVector(0, 0, 1); }
+	FORCEINLINE bool IsFloor(FVector Normal) {
+		const float epsilon = 0.01f;  // Modify as needed
+		return fabs(Normal.Z - 1.0f) < epsilon;
+	}
 	FORCEINLINE bool IsCeiling(FVector Normal) {
 		return FVector::DotProduct(Normal, FVector::UpVector) <= -FloorThreshold;
 	}
