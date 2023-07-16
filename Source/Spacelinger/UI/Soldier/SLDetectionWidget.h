@@ -18,6 +18,8 @@ class SPACELINGER_API USLDetectionWidget : public UUserWidget
 	FLinearColor DetectedColor = FLinearColor(1.0f, 0.86f, 0.0f, 1.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	FLinearColor AlertedColor = FLinearColor(0.9f, 0.04f, 0.04f, 1.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	FLinearColor StunnedColor = FLinearColor(0, 235, 250, 1);
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidgetOptional))

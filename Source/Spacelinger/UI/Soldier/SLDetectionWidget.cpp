@@ -61,6 +61,10 @@ ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() const {
 
 FLinearColor USLDetectionWidget::GetBarColor() const {
 	if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
+		if (AIController -> IsStunned())
+		{
+			return StunnedColor;
+		}
 		return AIController->bIsAlerted ? AlertedColor : DetectedColor;
 	}
 	return DetectedColor;

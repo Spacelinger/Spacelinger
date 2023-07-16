@@ -170,8 +170,12 @@ void ASoldierAIController::ResumeLogic()
 	Brain->RestartLogic();
 }
 
-void ASoldierAIController::IsStunned()
+bool ASoldierAIController::IsStunned()
 {
 	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(GetInstigator());
-	bIsStunned = InstigatorSoldier->bIsStunned;
+	if (InstigatorSoldier != nullptr)
+	{
+		bIsStunned = InstigatorSoldier->bIsStunned;
+	}
+	return bIsStunned;
 }
