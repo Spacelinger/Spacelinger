@@ -160,6 +160,7 @@ void ASLSoldier::Stun(float StunDuration)
 	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
 	ControllerReference->StopLogic();
+	ControllerReference->SetIsAlerted(true);
 	
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
 }
@@ -171,6 +172,7 @@ void ASLSoldier::Unstun()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
 	ControllerReference->ResumeLogic();
+	ControllerReference->RefreshDetectionTimers();
 }
 
 bool ASLSoldier::IsStunned()

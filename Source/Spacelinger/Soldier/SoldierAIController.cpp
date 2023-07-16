@@ -60,6 +60,7 @@ void ASoldierAIController::ResumePatrol()
 }
 
 void ASoldierAIController::OnActorDetected() {
+	if (IsStunned()) return;
 	ensure(DetectedActor.IsValid());
 
 	float Distance = DetectedActor.Get()->GetDistanceTo(GetInstigator());
@@ -77,7 +78,6 @@ void ASoldierAIController::OnActorDetected() {
 	}
 
 	if (CurrentAwareness >= 1.0f) {
-		CurrentAwareness = 1.0f;
 		SetIsAlerted(true);
 		GetWorldTimerManager().ClearTimer(DetectionTimerHandle);
 	}
@@ -86,11 +86,12 @@ void ASoldierAIController::OnActorDetected() {
 }
 
 void ASoldierAIController::OnActorUndetected() {
+	if (IsStunned()) return;
+
 	float TimeSecondsElapsed = GetWorld()->GetTimeSeconds() - LastTimeSecondsTimer;
 
 	CurrentAwareness -= TimeSecondsElapsed * UndetectionSpeed;
 	if (CurrentAwareness <= 0.0f) {
-		CurrentAwareness = 0.0f;
 		SetIsAlerted(false);
 		GetWorldTimerManager().ClearTimer(DetectionTimerHandle);
 	}
@@ -148,12 +149,19 @@ void ASoldierAIController::Patrol() {
 
 void ASoldierAIController::SetIsAlerted(bool NewState) {
 	bIsAlerted = NewState;
+	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f; 
 
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
 		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
 			InstigatorComponent->MaxWalkSpeed = bIsAlerted ? RunningSpeed : WalkingSpeed;
 		}
 	}
+}
+
+void ASoldierAIController::RefreshDetectionTimers() {
+	auto TimerFunction = DetectedActor.IsValid() ? &ASoldierAIController::OnActorDetected : &ASoldierAIController::OnActorUndetected;
+	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, TimerFunction, TimerTickRate, true);
+	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
 }
 
 ASLSoldier* ASoldierAIController::GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }

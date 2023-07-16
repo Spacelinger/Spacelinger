@@ -85,6 +85,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	bool IsStunned();
 
+	void SetIsAlerted(bool NewState);
+	void RefreshDetectionTimers();
+
 private:
 	UFUNCTION()
 	void OnTargetPerceptionInfoUpdated(const FActorPerceptionUpdateInfo& UpdateInfo);
@@ -102,8 +105,6 @@ private:
 	void Patrol();
 	void ResumePatrol();
 	
-	void SetIsAlerted(bool NewState);
-
 	const float TimerTickRate = 0.001f; // We want to make our timers tick every frame
 
 	ASLSoldier* GetInstigatorSoldier() const;
