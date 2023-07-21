@@ -103,14 +103,17 @@ void ASoldierAIController::OnActorUndetected() {
 void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionUpdateInfo& UpdateInfo) {
 	ensure(GetWorld());
 	ensure(AISenseConfigSight);
-	
+
 	// NOTE(Sergi): We could filter the actors detected by using the IGenericTeamAgentInterface. Although I'm not sure it's worth the work
 	// https://sologamedevblog.com/tutorials/unreal-perception-c-friend-or-enemy/
 	ASlime_A *PlayerCharacter = Cast<ASlime_A>(UpdateInfo.Target);
 	if (!PlayerCharacter) { return; }
 
+	DetectedLocation = UpdateInfo.Stimulus.StimulusLocation;
+	//UE_LOG(LogTemp, Display, TEXT("Stimulus Location = %s"), *UpdateInfo.Stimulus.StimulusLocation.ToString());
+
 	if (UpdateInfo.Stimulus.WasSuccessfullySensed()) {
-		DetectedActor = TWeakObjectPtr<AActor>(UpdateInfo.Target);
+		DetectedActor = UpdateInfo.Target;
 		// If it's alerted we just set up the awareness to max without calling our timer
 		if (bIsAlerted) {
 			CurrentAwareness = 1.0f;

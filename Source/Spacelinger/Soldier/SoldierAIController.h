@@ -73,6 +73,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	FVector DetectedLocation;
 
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;
