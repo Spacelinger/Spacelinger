@@ -46,7 +46,7 @@ public:
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();
 	void ReceiveDamage();
-	void Stun(float StunDuration);
+	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
 	bool IsStunned();
 	void Die();

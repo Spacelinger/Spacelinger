@@ -152,7 +152,7 @@ void ASLSoldier::ReceiveDamage()
 	Die();
 }
 
-void ASLSoldier::Stun(float StunDuration)
+void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 {
 	bIsStunned = true;
 	FTimerHandle TimerHandle;
@@ -161,6 +161,7 @@ void ASLSoldier::Stun(float StunDuration)
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
 	ControllerReference->StopLogic();
 	ControllerReference->SetIsAlerted(true);
+	ControllerReference->DetectedLocation = ThrowLocation;
 	
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
 }
