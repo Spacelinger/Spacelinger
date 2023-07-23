@@ -35,33 +35,35 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+		void BoxTrigger_OnBeginOverlap(
+			UPrimitiveComponent* OverlappedComponent,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex,
+			bool bFromSweep,
+			const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void BoxTrigger_OnEndOverlap(
+			UPrimitiveComponent* OverlappedComponent,
+			AActor* OtherActor,
+			UPrimitiveComponent* OtherComp,
+			int32 OtherBodyIndex);
+
 private:
 	int ActorsOnTrigger = 0;
 	float CurrentDoorOffset = 0.0f;
 	FVector InitialDoorLocation;
 
-	UFUNCTION()
-	void BoxTrigger_OnBeginOverlap(
-		UPrimitiveComponent* OverlappedComponent,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex,
-		bool bFromSweep,
-		const FHitResult & SweepResult);
-
-	UFUNCTION()
-	void BoxTrigger_OnEndOverlap(
-		UPrimitiveComponent* OverlappedComponent,
-		AActor* OtherActor,
-		UPrimitiveComponent* OtherComp,
-		int32 OtherBodyIndex);
-
 	// Tick functions
 	void DoorTickOpen();
 	void DoorTickClose();
+	void UpdateDoorLocation();
+
 	FTimerHandle DoorTickHandle; // Timers are going to be set to loop
 
 	USceneComponent* GetPlayerRoot();
-	void UpdateDoorLocation();
+	
 
 };

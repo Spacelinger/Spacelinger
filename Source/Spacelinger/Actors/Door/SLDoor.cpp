@@ -51,8 +51,8 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	int32 OtherBodyIndex)
 {
 	if (OtherComp != GetPlayerRoot()) return;
-
-	ActorsOnTrigger -= 1;
+	ActorsOnTrigger <= 0 ? ActorsOnTrigger = 0 : ActorsOnTrigger -= 1;
+	//ActorsOnTrigger -= 1;
 	ensure(ActorsOnTrigger >= 0);
 	if (ActorsOnTrigger == 0) {
 		DoorMesh->SetVisibility(true);

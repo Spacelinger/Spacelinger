@@ -26,7 +26,7 @@ void UInteractableComponent::BeginPlay()
 	Super::BeginPlay();
 
 	InteractableWidgetComponents = GetOwner()->GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("Interact UI"));
-	UE_LOG(LogActor, Warning, TEXT("Linked to %i components"), InteractableWidgetComponents.Num());
+	UE_LOG(LogActor, Warning, TEXT("Linked to %i  UI components"), InteractableWidgetComponents.Num());
 }
 
 void UInteractableComponent::SetAsCandidate(AActor* ActorInteracting)
