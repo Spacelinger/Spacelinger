@@ -124,6 +124,7 @@ void ASlime_A::BeginPlay()
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
 
+	/*
 	//GAS
 	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
 
@@ -137,6 +138,7 @@ void ASlime_A::BeginPlay()
 		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
 		StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 	}
+	*/
 }
 
 void ASlime_A::Tick(float DeltaTime)
@@ -155,6 +157,14 @@ void ASlime_A::Tick(float DeltaTime)
 	else
 	{
 		HandleJumpToLocationBehaviour();
+	}
+
+	if (GetCharacterMovement()->IsFalling())
+	{
+		bIsInAir = true;
+	}
+	else {
+		bIsInAir = false;
 	}
 
 }
@@ -277,11 +287,40 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 
 	if (HitNormals.Num() > 0)
 	{
-		if (ImpactCount > 7) {
+		// Convert the integer to FString (Unreal's string type)
+		FString Message = FString::Printf(TEXT("YourNumber: %d"), HitNormals.Num());
+
+		// Display the message on the screen
+		FColor Color = FColor::Red; // Change the color as desired
+		float Duration = 0.1f; // Display time in seconds, change as needed
+		GEngine->AddOnScreenDebugMessage(-1, Duration, Color, Message);
+
+		if (ImpactCount > 7)
+		{
 			bCanClimb = false;
 			StopClimbing();
 		}
-		HandleNormalHits(HitNormals, ActorLocation, TraceParams);
+		else
+		{
+			HandleNormalHits(HitNormals, ActorLocation, TraceParams);
+
+			bool AllStairs = true; // Flag to track if all elements have the tag "Stairs"
+
+			for (const auto& HitPair : HitNormals)
+			{
+				AActor* HitActor = HitPair.Value.GetActor();
+				if (HitActor && !HitActor->ActorHasTag("Stairs"))
+				{
+					AllStairs = false;
+					break;
+				}
+			}
+
+			if (AllStairs)
+			{
+				StopClimbing();
+			}
+		}
 	}
 	else if (HitDirectionDiagonal.IsValidBlockingHit())
 	{
@@ -294,6 +333,8 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 
 	HandleFloorAndCeiling();
 }
+
+
 
 TPair<TMap<FVector, FHitResult>, int32> ASlime_A::GenerateHitNormals(FVector ActorLocation)
 {
@@ -385,6 +426,7 @@ void ASlime_A::HandleFloorAndCeiling()
 void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 {
 	bool bHitSurface = false;
+	bool bAllAreStairs = true;
 	FVector SurfaceNormal;
 
 	TPair<TMap<FVector, FHitResult>, int32> Result = GenerateHitNormals(ActorLocation);
@@ -400,8 +442,18 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 				break;
 			}
 		}
+		for (auto& It : HitNormals) {
+			if (It.Value.GetActor() != nullptr){
+				AActor* actor = It.Value.GetActor();
+				if (!actor->ActorHasTag("Stair")) {
+					bAllAreStairs = false;
+					break;
+				}
 				
-			
+			}
+		}
+
+
 		if (GetCapsuleComponent()->IsSimulatingPhysics())
 		{
 			GetCapsuleComponent()->SetSimulatePhysics(false);
@@ -422,12 +474,12 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 				bHitSurface = true;
 				SurfaceNormal = selectedNormal;
 			}
-				
+
 		}
 	}
-	
 
-	if (bHitSurface)
+
+	if (bHitSurface && !bAllAreStairs)
 	{
 		StartClimbing();
 
@@ -446,6 +498,9 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 		StopClimbing();
 	}
 }
+
+
+
 
 void ASlime_A::UpdateRotationOverTime(float DeltaTime) {
 	if (bIsRotating) {
@@ -743,9 +798,34 @@ void ASlime_A::CutSpiderWeb()
 		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 		spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
 	}
-	else if(spiderWebReference)
+	else if (spiderWebReference)
 	{
-		spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
+		// Perform the raycast
+		FHitResult HitResult;
+		FVector StartLocation = GetActorLocation();
+		FVector EndLocation = StartLocation - GetActorUpVector() * 30.0f; // Adjust RaycastDistance to your preference
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+
+		if (bHit)
+		{
+			spiderWebReference->CableComponent->bAttachEnd = true;
+			spiderWebReference->CableComponent->EndLocation = spiderWebReference->CableComponent->GetComponentTransform().InverseTransformPosition(HitResult.Location);
+
+		}
+		else
+		{
+			spiderWebReference->CableComponent->bAttachEnd = false;
+		}
+
+		// Draw debug line to visualize the raycast in the editor (optional)
+		if (bHit)
+		{
+			DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 5.0f, 0, 1.0f);
+		}
+		else
+		{
+			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.0f, 0, 1.0f);
+		}
 	}
 	attached = false;
 	attachedAtCeiling = false;
@@ -1176,6 +1256,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 			ClimbingDirection = (previousLocation - GetActorLocation()).GetSafeNormal();
 			MovementDirection = FVector::VectorPlaneProject(MovementDirection, previousNormal);
 			AddMovementInput(ClimbingDirection);
+
 		}
 		else
 		{
