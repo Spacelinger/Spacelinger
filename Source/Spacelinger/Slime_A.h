@@ -19,9 +19,11 @@ class UPostProcessComponent;
 class UMCV_AbilitySystemComponent;
 class UStaminaAttributeSet;
 class UHealthAttributeSet;
+class USpiderTrapsAttributeSet;
 class IInteractInterface;
 class UInteractingComponent;
 class UBoxComponent;
+class UInventoryComponent;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -78,6 +80,9 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UBoxComponent* InteractCollisionComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UInventoryComponent* InventoryComponent = nullptr;
+
 protected:
 	// GAS
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
@@ -97,6 +102,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	float StaminaRecoveryBaseRate = 2.5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
+	USpiderTrapsAttributeSet* SpiderTrapsAttributeSet = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
+	float MaxTraps = 3.0f;
 
 	// Interact
 	IInteractInterface* CurrentInteractable = nullptr;
@@ -124,6 +135,9 @@ public:
 	// Hide the crosshair when it doesn't need to be shown
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="HUD")
 	void SetCrosshairVisibility(bool bVisible);
+
+	UFUNCTION()
+		void CutSpiderWeb();
 
 protected:
 	// Input callbacks
@@ -184,7 +198,7 @@ protected:
 
 
 	void AlignToPlane(FVector planeNormal);
-	void CutSpiderWeb();
+	// void CutSpiderWeb();		MOVED TO PUBLIC -> NEED TO BE ACCESSED BY GAS
 	void CutThrownSpiderWeb();
 	FVector getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime);
 	FVector getRelativePositionPhysicsConstraint();

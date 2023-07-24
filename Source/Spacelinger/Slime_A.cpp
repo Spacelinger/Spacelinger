@@ -15,6 +15,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/HealthAttributeSet.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
+#include "GAS/Attributes/SpiderTrapsAttributeSet.h"
 #include "GAS/Effects/GE_StaminaRecovery.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -22,6 +23,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/BoxComponent.h"
 #include "Components/InteractingComponent.h"
+#include "Components/InventoryComponent.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -78,11 +80,14 @@ ASlime_A::ASlime_A()
 	InteractCollisionComponent->SetupAttachment(CameraBoom);
 	InteractCollisionComponent->ComponentTags.Add(FName(TEXT("Interact Volume")));
 
+	// Inventory Component
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
 
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
 	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("HealthAttributeSet"));
 	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
+	SpiderTrapsAttributeSet = CreateDefaultSubobject<USpiderTrapsAttributeSet>(TEXT("SpiderTrapsAttributeSet"));
 	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -130,9 +135,11 @@ void ASlime_A::BeginPlay()
 
 	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UHealthAttributeSet::GetMaxHealthAttribute(), static_cast<float>(MaxHealth));
+		asc->SetNumericAttributeBase(UHealthAttributeSet::GetHealthAttribute(), static_cast<float>(MaxHealth));
+		asc->SetNumericAttributeBase(USpiderTrapsAttributeSet::GetMaxTrapsAttribute(), static_cast<float>(MaxTraps));
+		asc->SetNumericAttributeBase(USpiderTrapsAttributeSet::GetAvailableTrapsAttribute(), static_cast<float>(MaxTraps));
 		
 		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
 		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
@@ -998,12 +1005,6 @@ void ASlime_A::HandleThrownSpiderWeb() {
 	
 }
 
-
-
-
-
-
-
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHook)
 {
 	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
@@ -1023,6 +1024,10 @@ void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
 
 void ASlime_A::PutTrap()
 {
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
+	
+	/*	Implemented in GAS -> GA_PutTrap
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
 
 	FHitResult Hit;
@@ -1044,6 +1049,7 @@ void ASlime_A::PutTrap()
 			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
 		spiderWebTrap->SetTrap();
 	}
+	*/
 }
 
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
@@ -1103,6 +1109,11 @@ void ASlime_A::StopJumpToPosition() {
 
 
 void ASlime_A::PutSpiderWebAbility() {
+
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutSpiderWeb.Started")), Payload);
+
+	/*	Implemented in GAS -> GA_PutSpiderWeb
 	if (bJumpToLocation)
 		return;
 
@@ -1129,6 +1140,7 @@ void ASlime_A::PutSpiderWebAbility() {
 			attachedAtCeiling = IsCeiling(previousNormal);
 		}
 	}
+	*/
 }
 
 void ASlime_A::ThrowAbility(const FInputActionValue& Value)
