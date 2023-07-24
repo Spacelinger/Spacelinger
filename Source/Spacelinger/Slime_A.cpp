@@ -295,12 +295,12 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 	if (HitNormals.Num() > 0)
 	{
 		// Convert the integer to FString (Unreal's string type)
-		FString Message = FString::Printf(TEXT("YourNumber: %d"), HitNormals.Num());
+		//FString Message = FString::Printf(TEXT("YourNumber: %d"), HitNormals.Num());
 
 		// Display the message on the screen
-		FColor Color = FColor::Red; // Change the color as desired
-		float Duration = 0.1f; // Display time in seconds, change as needed
-		GEngine->AddOnScreenDebugMessage(-1, Duration, Color, Message);
+		//FColor Color = FColor::Red; // Change the color as desired
+		//float Duration = 0.1f; // Display time in seconds, change as needed
+		//GEngine->AddOnScreenDebugMessage(-1, Duration, Color, Message);
 
 		if (ImpactCount > 7)
 		{
