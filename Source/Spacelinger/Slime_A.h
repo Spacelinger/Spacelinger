@@ -202,7 +202,7 @@ protected:
 	}
 
 private:
-	const float TraceDistance = 50.0f;
+	const float TraceDistance = 70.0f;
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
@@ -286,6 +286,11 @@ public:
 		float StateChangeCooldown = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float LastStateChangeTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Air")
+		bool bIsInAir;
+
+
 	
 	AActor* previousActorCollision;
 
