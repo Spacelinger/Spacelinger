@@ -4,7 +4,6 @@
 #include "GAS/Abilities/GA_PutTrap.h"
 #include "AbilitySystemComponent.h"
 #include <Slime_A.h>
-#include "AbilityTask_PutTrap.h"
 
 
 UGA_PutTrap::UGA_PutTrap()
@@ -14,24 +13,16 @@ UGA_PutTrap::UGA_PutTrap()
 
 void UGA_PutTrap::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	/*if (CommitAbility(Handle, ActorInfo, ActivationInfo))
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	if (CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		ActionPutTrap();
 	}
 	else
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-	}*/
-
-	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")));
-
-	UAbilityTask_PutTrap* PutTrapTask = UAbilityTask_PutTrap::PutTrapChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")), TimeToChannel);
-
-	PutTrapTask->ChannelingComplete.AddDynamic(this, &UGA_PutTrap::AbilityChannelComplete);
-	PutTrapTask->ChannelingCanceled.AddDynamic(this, &UGA_PutTrap::AbilityChannelCanceled);
-	PutTrapTask->ReadyForActivation();
-
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	}
 }
 
 void UGA_PutTrap::ActionPutTrap()
@@ -60,14 +51,13 @@ void UGA_PutTrap::ActionPutTrap()
 		spiderWebTrap->SetTrap();
 	}
 
-	//EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 
 void UGA_PutTrap::AbilityChannelComplete()
 {
 	// TODO: Channeling task
-	ActionPutTrap();
 	CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
@@ -81,7 +71,6 @@ void UGA_PutTrap::AbilityChannelCanceled()
 void UGA_PutTrap::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	//GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
-	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")));
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
@@ -90,7 +79,7 @@ bool UGA_PutTrap::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, co
 	const bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	if (bCanActivate == false)
 	{
-		// Here we return false, because the current stamina or available spider traps from the cost is less than the ability's cost
+		// Here we return as the current stamina cost is less than the ability's cost
 		return false;
 	}
 

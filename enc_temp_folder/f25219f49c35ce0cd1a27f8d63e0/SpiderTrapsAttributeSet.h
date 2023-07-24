@@ -38,4 +38,8 @@ public:
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 	void SetSpiderTrapsRecoveryValue(float Value);
+
+protected:
+
+	void RestoreAvailableTrap();
 };

@@ -18,7 +18,7 @@ public:
 	UGA_PutTrap();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (UIMin = "0.2", UIMax = "99"))
-		float TimeToChannel = 1.0f; // TO-DO: Cannot be < 0
+		float TimeToChannel = 3.0f; // TO-DO: Cannot be < 0
 
 protected:
 

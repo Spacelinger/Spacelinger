@@ -10,7 +10,6 @@
  * 
  */
 
-
 UCLASS()
 class SPACELINGER_API USpiderTrapsAttributeSet : public UMCV_AttributeSet
 {
@@ -30,7 +29,7 @@ public:
 	FActiveGameplayEffectHandle SpiderTrapsRecoveryEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float SpiderTrapsRecoveryBaseRate = 5.0f;
+		float SpiderTrapsRecoveryBaseRate = 10.0f;
 
 public:
 
