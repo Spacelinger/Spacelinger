@@ -155,7 +155,6 @@ void ASLSoldier::ReceiveDamage()
 void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 {
 	bIsStunned = true;
-	FTimerHandle TimerHandle;
 	GetCharacterMovement()->DisableMovement();
 	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
@@ -163,17 +162,22 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	ControllerReference->SetIsAlerted(true);
 	ControllerReference->DetectedLocation = ThrowLocation;
 	
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
+	GetWorldTimerManager().SetTimer(UnstunTimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
 }
-	
 
-void ASLSoldier::Unstun()
+void ASLSoldier::Unstun() 
 {
 	bIsStunned = false;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
 	ControllerReference->ResumeLogic();
 	ControllerReference->RefreshDetectionTimers();
+}
+
+float ASLSoldier::GetRemainingTimeToUnstunAsPercentage() {
+	float Elapsed   = GetWorldTimerManager().GetTimerElapsed(UnstunTimerHandle);
+	float Remaining = GetWorldTimerManager().GetTimerRemaining(UnstunTimerHandle);
+	return Remaining / (Elapsed+Remaining);
 }
 
 bool ASLSoldier::IsStunned()

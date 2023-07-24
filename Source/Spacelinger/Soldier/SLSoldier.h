@@ -36,8 +36,9 @@ public:
 	UPROPERTY()
 	USLDetectionWidget *OffscreenDetectionWidget;
 
+	FTimerHandle UnstunTimerHandle;
+
 // Interact stuff
-public:
 	int InteractPriority = 99;
 	//int GetInteractPriority() const;
 	//void Interact(AActor* ActorInteracting);	//LUIS: Interact has been refactored
@@ -49,6 +50,7 @@ public:
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
 	bool IsStunned();
+	float GetRemainingTimeToUnstunAsPercentage();
 	void Die();
 
 	UFUNCTION()
