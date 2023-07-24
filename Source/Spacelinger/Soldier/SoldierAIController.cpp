@@ -60,6 +60,7 @@ void ASoldierAIController::ResumePatrol()
 }
 
 void ASoldierAIController::OnActorDetected() {
+	if (IsStunned()) return;
 	ensure(DetectedActor.IsValid());
 
 	float Distance = DetectedActor.Get()->GetDistanceTo(GetInstigator());
@@ -77,7 +78,6 @@ void ASoldierAIController::OnActorDetected() {
 	}
 
 	if (CurrentAwareness >= 1.0f) {
-		CurrentAwareness = 1.0f;
 		SetIsAlerted(true);
 		GetWorldTimerManager().ClearTimer(DetectionTimerHandle);
 	}
@@ -86,11 +86,12 @@ void ASoldierAIController::OnActorDetected() {
 }
 
 void ASoldierAIController::OnActorUndetected() {
+	if (IsStunned()) return;
+
 	float TimeSecondsElapsed = GetWorld()->GetTimeSeconds() - LastTimeSecondsTimer;
 
 	CurrentAwareness -= TimeSecondsElapsed * UndetectionSpeed;
 	if (CurrentAwareness <= 0.0f) {
-		CurrentAwareness = 0.0f;
 		SetIsAlerted(false);
 		GetWorldTimerManager().ClearTimer(DetectionTimerHandle);
 	}
@@ -102,14 +103,17 @@ void ASoldierAIController::OnActorUndetected() {
 void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionUpdateInfo& UpdateInfo) {
 	ensure(GetWorld());
 	ensure(AISenseConfigSight);
-	
+
 	// NOTE(Sergi): We could filter the actors detected by using the IGenericTeamAgentInterface. Although I'm not sure it's worth the work
 	// https://sologamedevblog.com/tutorials/unreal-perception-c-friend-or-enemy/
 	ASlime_A *PlayerCharacter = Cast<ASlime_A>(UpdateInfo.Target);
 	if (!PlayerCharacter) { return; }
 
+	DetectedLocation = UpdateInfo.Stimulus.StimulusLocation;
+	//UE_LOG(LogTemp, Display, TEXT("Stimulus Location = %s"), *UpdateInfo.Stimulus.StimulusLocation.ToString());
+
 	if (UpdateInfo.Stimulus.WasSuccessfullySensed()) {
-		DetectedActor = TWeakObjectPtr<AActor>(UpdateInfo.Target);
+		DetectedActor = UpdateInfo.Target;
 		// If it's alerted we just set up the awareness to max without calling our timer
 		if (bIsAlerted) {
 			CurrentAwareness = 1.0f;
@@ -148,12 +152,19 @@ void ASoldierAIController::Patrol() {
 
 void ASoldierAIController::SetIsAlerted(bool NewState) {
 	bIsAlerted = NewState;
+	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f; 
 
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
 		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
 			InstigatorComponent->MaxWalkSpeed = bIsAlerted ? RunningSpeed : WalkingSpeed;
 		}
 	}
+}
+
+void ASoldierAIController::RefreshDetectionTimers() {
+	auto TimerFunction = DetectedActor.IsValid() ? &ASoldierAIController::OnActorDetected : &ASoldierAIController::OnActorUndetected;
+	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, TimerFunction, TimerTickRate, true);
+	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
 }
 
 ASLSoldier* ASoldierAIController::GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }

@@ -4,6 +4,7 @@
 #include "UI/Soldier/SLDetectionWidget.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
+#include "Soldier/SLSoldier.h"
 #include "Soldier/SoldierAIController.h"
 #include "Components/CanvasPanel.h"
 #include "Slime_A.h"
@@ -13,9 +14,18 @@
 #include "Blueprint/WidgetLayoutLibrary.h"
 
 float USLDetectionWidget::GetBarPercent() const {
-	if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
-		return AIController->CurrentAwareness;
+	if (ASLSoldier *SoldierActor = Cast<ASLSoldier>(OwningActor)) {
+		// If stunned awareness is max, so we show how long until it gets unstunned
+		// otherwise we just show it's current awareness
+		if (SoldierActor->IsStunned()) {
+			return SoldierActor->GetRemainingTimeToUnstunAsPercentage();
+		}
+
+		if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
+			return AIController->CurrentAwareness;
+		}
 	}
+	
 	return .0f;
 }
 
@@ -68,6 +78,17 @@ FLinearColor USLDetectionWidget::GetBarColor() const {
 		return AIController->bIsAlerted ? AlertedColor : DetectedColor;
 	}
 	return DetectedColor;
+}
+
+// NOTE(Sergi): Not used yet since we can't bind this function to the background color
+// I'll figure out something eventually
+FLinearColor USLDetectionWidget::GetBarBackgroundColor() const {
+	if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
+		if (AIController -> IsStunned()) {
+			return AlertedColor;
+		}
+	}
+	return DefaultBackgroundColor;
 }
 
 bool USLDetectionWidget::IsActorAware(AActor *Actor) const {

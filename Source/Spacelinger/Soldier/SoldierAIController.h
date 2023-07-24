@@ -73,6 +73,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	FVector DetectedLocation;
 
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;
@@ -84,6 +86,9 @@ public:
 	void ResumeLogic();
 	UFUNCTION(BlueprintCallable)
 	bool IsStunned();
+
+	void SetIsAlerted(bool NewState);
+	void RefreshDetectionTimers();
 
 private:
 	UFUNCTION()
@@ -102,8 +107,6 @@ private:
 	void Patrol();
 	void ResumePatrol();
 	
-	void SetIsAlerted(bool NewState);
-
 	const float TimerTickRate = 0.001f; // We want to make our timers tick every frame
 
 	ASLSoldier* GetInstigatorSoldier() const;

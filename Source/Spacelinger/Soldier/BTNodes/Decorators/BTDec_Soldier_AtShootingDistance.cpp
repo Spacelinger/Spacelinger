@@ -24,6 +24,7 @@ bool UBTDec_Soldier_AtShootingDistance::CalculateRawConditionValue(UBehaviorTree
 	if(!PlayerActorKey.IsSet()) return false;
 	UBlackboardComponent *BB = OwnerComp.GetBlackboardComponent();
 	AActor *BBPlayer = Cast<AActor>(BB->GetValueAsObject(PlayerActorKey.SelectedKeyName));
+	if (!BBPlayer) return false;
 
 	ASoldierAIController *AIController = Cast<ASoldierAIController>(OwnerComp.GetAIOwner());
 	if (!AIController) return false;

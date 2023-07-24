@@ -1370,9 +1370,9 @@ void ASlime_A::ThrowStunningWeb()
 		if (ASLSoldier* Soldier = Cast<ASLSoldier>(HitResult.GetActor())) {
 			HitResult = PerformLineTrace(StartPosition, Soldier->GetActorLocation());
 			SpawnStunningWeb(StartPosition, HitResult.Location);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
 			CutSpiderWeb();
-			Soldier->Stun(StunningWebStunDuration);
+			Soldier->Stun(StunningWebStunDuration, this->GetActorLocation());
 		}
 	}
 	else

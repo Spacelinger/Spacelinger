@@ -20,6 +20,8 @@ class SPACELINGER_API USLDetectionWidget : public UUserWidget
 	FLinearColor AlertedColor = FLinearColor(0.9f, 0.04f, 0.04f, 1.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	FLinearColor StunnedColor = FLinearColor(0, 235, 250, 1);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	FLinearColor DefaultBackgroundColor = FLinearColor(127, 127, 127, 1);
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidgetOptional))
@@ -34,6 +36,8 @@ public:
 	float GetBarPercent() const;
 	UFUNCTION(BlueprintCallable)
 	FLinearColor GetBarColor() const;
+	UFUNCTION(BlueprintCallable)
+	FLinearColor GetBarBackgroundColor() const;
 	UFUNCTION(BlueprintCallable)
 	ESlateVisibility GetBarVisibility() const;
 	UFUNCTION(BlueprintCallable)
