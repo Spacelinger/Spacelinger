@@ -15,6 +15,7 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/Attributes/HealthAttributeSet.h"
 #include "GAS/Attributes/StaminaAttributeSet.h"
+#include "GAS/Attributes/SpiderTrapsAttributeSet.h"
 #include "GAS/Effects/GE_StaminaRecovery.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -22,6 +23,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/BoxComponent.h"
 #include "Components/InteractingComponent.h"
+#include "Components/InventoryComponent.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -78,11 +80,14 @@ ASlime_A::ASlime_A()
 	InteractCollisionComponent->SetupAttachment(CameraBoom);
 	InteractCollisionComponent->ComponentTags.Add(FName(TEXT("Interact Volume")));
 
+	// Inventory Component
+	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
 
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
 	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("HealthAttributeSet"));
 	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
+	SpiderTrapsAttributeSet = CreateDefaultSubobject<USpiderTrapsAttributeSet>(TEXT("SpiderTrapsAttributeSet"));
 	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -124,19 +129,23 @@ void ASlime_A::BeginPlay()
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
 
+	/*
 	//GAS
 	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
 
 	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetMaxStaminaAttribute(), static_cast<float>(MaxStamina));
 		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
-		asc->SetNumericAttributeBase(UStaminaAttributeSet::GetStaminaAttribute(), static_cast<float>(MaxStamina));
+		asc->SetNumericAttributeBase(UHealthAttributeSet::GetMaxHealthAttribute(), static_cast<float>(MaxHealth));
+		asc->SetNumericAttributeBase(UHealthAttributeSet::GetHealthAttribute(), static_cast<float>(MaxHealth));
+		asc->SetNumericAttributeBase(USpiderTrapsAttributeSet::GetMaxTrapsAttribute(), static_cast<float>(MaxTraps));
+		asc->SetNumericAttributeBase(USpiderTrapsAttributeSet::GetAvailableTrapsAttribute(), static_cast<float>(MaxTraps));
 		
 		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
 		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
 		StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 	}
+	*/
 }
 
 void ASlime_A::Tick(float DeltaTime)
@@ -155,6 +164,14 @@ void ASlime_A::Tick(float DeltaTime)
 	else
 	{
 		HandleJumpToLocationBehaviour();
+	}
+
+	if (GetCharacterMovement()->IsFalling())
+	{
+		bIsInAir = true;
+	}
+	else {
+		bIsInAir = false;
 	}
 
 }
@@ -277,11 +294,40 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 
 	if (HitNormals.Num() > 0)
 	{
-		if (ImpactCount > 7) {
+		// Convert the integer to FString (Unreal's string type)
+		//FString Message = FString::Printf(TEXT("YourNumber: %d"), HitNormals.Num());
+
+		// Display the message on the screen
+		//FColor Color = FColor::Red; // Change the color as desired
+		//float Duration = 0.1f; // Display time in seconds, change as needed
+		//GEngine->AddOnScreenDebugMessage(-1, Duration, Color, Message);
+
+		if (ImpactCount > 7)
+		{
 			bCanClimb = false;
 			StopClimbing();
 		}
-		HandleNormalHits(HitNormals, ActorLocation, TraceParams);
+		else
+		{
+			HandleNormalHits(HitNormals, ActorLocation, TraceParams);
+
+			bool AllStairs = true; // Flag to track if all elements have the tag "Stairs"
+
+			for (const auto& HitPair : HitNormals)
+			{
+				AActor* HitActor = HitPair.Value.GetActor();
+				if (HitActor && !HitActor->ActorHasTag("Stairs"))
+				{
+					AllStairs = false;
+					break;
+				}
+			}
+
+			if (AllStairs)
+			{
+				StopClimbing();
+			}
+		}
 	}
 	else if (HitDirectionDiagonal.IsValidBlockingHit())
 	{
@@ -294,6 +340,8 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 
 	HandleFloorAndCeiling();
 }
+
+
 
 TPair<TMap<FVector, FHitResult>, int32> ASlime_A::GenerateHitNormals(FVector ActorLocation)
 {
@@ -385,6 +433,7 @@ void ASlime_A::HandleFloorAndCeiling()
 void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 {
 	bool bHitSurface = false;
+	bool bAllAreStairs = true;
 	FVector SurfaceNormal;
 
 	TPair<TMap<FVector, FHitResult>, int32> Result = GenerateHitNormals(ActorLocation);
@@ -400,8 +449,18 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 				break;
 			}
 		}
+		for (auto& It : HitNormals) {
+			if (It.Value.GetActor() != nullptr){
+				AActor* actor = It.Value.GetActor();
+				if (!actor->ActorHasTag("Stair")) {
+					bAllAreStairs = false;
+					break;
+				}
 				
-			
+			}
+		}
+
+
 		if (GetCapsuleComponent()->IsSimulatingPhysics())
 		{
 			GetCapsuleComponent()->SetSimulatePhysics(false);
@@ -422,12 +481,12 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 				bHitSurface = true;
 				SurfaceNormal = selectedNormal;
 			}
-				
+
 		}
 	}
-	
 
-	if (bHitSurface)
+
+	if (bHitSurface && !bAllAreStairs)
 	{
 		StartClimbing();
 
@@ -446,6 +505,9 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 		StopClimbing();
 	}
 }
+
+
+
 
 void ASlime_A::UpdateRotationOverTime(float DeltaTime) {
 	if (bIsRotating) {
@@ -743,9 +805,34 @@ void ASlime_A::CutSpiderWeb()
 		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 		spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
 	}
-	else if(spiderWebReference)
+	else if (spiderWebReference)
 	{
-		spiderWebReference->CableComponent->bAttachEnd = false; // Detach the cable from the spider web
+		// Perform the raycast
+		FHitResult HitResult;
+		FVector StartLocation = GetActorLocation();
+		FVector EndLocation = StartLocation - GetActorUpVector() * 30.0f; // Adjust RaycastDistance to your preference
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+
+		if (bHit)
+		{
+			spiderWebReference->CableComponent->bAttachEnd = true;
+			spiderWebReference->CableComponent->EndLocation = spiderWebReference->CableComponent->GetComponentTransform().InverseTransformPosition(HitResult.Location);
+
+		}
+		else
+		{
+			spiderWebReference->CableComponent->bAttachEnd = false;
+		}
+
+		// Draw debug line to visualize the raycast in the editor (optional)
+		if (bHit)
+		{
+			DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 5.0f, 0, 1.0f);
+		}
+		else
+		{
+			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.0f, 0, 1.0f);
+		}
 	}
 	attached = false;
 	attachedAtCeiling = false;
@@ -918,12 +1005,6 @@ void ASlime_A::HandleThrownSpiderWeb() {
 	
 }
 
-
-
-
-
-
-
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHook)
 {
 	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
@@ -943,6 +1024,10 @@ void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
 
 void ASlime_A::PutTrap()
 {
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
+	
+	/*	Implemented in GAS -> GA_PutTrap
 	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
 
 	FHitResult Hit;
@@ -964,6 +1049,7 @@ void ASlime_A::PutTrap()
 			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
 		spiderWebTrap->SetTrap();
 	}
+	*/
 }
 
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
@@ -1023,6 +1109,11 @@ void ASlime_A::StopJumpToPosition() {
 
 
 void ASlime_A::PutSpiderWebAbility() {
+
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutSpiderWeb.Started")), Payload);
+
+	/*	Implemented in GAS -> GA_PutSpiderWeb
 	if (bJumpToLocation)
 		return;
 
@@ -1049,6 +1140,7 @@ void ASlime_A::PutSpiderWebAbility() {
 			attachedAtCeiling = IsCeiling(previousNormal);
 		}
 	}
+	*/
 }
 
 void ASlime_A::ThrowAbility(const FInputActionValue& Value)
@@ -1176,6 +1268,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 			ClimbingDirection = (previousLocation - GetActorLocation()).GetSafeNormal();
 			MovementDirection = FVector::VectorPlaneProject(MovementDirection, previousNormal);
 			AddMovementInput(ClimbingDirection);
+
 		}
 		else
 		{
@@ -1289,9 +1382,9 @@ void ASlime_A::ThrowStunningWeb()
 		if (ASLSoldier* Soldier = Cast<ASLSoldier>(HitResult.GetActor())) {
 			HitResult = PerformLineTrace(StartPosition, Soldier->GetActorLocation());
 			SpawnStunningWeb(StartPosition, HitResult.Location);
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
 			CutSpiderWeb();
-			Soldier->Stun(StunningWebStunDuration);
+			Soldier->Stun(StunningWebStunDuration, this->GetActorLocation());
 		}
 	}
 	else

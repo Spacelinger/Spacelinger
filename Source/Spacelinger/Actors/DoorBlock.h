@@ -32,7 +32,7 @@ public:
 	UWidgetComponent* InteractPromptWidget = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float TimeToUnblock = 3.0f;
+	float TimeToUnblock = 7.0f;
 
 	ADoorBlock();
 
