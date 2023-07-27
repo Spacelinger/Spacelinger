@@ -18,9 +18,6 @@ class SPACELINGER_API ASLLaserPuzzle: public AActor
 public:
 	ASLLaserPuzzle();
 
-	UPROPERTY(EditAnywhere, BlueprintReadwrite)
-	ASpiderWeb *LastAttachedWeb;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent *MeshLeft;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -31,10 +28,19 @@ public:
 	UParticleSystemComponent *BeamBot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
+	bool bActiveBeamTop = false;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
+	bool bActiveBeamBot = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
 	FVector MeshRightLocation = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	float OffsetMeshes = 0.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
+	float ConnectedRadius = 50.0f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	ASpiderWeb *LastAttachedWeb;
 	UFUNCTION()
 	void WebEndConnection(ASpiderWeb *Web);
 
@@ -44,4 +50,8 @@ protected:
 
 private:
 	float BeamLength = 0.0f;
+
+	bool IsWebConnectingBeam(UParticleSystemComponent *Beam, FVector WebStart, FVector WebEnd);
+	void SetBeamVisuals(UParticleSystemComponent *Beam, bool IsActive, bool RefreshParticleSytem = true);
+
 };

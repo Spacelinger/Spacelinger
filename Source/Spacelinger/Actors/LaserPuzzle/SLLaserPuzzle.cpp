@@ -20,7 +20,7 @@ ASLLaserPuzzle::ASLLaserPuzzle() {
 	BeamBot->SetupAttachment(MeshLeft);
 }
 
-void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) { 
+void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) {
 	MeshLeft ->SetRelativeLocation(FVector::ZeroVector);
 	MeshLeft->SetRelativeRotation(FRotator::ZeroRotator);
 
@@ -29,6 +29,7 @@ void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) {
 	if (MeshRightLocation.Y > 0.0f) { MeshRightLocation.Y = 0.0f; }
 	MeshRight->SetRelativeLocation(MeshRightLocation);
 
+	// TODO: Set keys in the editor (as well as abstract the code to be written once)
 	BeamLength = MeshRightLocation.Length() + OffsetMeshes;
 	BeamTop->SetVectorParameter(FName(TEXT("BallLocation")), FVector(BeamLength, 0.0f, 0.0f));
 	BeamTop->SetVectorParameter(FName(TEXT("Line1")),        FVector(BeamLength, 0.0f, 0.0f));
@@ -46,46 +47,56 @@ void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) {
 void ASLLaserPuzzle::BeginPlay() {
 	Super::BeginPlay();
 
-	BeamBot->SetEmitterEnable(FName(TEXT("OrbDestination")), false);
+	SetBeamVisuals(BeamBot, bActiveBeamBot, false);
+	SetBeamVisuals(BeamTop, bActiveBeamTop, false);
+}
+
+void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, bool IsActive, bool RefreshParticleSytem) {
+	// TODO: Set keys in the editor
+	Beam->SetEmitterEnable(FName(TEXT("Beam2")), IsActive);
+	Beam->SetEmitterEnable(FName(TEXT("Beam3")), IsActive);
+	Beam->SetEmitterEnable(FName(TEXT("EnergyDust")), IsActive);
+	Beam->SetEmitterEnable(FName(TEXT("OrbSource")), IsActive);
+	Beam->SetEmitterEnable(FName(TEXT("OrbDestination")), IsActive);
+
+	// This resets the particles, but if we reset it at the start then it doesn't properly update
+	if (RefreshParticleSytem) Beam->Activate(true);
 }
 
 void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
+	// If both beams are active there is nothing to do here!
+	if (bActiveBeamBot && bActiveBeamTop) return;
+	
 	// If both ends of the web are connected to the Actor, then we check if the connections are successful.
 	if (LastAttachedWeb == Web) {
 		FVector WebStart = Web->GetStartAttachLocation();
 		FVector WebEnd   = Web->GetEndAttachLocation();
-		FVector TopStart = BeamTop->GetComponentLocation();
-		FVector TopEnd   = TopStart - FVector(.0f, BeamLength, .0f);
-		FVector BotStart = BeamBot->GetComponentLocation();
-		FVector BotEnd   = BotStart - FVector(.0f, BeamLength, .0f);
 
-		// Calc distances
-		float WebStartTopStart = FVector::Distance(WebStart, TopStart);
-		float WebStartTopEnd   = FVector::Distance(WebStart, TopEnd);
-		float WebEndTopStart   = FVector::Distance(WebEnd,   TopStart);
-		float WebEndTopEnd     = FVector::Distance(WebEnd,   TopEnd);
-
-		float WebStartBotStart = FVector::Distance(WebStart, BotStart);
-		float WebStartBotEnd   = FVector::Distance(WebStart, BotEnd);
-		float WebEndBotStart   = FVector::Distance(WebEnd,   BotStart);
-		float WebEndBotEnd     = FVector::Distance(WebEnd,   BotEnd);
-
-		// Check if there's a successful connection
-		float ConnectedThreshold = 50.0f;
-		if ((WebStartTopStart <= ConnectedThreshold && WebEndTopEnd   <= ConnectedThreshold)
-		 || (WebStartTopEnd   <= ConnectedThreshold && WebEndTopStart <= ConnectedThreshold)
-		) {
-			UE_LOG(LogTemp, Display, TEXT("SERGI: Top beam activated!"));
-			BeamTop->SetEmitterEnable(FName(TEXT("OrbDestination")), true);
-			BeamTop->Activate(true); // Reset particles
+		if (IsWebConnectingBeam(BeamTop, WebStart, WebEnd)) {
+			bActiveBeamTop = true;
+			SetBeamVisuals(BeamTop, true);
 		}
-		else
-		if ((WebStartBotStart <= ConnectedThreshold && WebEndBotEnd   <= ConnectedThreshold)
-		 || (WebStartBotEnd   <= ConnectedThreshold && WebEndBotStart <= ConnectedThreshold)
-		) {
-			UE_LOG(LogTemp, Display, TEXT("SERGI: Bottom beam activated!"));
-			BeamBot->SetEmitterEnable(FName(TEXT("OrbDestination")), true);
-			BeamBot->Activate(true); // Reset particles
+		else if (IsWebConnectingBeam(BeamBot, WebStart, WebEnd)) {
+			bActiveBeamBot = true;
+			SetBeamVisuals(BeamBot, true);
 		}
 	}
+}
+
+bool ASLLaserPuzzle::IsWebConnectingBeam(UParticleSystemComponent *Beam, FVector WebStart, FVector WebEnd) {
+	FVector BeamStart = Beam->GetComponentLocation();
+	FVector BeamEnd   = BeamStart - FVector(.0f, BeamLength, .0f);
+
+	// Calc distances
+	float WebStartBeamStart = FVector::Distance(WebStart, BeamStart);
+	float WebStartBeamEnd   = FVector::Distance(WebStart, BeamEnd);
+	float WebEndBeamStart   = FVector::Distance(WebEnd,   BeamStart);
+	float WebEndBeamEnd     = FVector::Distance(WebEnd,   BeamEnd);
+	
+	bool IsConnecting = ((WebStartBeamStart <= ConnectedRadius && WebEndBeamEnd   <= ConnectedRadius)
+	                  || (WebStartBeamEnd   <= ConnectedRadius && WebEndBeamStart <= ConnectedRadius));
+
+	if (IsConnecting) UE_LOG(LogTemp, Display, TEXT("SLLaserPuzzle: Web is connecting beam! -> %s"), *Beam->GetName());
+
+	return IsConnecting;
 }
