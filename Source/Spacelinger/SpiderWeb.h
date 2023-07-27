@@ -76,4 +76,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+public:
+	// Helper functions to get attachment locations
+	// Both of these assume there is a start and end attachm locations
+	inline FVector GetStartAttachLocation() const { return StartLocationCable->GetComponentLocation(); }
+	inline FVector GetEndAttachLocation() const { return StartLocationCable->GetComponentLocation() + CableComponent->EndLocation; }
 };

@@ -821,7 +821,6 @@ void ASlime_A::CutSpiderWeb()
 
 			if (ASLLaserPuzzle *LaserPuzzle = Cast<ASLLaserPuzzle>(HitResult.GetActor())) {
 				LaserPuzzle->WebEndConnection(spiderWebReference);
-				UE_LOG(LogTemp, Display, TEXT("SERGI: Hey, we hit a laser puzzle! Again!! -> %s"), *HitResult.GetActor()->GetName());
 			}
 		}
 		else

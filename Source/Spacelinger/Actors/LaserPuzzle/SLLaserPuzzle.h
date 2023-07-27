@@ -7,6 +7,7 @@
 #include "SLLaserPuzzle.generated.h"
 
 class UStaticMeshComponent;
+class UParticleSystemComponent;
 class ASpiderWeb;
 
 UCLASS()
@@ -20,17 +21,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite)
 	ASpiderWeb *LastAttachedWeb;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	//UStaticMeshComponent *DoorMesh;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent *MeshLeft;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UStaticMeshComponent *MeshRight;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UParticleSystemComponent *BeamTop;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UParticleSystemComponent *BeamBot;
 
-	// This works
-	//UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
-	//FVector TestLocation = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
+	FVector MeshRightLocation = FVector::ZeroVector;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
+	float OffsetMeshes = 0.0f;
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION()
 	void WebEndConnection(ASpiderWeb *Web);
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 
+private:
+	float BeamLength = 0.0f;
 };

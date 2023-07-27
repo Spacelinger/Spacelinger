@@ -54,7 +54,6 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 			Spider->attachedAtCeiling = IsCeiling(Spider->previousNormal);
 
 			if (ASLLaserPuzzle *LaserPuzzle = Cast<ASLLaserPuzzle>(Hit.GetActor())) {
-				UE_LOG(LogTemp, Display, TEXT("SERGI: Hey, we hit a laser puzzle for the first time!"), *Hit.GetActor()->GetName());
 				LaserPuzzle->LastAttachedWeb = Spider->spiderWebReference;
 			}
 		}
