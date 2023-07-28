@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Actors/TogglableVisualElement.h"
 #include "SLLaserPuzzle.generated.h"
 
 class UStaticMeshComponent;
@@ -39,6 +40,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	float ConnectedRadius = 50.0f;
 
+	// Elements to trigger once the puzzle is set as solved
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
+	TArray<ATogglableVisualElement*> AssociatedVisualElements;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ASpiderWeb *LastAttachedWeb;
 	UFUNCTION()
@@ -53,5 +58,6 @@ private:
 
 	bool IsWebConnectingBeam(UParticleSystemComponent *Beam, FVector WebStart, FVector WebEnd);
 	void SetBeamVisuals(UParticleSystemComponent *Beam, bool IsActive, bool RefreshParticleSytem = true);
+	void UpdateAssociatedVisualElements(bool NewState);
 
 };

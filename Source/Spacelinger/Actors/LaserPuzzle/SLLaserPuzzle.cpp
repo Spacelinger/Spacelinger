@@ -21,13 +21,16 @@ ASLLaserPuzzle::ASLLaserPuzzle() {
 }
 
 void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) {
-	MeshLeft ->SetRelativeLocation(FVector::ZeroVector);
+	MeshLeft->SetRelativeLocation(FVector::ZeroVector);
 	MeshLeft->SetRelativeRotation(FRotator::ZeroRotator);
 
 	MeshRightLocation.X = 0.0f;
 	MeshRightLocation.Z = 0.0f;
 	if (MeshRightLocation.Y > 0.0f) { MeshRightLocation.Y = 0.0f; }
 	MeshRight->SetRelativeLocation(MeshRightLocation);
+
+	// Set the new state for the visual elements
+	UpdateAssociatedVisualElements(bActiveBeamBot && bActiveBeamTop);
 
 	// TODO: Set keys in the editor (as well as abstract the code to be written once)
 	BeamLength = MeshRightLocation.Length() + OffsetMeshes;
@@ -63,6 +66,12 @@ void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, bool IsActiv
 	if (RefreshParticleSytem) Beam->Activate(true);
 }
 
+void ASLLaserPuzzle::UpdateAssociatedVisualElements(bool NewState) {
+	for (auto Element : AssociatedVisualElements) {
+		Element->SetState(NewState);
+	}
+}
+
 void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 	// If both beams are active there is nothing to do here!
 	if (bActiveBeamBot && bActiveBeamTop) return;
@@ -80,6 +89,8 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 			bActiveBeamBot = true;
 			SetBeamVisuals(BeamBot, true);
 		}
+
+		if (bActiveBeamBot && bActiveBeamTop) UpdateAssociatedVisualElements(true);
 	}
 }
 
