@@ -28,8 +28,12 @@
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
 
+#include "Actors/SpiderProjectile.h"
+
+
 #include "Blueprint/UserWidget.h"
 #include "UI/Game/SLCrosshair.h"
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1363,6 +1367,8 @@ void ASlime_A::AimStunningWeb()
 	SetCrosshairVisibility(true);
 }
 
+#include "DrawDebugHelpers.h"
+
 void ASlime_A::ThrowStunningWeb()
 {
 	if (spiderWebReference != nullptr) {
@@ -1373,26 +1379,34 @@ void ASlime_A::ThrowStunningWeb()
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
-	float LineTraceDistance = 1000.0f;
-	FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
-	FHitResult HitResult = PerformLineTrace(StartPosition, EndPosition);
 
-	if (HitResult.bBlockingHit)
+	// Spawn the projectile
+	if (ASpiderProjectile* Projectile = GetWorld()->SpawnActor<ASpiderProjectile>(ASpiderProjectile::StaticClass(), StartPosition, FRotator::ZeroRotator))
 	{
-		if (ASLSoldier* Soldier = Cast<ASLSoldier>(HitResult.GetActor())) {
-			HitResult = PerformLineTrace(StartPosition, Soldier->GetActorLocation());
-			SpawnStunningWeb(StartPosition, HitResult.Location);
-			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("Hit Soldier"));
-			CutSpiderWeb();
-			Soldier->Stun(StunningWebStunDuration, this->GetActorLocation());
+		// Ignore ASpider
+		Projectile->SphereCollider->IgnoreActorWhenMoving(this, true);
+		// Make ASpider ignore the Projectile
+		GetCapsuleComponent()->IgnoreActorWhenMoving(Projectile, true);
+		GetMesh()->IgnoreActorWhenMoving(Projectile, true);
+
+		// Set projectile velocity
+		if (Projectile->ProjectileMovementComponent != nullptr) {
+			Projectile->ProjectileMovementComponent->InitialSpeed = 2000.0f;
+			Projectile->ProjectileMovementComponent->MaxSpeed =  2000.0f;
+			Projectile->ProjectileMovementComponent->Velocity = LookDirection * 1000.0f;
 		}
-	}
-	else
-	{
-		SpawnStunningWeb(StartPosition, HitResult.Location);
-		CutSpiderWeb();
+
+
+		
 	}
 }
+
+
+
+
+
+
+
 	
 void ASlime_A::SetStaminaRecoveryValue(float Value)
 {
