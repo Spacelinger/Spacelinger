@@ -76,7 +76,6 @@ ASlime_A::ASlime_A()
 	PostProcessComponent->bUnbound = true;	// set to unbound so PPFX take whole map/screen
 
 	// Interact Component
-
 	InteractingComponent = CreateDefaultSubobject<UInteractingComponent>(TEXT("Interacting Component"));
 	
 	// Interact Collider component
@@ -88,11 +87,17 @@ ASlime_A::ASlime_A()
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
 
 	// Create GAS' Ability System Component and attributes
-	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("AbilitySystem"));
-	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("HealthAttributeSet"));
-	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("StaminaAttributeSet"));
-	SpiderTrapsAttributeSet = CreateDefaultSubobject<USpiderTrapsAttributeSet>(TEXT("SpiderTrapsAttributeSet"));
+	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("Ability System"));
+	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("Health Attribute Set"));
+	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("Stamina Attribute Set"));
+	SpiderTrapsAttributeSet = CreateDefaultSubobject<USpiderTrapsAttributeSet>(TEXT("Spider Traps Attribute Set"));
 	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
+
+	// Hook Sphere gizmo mesh
+	HookCollisionMark = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hook Sphere Mark"));
+	HookCollisionMark->SetupAttachment(RootComponent);
+	HookCollisionMark->SetVisibility(false);
+	HookCollisionMark->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -100,12 +105,16 @@ ASlime_A::ASlime_A()
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
 
-
+	UE_LOG(LogTemp, Warning, TEXT("End of constructor - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
 }
 
 void ASlime_A::BeginPlay()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Begin of BeginPlay - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
+
 	Super::BeginPlay();
+
+	UE_LOG(LogTemp, Warning, TEXT("Middle of BeginPlay (after super call) - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
@@ -133,8 +142,9 @@ void ASlime_A::BeginPlay()
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
 
-	/*
+	
 	//GAS
+	
 	UAbilitySystemComponent* asc = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(this);
 
 	if(ensureMsgf(AbilitySystemComponent, TEXT("Missing Ability System component for %s"), *GetOwner()->GetName())){
@@ -147,9 +157,11 @@ void ASlime_A::BeginPlay()
 		
 		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
 		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
-		StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
+		if (ensureMsgf(StaminaAttributeSet, TEXT("Missing Stamina Attribute Set component for %s"), *GetOwner()->GetName())) {
+			StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
+		}
 	}
-	*/
+	
 }
 
 void ASlime_A::Tick(float DeltaTime)
@@ -178,6 +190,10 @@ void ASlime_A::Tick(float DeltaTime)
 		bIsInAir = false;
 	}
 
+	if (bIsAimingHook && !bJumpToLocation)
+	{
+		AimHook();
+	}
 }
 
 void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
@@ -270,8 +286,6 @@ void ASlime_A::ModifyDamping() {
 	}
 }
 
-
-
 void ASlime_A::keepClimbing()
 {
 	FVector ActorLocation = GetActorLocation();
@@ -345,8 +359,6 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 	HandleFloorAndCeiling();
 }
 
-
-
 TPair<TMap<FVector, FHitResult>, int32> ASlime_A::GenerateHitNormals(FVector ActorLocation)
 {
 	TMap<FVector, FHitResult> HitNormals;
@@ -376,7 +388,6 @@ FHitResult ASlime_A::ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQuery
 
 	return HitDirectionDiagonal;
 }
-
 
 void ASlime_A::HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params)
 {
@@ -510,9 +521,6 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 	}
 }
 
-
-
-
 void ASlime_A::UpdateRotationOverTime(float DeltaTime) {
 	if (bIsRotating) {
 		FRotator CurrentRotation = GetActorRotation();
@@ -528,7 +536,6 @@ void ASlime_A::UpdateRotationOverTime(float DeltaTime) {
 	}
 }
 
-
 bool ASlime_A::ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation, FCollisionQueryParams& Params, FHitResult& HitResult)
 {
 	return GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndRayLocation, ECC_Visibility, Params);
@@ -538,9 +545,6 @@ void ASlime_A::DrawDebugLinesIfNeeded(FVector StartLocation, FVector EndLocation
 	if (bDrawDebugLines)
 		DrawDebugLine(GetWorld(), StartLocation + GetActorUpVector(), EndLocation, FColor::Red, false, 0.2f, 0, 1.0f);
 }
-
-
-
 
 void ASlime_A::HandleClimbingBehaviour()
 {
@@ -699,10 +703,6 @@ void ASlime_A::Climb(const FInputActionValue& Value)
 		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
 		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
 
-
-		
-
-
 		// Enable the Angular Drive
 
 	}
@@ -793,9 +793,6 @@ void ASlime_A::CutThrownSpiderWeb() {
 		CutSpiderWeb();
 	}
 }
-
-
-
 
 void ASlime_A::CutSpiderWeb()
 {
@@ -1026,36 +1023,6 @@ void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
 	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
 }
 
-void ASlime_A::PutTrap()
-{
-	FGameplayEventData Payload;
-	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
-	
-	/*	Implemented in GAS -> GA_PutTrap
-	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
-
-	FHitResult Hit;
-	FHitResult Hit2;
-	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
-	bool bHit2 = GetWorld()->LineTraceSingleByChannel(Hit2, spiderPoint, spiderPoint + FVector::UpVector * -3000.0f, ECC_Visibility, Params);
-	DrawDebugLine(GetWorld(), spiderPoint + GetActorUpVector(), spiderPoint + FVector::UpVector * -3000.0f, FColor::Red, false, 0.2f, 0, 1.0f);
-
-	if (bHit)
-	{
-		FVector cablePosition = Hit.Location;
-		ASpiderWeb* spiderWebTrap = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), cablePosition, FRotator::ZeroRotator);
-		spiderWebTrap->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
-		if (bHit2)
-			spiderWebTrap->CableComponent->EndLocation = -(spiderWebTrap->CableComponent->GetComponentLocation() - Hit2.Location);
-		else
-			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
-		spiderWebTrap->SetTrap();
-	}
-	*/
-}
-
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
 
 	// Get the world space location of the physics constraint and the bone
@@ -1109,42 +1076,23 @@ void ASlime_A::StopJumpToPosition() {
 	spiderWebReference = nullptr;
 }
 
-
-
-
 void ASlime_A::PutSpiderWebAbility() {
 
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutSpiderWeb.Started")), Payload);
+}
 
-	/*	Implemented in GAS -> GA_PutSpiderWeb
-	if (bJumpToLocation)
-		return;
+void ASlime_A::HandleHook()
+{
+	HookCollisionMark->SetVisibility(false);	// todo: not ideal implementation. May be a better way
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.Hook.Started")), Payload);
+}
 
-	FVector spiderPoint = GetMesh()->GetSocketLocation("SpiderWebPoint");
-
-	if (spiderWebReference != nullptr)
-	{
-		CutSpiderWeb();
-	}
-	else
-	{
-		FHitResult Hit;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-		bool bHit = GetWorld()->LineTraceSingleByChannel(Hit, spiderPoint, spiderPoint + GetActorUpVector() * -TraceDistance, ECC_Visibility, Params);
-
-		if (bHit)
-		{
-			FVector cablePosition = Hit.Location;
-			spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), cablePosition, FRotator::ZeroRotator);
-			spiderWebReference->CableComponent->EndLocation = spiderPoint - spiderWebReference->CableComponent->GetComponentLocation();
-			spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
-			attached = true;
-			attachedAtCeiling = IsCeiling(previousNormal);
-		}
-	}
-	*/
+void ASlime_A::PutTrap()
+{
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
 }
 
 void ASlime_A::ThrowAbility(const FInputActionValue& Value)
@@ -1152,7 +1100,8 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	switch (SelectedSpiderAbility)
 	{
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
-	case SLSpiderAbility::Hook: ThrowSpiderWeb(true); break;
+	//case SLSpiderAbility::Hook: ThrowSpiderWeb(true); break; // Implemented in GAS
+	case SLSpiderAbility::Hook: HandleHook(); break;
 	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(false); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
 	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
@@ -1168,15 +1117,41 @@ void ASlime_A::AimAbility(const FInputActionValue& value)
 	switch (SelectedSpiderAbility)
 	{
 		case SLSpiderAbility::ThrowStunningWeb: AimStunningWeb(); break;
+		case SLSpiderAbility::Hook:
+			// todo: Create gizmo to get where we land
+			ToggleAimHook();
+			break;
 
 		default:
 			break;
 	}
 }
 
+void ASlime_A::ToggleAimHook()
+{
+	bIsAimingHook = true;
+	HookCollisionMark->SetVisibility(true);
+}
+
+void ASlime_A::AimHook()
+{
+	FVector2D ScreenLocation = GetViewportCenter();
+	FVector LookDirection = GetLookDirection(ScreenLocation);
+	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
+	FVector EndPosition = StartPosition + (LookDirection * HookLineTraceDistance);
+
+	FHitResult HitResult;
+	FCollisionQueryParams CollisionQueryParams;
+	CollisionQueryParams.AddIgnoredActor(this);
+	GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility, CollisionQueryParams);
+
+	HookCollisionMark->SetWorldLocation(HitResult.ImpactPoint);
+}
+
 void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 {
 	SetCrosshairVisibility(false);
+	HookCollisionMark->SetVisibility(false);
 }
 
 void ASlime_A::MeleeAttack() {
@@ -1222,12 +1197,9 @@ void ASlime_A::MeleeAttackTriggered()
 	}
 }
 
-
 void ASlime_A::ResetBlendingFactor() {
 	fBlendingFactor = 0.0f;
 }
-
-
 
 void ASlime_A::StopMoving(const FInputActionValue& Value) {
 	if (bIsClimbing) {
@@ -1280,9 +1252,6 @@ void ASlime_A::Move(const FInputActionValue& Value)
 		}
 	}
 }
-
-
-
 
 void ASlime_A::Look(const FInputActionValue& Value) {
 	if (Controller == nullptr) { return; }

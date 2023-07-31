@@ -83,6 +83,9 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInventoryComponent* InventoryComponent = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* HookCollisionMark = nullptr;
+
 protected:
 	// GAS
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
@@ -108,7 +111,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true"))
 	float MaxTraps = 3.0f;
-
+	
 	// Interact
 	IInteractInterface* CurrentInteractable = nullptr;
 
@@ -161,6 +164,9 @@ protected:
 	void HandleHangingBehaviour();
 	void HandleJumpToLocationBehaviour();
 	void ThrowSpiderWeb(bool bisHook);
+	void HandleHook();
+	void AimHook();
+	void ToggleAimHook();
 	void ThrowStunningWeb();
 	void AimStunningWeb();
 
@@ -221,6 +227,7 @@ private:
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
 	const float StunningWebStunDuration = 10.0f;
+	bool bIsAimingHook = false;
 
 
 public:
@@ -304,7 +311,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Air")
 		bool bIsInAir;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hook")
+		float HookLineTraceDistance = 1000.0f;
 	
 	AActor* previousActorCollision;
 
