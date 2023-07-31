@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/GA_PutSpiderWeb.h"
+#include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 #include <Slime_A.h>
 
 UGA_PutSpiderWeb::UGA_PutSpiderWeb()
@@ -51,6 +52,10 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 			Spider->spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
 			Spider->attached = true;
 			Spider->attachedAtCeiling = IsCeiling(Spider->previousNormal);
+
+			if (ASLLaserPuzzle *LaserPuzzle = Cast<ASLLaserPuzzle>(Hit.GetActor())) {
+				LaserPuzzle->LastAttachedWeb = Spider->spiderWebReference;
+			}
 		}
 	}
 

@@ -24,6 +24,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/InteractingComponent.h"
 #include "Components/InventoryComponent.h"
+#include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -819,6 +820,9 @@ void ASlime_A::CutSpiderWeb()
 			spiderWebReference->CableComponent->bAttachEnd = true;
 			spiderWebReference->CableComponent->EndLocation = spiderWebReference->CableComponent->GetComponentTransform().InverseTransformPosition(HitResult.Location);
 
+			if (ASLLaserPuzzle *LaserPuzzle = Cast<ASLLaserPuzzle>(HitResult.GetActor())) {
+				LaserPuzzle->WebEndConnection(spiderWebReference);
+			}
 		}
 		else
 		{

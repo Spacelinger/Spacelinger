@@ -25,6 +25,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UBoxComponent* BoxTrigger;
 
+	// Boolean indicating if the door is always open to the player
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement")
 	bool ReactToPlayer = true;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement", meta = (UIMin = "0.0"))
