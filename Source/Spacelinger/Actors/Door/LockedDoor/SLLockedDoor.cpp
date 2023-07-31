@@ -22,6 +22,11 @@ ASLLockedDoor::ASLLockedDoor()
 	ReactToPlayer = false;	// Sergi <3 // Disables player interaction form the parent door class so it won't open
 }
 
+void ASLLockedDoor::OnConstruction(const FTransform& Transform) {
+	Reset();
+	InteractPromptWidget->SetVisibility(LockType == DoorLockType::KEY);
+}
+
 void ASLLockedDoor::BeginPlay()
 {
 	Super::BeginPlay();
@@ -97,9 +102,9 @@ void ASLLockedDoor::OpenDoorFail()
 	Reset();
 }
 
-void ASLLockedDoor::Reset()
+void ASLLockedDoor::Reset() 
 {
-	InteractableComponent->bCanInteract = true;
+	InteractableComponent->bCanInteract = (LockType == DoorLockType::KEY);
 
 	InteractPromptWidget->SetVisibility(false);
 

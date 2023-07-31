@@ -5,6 +5,7 @@
 #include "Components/SceneComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 #include "SpiderWeb.h"
+#include "Actors/Door/LockedDoor/SLLockedDoor.h"
 
 ASLLaserPuzzle::ASLLaserPuzzle() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -90,7 +91,12 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 			SetBeamVisuals(BeamBot, true);
 		}
 
-		if (bActiveBeamBot && bActiveBeamTop) UpdateAssociatedVisualElements(true);
+		if (bActiveBeamBot && bActiveBeamTop) {
+			UpdateAssociatedVisualElements(true);
+			for(ASLLockedDoor *Element : AssociatedDoors) {
+				Element->OpenDoor();
+			}
+		}
 	}
 }
 

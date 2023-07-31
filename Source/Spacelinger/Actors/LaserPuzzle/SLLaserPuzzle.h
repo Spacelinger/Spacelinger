@@ -10,6 +10,7 @@
 class UStaticMeshComponent;
 class UParticleSystemComponent;
 class ASpiderWeb;
+class ASLLockedDoor;
 
 UCLASS()
 class SPACELINGER_API ASLLaserPuzzle: public AActor
@@ -36,13 +37,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
 	FVector MeshRightLocation = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
-	float OffsetMeshes = 0.0f;
+	float OffsetMeshes = 200.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
-	float ConnectedRadius = 50.0f;
+	float ConnectedRadius = 75.0f;
 
 	// Elements to trigger once the puzzle is set as solved
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	TArray<ATogglableVisualElement*> AssociatedVisualElements;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
+	TArray<ASLLockedDoor*> AssociatedDoors;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ASpiderWeb *LastAttachedWeb;
