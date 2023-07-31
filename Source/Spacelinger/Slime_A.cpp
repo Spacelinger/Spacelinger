@@ -1373,13 +1373,6 @@ void ASlime_A::ThrowStunningWeb()
 		
 	}
 }
-
-
-
-
-
-
-
 	
 void ASlime_A::SetStaminaRecoveryValue(float Value)
 {
