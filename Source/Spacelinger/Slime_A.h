@@ -60,8 +60,6 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* DebugAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* throwAbilityAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AimAbilityAction;
@@ -72,7 +70,7 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* InteractAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* MeleeAttackAction;
+	UInputAction* MeleeAttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInteractingComponent* InteractingComponent;
@@ -124,23 +122,23 @@ public:
 	void HandleThrownSpiderWeb();
 
 	UFUNCTION(BlueprintCallable, Category = "Attack")
-		void MeleeAttackTriggered();
+	void MeleeAttackTriggered();
 
 	UFUNCTION(BlueprintCallable, Category = "Angles")
-		FVector ReturnCenterScreen();
+	FVector ReturnCenterScreen();
 
 	UFUNCTION(BlueprintCallable, Category = "Angles")
-		float GetVerticalAngleToCenterScreen();
+	float GetVerticalAngleToCenterScreen();
 
 	UFUNCTION(BlueprintCallable, Category = "Angles")
-		float GetHorizontalAngleToCenterScreen();
+	float GetHorizontalAngleToCenterScreen();
 
 	// Hide the crosshair when it doesn't need to be shown
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="HUD")
 	void SetCrosshairVisibility(bool bVisible);
 
 	UFUNCTION()
-		void CutSpiderWeb();
+	void CutSpiderWeb();
 
 protected:
 	// Input callbacks
@@ -148,7 +146,6 @@ protected:
 	void StopMoving(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	void Climb(const FInputActionValue& Value);
-	void ToggleDrawDebugLines(const FInputActionValue& Value);
 	void ThrowAbility(const FInputActionValue& Value);
 	void AimAbility(const FInputActionValue& Value);
 	void StopAimingAbility(const FInputActionValue& Value);

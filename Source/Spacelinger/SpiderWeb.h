@@ -68,7 +68,7 @@ public:
 		bool bIsHook;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
-		ASLSoldier* Soldier;
+	ASLSoldier* Soldier;
 
 	UMaterial* StoredMaterial;
 
@@ -79,6 +79,6 @@ protected:
 public:
 	// Helper functions to get attachment locations
 	// Both of these assume there is a start and end attachm locations
-	inline FVector GetStartAttachLocation() const { return StartLocationCable->GetComponentLocation(); }
-	inline FVector GetEndAttachLocation() const { return StartLocationCable->GetComponentLocation() + CableComponent->EndLocation; }
+	FORCEINLINE FVector GetStartAttachLocation() const { return StartLocationCable->GetComponentLocation(); }
+	FORCEINLINE FVector GetEndAttachLocation() const { return StartLocationCable->GetComponentLocation() + CableComponent->EndLocation; }
 };

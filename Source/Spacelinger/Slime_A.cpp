@@ -36,7 +36,6 @@
 #include "UI/Game/SLCrosshair.h"
 
 
-
 //////////////////////////////////////////////////////////////////////////
 // ASlime
 
@@ -142,7 +141,6 @@ void ASlime_A::BeginPlay()
 	for (int i = 0; i < DiagonalDirections.Num(); ++i) {
 		DiagonalDirections[i] = DiagonalDirections[i].GetSafeNormal();
 	}
-
 	
 	//GAS
 	
@@ -183,13 +181,7 @@ void ASlime_A::Tick(float DeltaTime)
 		HandleJumpToLocationBehaviour();
 	}
 
-	if (GetCharacterMovement()->IsFalling())
-	{
-		bIsInAir = true;
-	}
-	else {
-		bIsInAir = false;
-	}
+	bIsInAir = GetCharacterMovement()->IsFalling();
 
 	if (bIsAimingHook && !bJumpToLocation)
 	{
@@ -237,7 +229,6 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 		GetCapsuleComponent()->AddForce(HangingForce);
 
 		// Force an immediate update of component transforms
-
 	}
 	else {
 		int ActionValue = Value.GetMagnitude();
@@ -250,8 +241,6 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 
 void ASlime_A::ModifyDamping() {
 	if (isHanging) {
-
-
 		// Get the positions of both agents
 		FVector Position1 = GetMesh()->GetSocketLocation("SpiderWebPoint");
 		FVector Position2 = spiderWebReference->ConstraintComp->GetComponentLocation();
@@ -281,9 +270,6 @@ void ASlime_A::ModifyDamping() {
 
 		// Set the angular damping
 		GetCapsuleComponent()->SetAngularDamping(MappedAngularDamping);
-
-		
-
 	}
 }
 
@@ -436,14 +422,7 @@ void ASlime_A::HandleFloorAndCeiling()
 		StopClimbing();
 	}
 
-	if (IsCeiling(previousNormal))
-	{
-		AtCeiling = true;
-	}
-	else
-	{
-		AtCeiling = false;
-	}
+	AtCeiling = IsCeiling(previousNormal);
 }
 
 void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
@@ -489,7 +468,6 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 			previousNormal = selectedNormal;
 			AlignToPlane(selectedNormal);
 		}
-
 		else if (!IsFloor(selectedNormal))
 		{
 			if (ImpactCount <= 6) {
@@ -497,7 +475,6 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 				bHitSurface = true;
 				SurfaceNormal = selectedNormal;
 			}
-
 		}
 	}
 
@@ -911,7 +888,6 @@ float ASlime_A::GetHorizontalAngleToCenterScreen()
 
 
 	FString AngleString = FString::Printf(TEXT("Horizontal Angle: %f degrees"), HorizontalAngleDeg);
-
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, AngleString);
 
 	return HorizontalAngleDeg;
@@ -957,16 +933,12 @@ float ASlime_A::GetVerticalAngleToCenterScreen()
 
 
 	FString AngleString = FString::Printf(TEXT("Vertical Angle: %f degrees"), VerticalAngleDeg);
-
-
-
 	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, AngleString);
 
 	return VerticalAngleDeg;
 }
 
 void ASlime_A::HandleThrownSpiderWeb() {
-
 	if (spiderWebReference != nullptr) {
 		FVector CharacterPosition = GetActorLocation();
 		FVector TargetPosition = spiderWebReference->ConstraintComp->GetComponentLocation();
@@ -1028,7 +1000,6 @@ void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
 }
 
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
-
 	// Get the world space location of the physics constraint and the bone
 	FVector WorldBoneLocation = GetCapsuleComponent()->GetComponentLocation();
 
@@ -1048,7 +1019,6 @@ FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, f
 }
 
 FVector ASlime_A::getRelativePositionPhysicsConstraint() {
-
 	// Get the world space location of the physics constraint and the bone
 	FVector WorldConstraintLocation = spiderWebReference->ConstraintComp->GetComponentLocation();
 	FVector WorldBoneLocation = GetCapsuleComponent()->GetComponentLocation();
@@ -1081,7 +1051,6 @@ void ASlime_A::StopJumpToPosition() {
 }
 
 void ASlime_A::PutSpiderWebAbility() {
-
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutSpiderWeb.Started")), Payload);
 }
@@ -1160,7 +1129,6 @@ void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 
 void ASlime_A::MeleeAttack() {
 	if (fBlendingFactor == 0) {
-
 		fBlendingFactor = 1.0f;
 	}
 	
@@ -1287,8 +1255,6 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::StopAimingAbility);
 
-		EnhancedInputComponent->BindAction(DebugAction, ETriggerEvent::Started, this, &ASlime_A::ToggleDrawDebugLines);
-
 		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
 
 		// Slow Time Ability
@@ -1298,12 +1264,7 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASlime_A::Interact);
 
 		EnhancedInputComponent->BindAction(MeleeAttackAction, ETriggerEvent::Started, this, &ASlime_A::MeleeAttack);
-
 	}
-}
-
-void ASlime_A::ToggleDrawDebugLines(const FInputActionValue& Value) {
-	bDrawDebugLines = !bDrawDebugLines;
 }
 
 UAbilitySystemComponent* ASlime_A::GetAbilitySystemComponent() const
