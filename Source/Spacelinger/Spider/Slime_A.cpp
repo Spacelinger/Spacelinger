@@ -977,9 +977,7 @@ void ASlime_A::HandleThrownSpiderWeb() {
 		// Set the linear motion types to 'limited'
 		spiderWebReference->ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
 		distanceConstraints = FVector::Dist(spiderWebReference->GetActorLocation(), GetCapsuleComponent()->GetComponentLocation());
-
 	}
-	
 }
 
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHook)
@@ -1131,7 +1129,6 @@ void ASlime_A::MeleeAttack() {
 	if (fBlendingFactor == 0) {
 		fBlendingFactor = 1.0f;
 	}
-	
 }
 
 void ASlime_A::MeleeAttackTriggered()
@@ -1329,9 +1326,6 @@ void ASlime_A::ThrowStunningWeb()
 			Projectile->ProjectileMovementComponent->MaxSpeed =  2000.0f;
 			Projectile->ProjectileMovementComponent->Velocity = LookDirection * 1000.0f;
 		}
-
-
-		
 	}
 }
 	

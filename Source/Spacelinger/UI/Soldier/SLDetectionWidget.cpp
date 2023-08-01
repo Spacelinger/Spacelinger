@@ -7,7 +7,7 @@
 #include "Soldier/SLSoldier.h"
 #include "Soldier/SoldierAIController.h"
 #include "Components/CanvasPanel.h"
-#include "Slime_A.h"
+#include "Spider/Slime_A.h"
 #include "GameFramework/SpringArmComponent.h"
 
 #include "Kismet/GameplayStatics.h"

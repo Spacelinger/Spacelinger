@@ -4,7 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "SpiderWeb.h"
+#include "Spider/SpiderWeb.h"
 #include "Actors/Door/LockedDoor/SLLockedDoor.h"
 
 ASLLaserPuzzle::ASLLaserPuzzle() {

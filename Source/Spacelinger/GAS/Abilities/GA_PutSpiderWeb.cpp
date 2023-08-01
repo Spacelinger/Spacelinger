@@ -3,7 +3,7 @@
 
 #include "GAS/Abilities/GA_PutSpiderWeb.h"
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
-#include <Slime_A.h>
+#include "Spider/Slime_A.h"
 
 UGA_PutSpiderWeb::UGA_PutSpiderWeb()
 {

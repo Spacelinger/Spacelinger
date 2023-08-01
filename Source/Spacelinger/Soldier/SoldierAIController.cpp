@@ -8,7 +8,7 @@
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig.h"
 #include "Perception/AISenseConfig_Sight.h"
-#include "Slime_A.h"
+#include "Spider/Slime_A.h"
 #include "Soldier\SLSoldier.h"
 #include "GameFramework/CharacterMovementComponent.h"
 

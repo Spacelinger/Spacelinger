@@ -6,7 +6,6 @@
 #include "TimerManager.h"
 #include "AbilitySystemGlobals.h"
 #include "Components/WidgetComponent.h"
-#include "UI/ChannelingProgressBar.h"
 #include "Components/ProgressBar.h"
 #include <Actors/DoorBlock.h>
 

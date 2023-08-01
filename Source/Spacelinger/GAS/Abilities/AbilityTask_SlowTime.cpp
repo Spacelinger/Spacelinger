@@ -6,7 +6,7 @@
 #include "AbilitySystemGlobals.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
-#include "Slime_A.h"
+#include "Spider/Slime_A.h"
 #include "Components/PostProcessComponent.h"
 #include "Kismet/KismetMaterialLibrary.h"
 #include "GameFramework/SpringArmComponent.h"

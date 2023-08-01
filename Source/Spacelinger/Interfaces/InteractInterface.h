@@ -4,6 +4,7 @@
 #include "UObject/Interface.h"
 #include "InteractInterface.generated.h"
 
+// We put here so we can call it from UE.
 UINTERFACE(Blueprintable)
 class UInteractInterface : public UInterface
 {
