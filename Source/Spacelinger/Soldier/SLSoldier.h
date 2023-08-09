@@ -7,6 +7,7 @@
 
 class UWidgetComponent;
 class USLDetectionWidget;
+class ASLSoldierPath;
 
 UENUM()
 enum SoldierAIState {
@@ -18,6 +19,13 @@ enum SoldierAIState {
 	STUNNED
 };
 
+UENUM(BlueprintType)
+enum class SLIdleType : uint8 {
+	Standing = 0 UMETA(ToolTip="Stays in place, doesn't move"),
+	PatrolRandom UMETA(ToolTip="Moves randomly around the room at a specific radius"),
+	PatrolGuided UMETA(ToolTip="Moves from waypoint to waypoint"),
+};
+
 UCLASS(config=Game)
 class ASLSoldier : public ACharacter, public IInteractInterface
 {
@@ -26,6 +34,7 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 public:
 	ASLSoldier();
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
@@ -35,6 +44,9 @@ public:
 	UClass *OffscreenDetectionWidgetClass;
 	UPROPERTY()
 	USLDetectionWidget *OffscreenDetectionWidget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
+	ASLSoldierPath *PathActor;
 
 	FTimerHandle UnstunTimerHandle;
 
@@ -60,11 +72,21 @@ public:
 	bool bMoveToCeiling = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
-	bool bCanPatrol = false;
+	SLIdleType PatrolType = SLIdleType::Standing;
+	// Last patrol point will always be the initial location, so it loops
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol", Meta = (MakeEditWidget = true))
+	TArray<FVector> PatrolPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	bool bIsStunned = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TEnumAsByte<SoldierAIState> AnimationState = SoldierAIState::IDLE;
+
+	FVector GetNextPatrolPoint();
+
+private:
+	// Patrol
+	int32 CurrentPatrolPointIndex = 0;
+	TArray<FVector> WorldPatrolPoints; // Patrol points in World Space. Generated at BeginPlay()
 };

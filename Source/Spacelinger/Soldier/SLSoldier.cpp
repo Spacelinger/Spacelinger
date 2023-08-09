@@ -6,6 +6,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/WidgetComponent.h"
 #include "UI/Soldier/SLDetectionWidget.h"
+#include "Soldier/SLSoldierPath.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -16,6 +17,22 @@ ASLSoldier::ASLSoldier() {
 	DetectionWidget->SetupAttachment(RootComponent);
 	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
+
+void ASLSoldier::OnConstruction(const FTransform& Transform) {
+	if (PatrolType == SLIdleType::PatrolGuided) {
+		if (!PathActor) {
+			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.Owner = this;
+			PathActor = GetWorld()->SpawnActor<ASLSoldierPath>(ASLSoldierPath::StaticClass(), GetTransform(), SpawnParameters);
+		}
+	}
+	else {
+		if (PathActor) {
+			PathActor->Destroy();
+		}
+	}
+}
+
 
 void ASLSoldier::BeginPlay() {
 	Super::BeginPlay();
@@ -36,6 +53,14 @@ void ASLSoldier::BeginPlay() {
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("ERROR! Soldier's OffscreenDetectionWidgetClass is not set"));
+	}
+
+	if (PatrolType == SLIdleType::PatrolGuided) {
+		FVector CurrentLocation = GetActorLocation();
+		WorldPatrolPoints.Add(CurrentLocation);
+		for (FVector PP : PathActor->PatrolPoints) {
+			WorldPatrolPoints.Add(PathActor->GetActorLocation() + PP);
+		}
 	}
 }
 
@@ -197,4 +222,9 @@ void ASLSoldier::Die()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+}
+
+FVector ASLSoldier::GetNextPatrolPoint() {
+	CurrentPatrolPointIndex = (CurrentPatrolPointIndex+1) % WorldPatrolPoints.Num();
+	return WorldPatrolPoints[CurrentPatrolPointIndex];
 }

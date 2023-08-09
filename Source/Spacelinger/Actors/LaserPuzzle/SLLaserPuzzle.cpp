@@ -50,7 +50,7 @@ void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLPa
 	for (FSLParticleParameter PP : Parameters) {
 		switch(PP.Type) {
 			case SLParticleParameterType::Enable: Beam->SetEmitterEnable  (PP.Key, PP.bEnabled);              break;
-			case SLParticleParameterType::Float:  Beam->SetFloatParameter (PP.Key, PP.FloatValue *Magnitude);  break;
+			case SLParticleParameterType::Float:  Beam->SetFloatParameter (PP.Key, PP.FloatValue *Magnitude); break;
 			case SLParticleParameterType::Vector: Beam->SetVectorParameter(PP.Key, PP.VectorValue*Magnitude); break;
 			default: UE_LOG(LogTemp, Error, TEXT("ASLLaserPuzzle::SetBeamVisuals enum not supported!"));
 		}
