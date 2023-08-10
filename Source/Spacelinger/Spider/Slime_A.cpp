@@ -24,6 +24,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/InteractingComponent.h"
 #include "Components/InventoryComponent.h"
+#include "Components/LifeComponent.h"
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 
 #include <Kismet/KismetMathLibrary.h>
@@ -85,6 +86,9 @@ ASlime_A::ASlime_A()
 
 	// Inventory Component
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
+
+	// Life Component
+	LifeComponent = CreateDefaultSubobject<ULifeComponent>(TEXT("Life Component"));
 
 	// Create GAS' Ability System Component and attributes
 	AbilitySystemComponent = CreateDefaultSubobject<UMCV_AbilitySystemComponent>(TEXT("Ability System"));
@@ -161,6 +165,10 @@ void ASlime_A::BeginPlay()
 		}
 	}
 	
+
+	// Life Component
+
+	LifeComponent->OnDieDelegate.AddDynamic(this, &ASlime_A::OnDie);
 }
 
 void ASlime_A::Tick(float DeltaTime)
@@ -1332,4 +1340,9 @@ void ASlime_A::ThrowStunningWeb()
 void ASlime_A::SetStaminaRecoveryValue(float Value)
 {
 	StaminaAttributeSet->SetStaminaRecoveryValue(Value);
+}
+
+// Life
+void ASlime_A::OnDie(AActor* Killer) {
+	UE_LOG(LogTemp, Display, TEXT("Spider Killed!!"));
 }

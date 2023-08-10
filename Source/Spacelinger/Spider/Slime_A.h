@@ -24,6 +24,7 @@ class IInteractInterface;
 class UInteractingComponent;
 class UBoxComponent;
 class UInventoryComponent;
+class ULifeComponent;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -84,6 +85,9 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* HookCollisionMark = nullptr;
 
+	UFUNCTION()
+		void OnDie(AActor* Killer);
+
 protected:
 	// GAS
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
@@ -139,6 +143,10 @@ public:
 
 	UFUNCTION()
 	void CutSpiderWeb();
+
+	// Life Comp
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		ULifeComponent* LifeComponent = nullptr;
 
 protected:
 	// Input callbacks
