@@ -29,13 +29,16 @@ public:
     //void ReceiveHeal(int Heal, AActor* Healer); // Heal
 
     UPROPERTY(BlueprintAssignable)
-        FOnDamageReceived OnDamageReceived;
+        FOnDamageReceived OnDamageReceivedDelegate;
 
     // UPROPERTY(BlueprintAssignable)
     //    FOnHealReceived OnHealReceived;
 
     UPROPERTY(BlueprintAssignable)
         FOnDie OnDieDelegate;
+
+    int GetMaxLife() const { return MaxLife; }
+    int GetCurrentLife() const { return CurrentLife; }
 
 
 protected:

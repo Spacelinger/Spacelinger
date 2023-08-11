@@ -121,7 +121,7 @@ void ASlime_A::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("Middle of BeginPlay (after super call) - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
 
 	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	if (APlayerController* PlayerController = GetPlayerController())
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
@@ -1345,4 +1345,11 @@ void ASlime_A::SetStaminaRecoveryValue(float Value)
 // Life
 void ASlime_A::OnDie(AActor* Killer) {
 	UE_LOG(LogTemp, Display, TEXT("Spider Killed!!"));
+}
+
+// Player Controller
+
+APlayerController* ASlime_A::GetPlayerController() {
+
+	return Cast<APlayerController>(Controller);
 }

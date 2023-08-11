@@ -234,6 +234,7 @@ private:
 	const float StunningWebStunDuration = 10.0f;
 	bool bIsAimingHook = false;
 
+	APlayerController* GetPlayerController();
 
 public:
 	UPROPERTY(Config)
