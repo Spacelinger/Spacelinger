@@ -73,9 +73,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	SLIdleType PatrolType = SLIdleType::Standing;
-	// Last patrol point will always be the initial location, so it loops
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol", Meta = (MakeEditWidget = true))
-	TArray<FVector> PatrolPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	bool bIsStunned = false;

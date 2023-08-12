@@ -26,11 +26,6 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 			PathActor = GetWorld()->SpawnActor<ASLSoldierPath>(ASLSoldierPath::StaticClass(), GetTransform(), SpawnParameters);
 		}
 	}
-	else {
-		if (PathActor) {
-			PathActor->Destroy();
-		}
-	}
 }
 
 
@@ -56,8 +51,10 @@ void ASLSoldier::BeginPlay() {
 	}
 
 	if (PatrolType == SLIdleType::PatrolGuided) {
-		FVector CurrentLocation = GetActorLocation();
-		WorldPatrolPoints.Add(CurrentLocation);
+		if (PathActor->bInitialPositionAsPath) {
+			FVector CurrentLocation = GetActorLocation();
+			WorldPatrolPoints.Add(CurrentLocation);
+		}
 		for (FVector PP : PathActor->PatrolPoints) {
 			WorldPatrolPoints.Add(PathActor->GetActorLocation() + PP);
 		}
@@ -225,6 +222,7 @@ void ASLSoldier::Die()
 }
 
 FVector ASLSoldier::GetNextPatrolPoint() {
+	int i = CurrentPatrolPointIndex;
 	CurrentPatrolPointIndex = (CurrentPatrolPointIndex+1) % WorldPatrolPoints.Num();
-	return WorldPatrolPoints[CurrentPatrolPointIndex];
+	return WorldPatrolPoints[i];
 }

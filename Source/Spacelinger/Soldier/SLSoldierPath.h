@@ -22,4 +22,7 @@ public:
 	// Last patrol point will always be the initial location, so it loops
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
 	TArray<FVector> PatrolPoints;
+	// If checked, the soldier will take its current poisition as part of the patrolling path
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
+	bool bInitialPositionAsPath = true;
 };
