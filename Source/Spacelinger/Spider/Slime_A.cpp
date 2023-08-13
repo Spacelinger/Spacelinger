@@ -26,6 +26,7 @@
 #include "Components/InventoryComponent.h"
 #include "Components/LifeComponent.h"
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
+#include "UI/Game/UIHUD.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -123,6 +124,11 @@ void ASlime_A::BeginPlay()
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = GetPlayerController())
 	{
+		// HUD
+		HUD = CreateWidget<UUIHUD>(PlayerController, HUDClass);
+		if (HUD) {
+			HUD->AddToViewport();
+		}
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);

@@ -6,7 +6,7 @@
 ASLCrosshair::ASLCrosshair()
 {
 	// Set the crosshair texture
-	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Script/Engine.Texture2D'/Game/UI/HUD/T_crosshair.T_crosshair'"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> CrosshairTexObj(TEXT("/Script/Engine.Texture2D'/Game/UI/Textures/T_crosshair.T_crosshair'"));
 	CrosshairTexture = CrosshairTexObj.Object;
 }
 

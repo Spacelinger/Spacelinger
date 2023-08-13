@@ -34,6 +34,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	DoorLockType LockType = DoorLockType::KEY;
 
+	// Hide the key when it doesn't need to be shown
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
+		void SetKeyVisibility();
+
 	ASLLockedDoor();
 
 	UFUNCTION(BlueprintCallable)

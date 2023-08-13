@@ -25,6 +25,7 @@ class UInteractingComponent;
 class UBoxComponent;
 class UInventoryComponent;
 class ULifeComponent;
+class UUIHUD;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -148,6 +149,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		ULifeComponent* LifeComponent = nullptr;
 
+	// HUD
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+		UUIHUD* HUD = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = HUD, BlueprintReadOnly)
+		TSubclassOf<UUIHUD> HUDClass;
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);

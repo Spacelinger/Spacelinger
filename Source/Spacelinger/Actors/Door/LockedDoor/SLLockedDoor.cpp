@@ -88,6 +88,8 @@ void ASLLockedDoor::OpenDoor()
 	BoxTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	//UE_LOG(LogActor, Warning, TEXT("Success!"));
+
+	SetKeyVisibility();
 }
 
 
