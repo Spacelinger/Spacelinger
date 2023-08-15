@@ -29,11 +29,13 @@ float USLDetectionWidget::GetBarPercent() const {
 	return .0f;
 }
 
-ESlateVisibility USLDetectionWidget::GetBarVisibility() const {
+ESlateVisibility USLDetectionWidget::GetBarVisibility() {
+	PlaySounds();
 	return IsActorAware(OwningActor) ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Hidden;
 }
 
-ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() const {
+ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() {
+	PlaySounds();
 	if (!OwningActor || !IsActorAware(OwningActor)) 
 		return ESlateVisibility::Hidden;
 
@@ -91,11 +93,68 @@ FLinearColor USLDetectionWidget::GetBarBackgroundColor() const {
 	return DefaultBackgroundColor;
 }
 
-bool USLDetectionWidget::IsActorAware(AActor *Actor) const {
+bool USLDetectionWidget::IsActorAware(AActor *Actor) {
 	if (ASoldierAIController *AIController = GetAIController(Actor)) {
+		SoldierAwarenessMap[Actor] = AIController->CurrentAwareness;
 		return AIController->CurrentAwareness > .01f;
 	}
 	return false;
+}
+
+void USLDetectionWidget::PlaySounds()
+{
+	// Get the pair of elements with the biggest value in the map
+	auto it = std::max_element(SoldierAwarenessMap.begin(), SoldierAwarenessMap.end(),
+		[](const std::pair<AActor*, float>& p1, const std::pair<AActor*, float>& p2) {
+			return p1.second < p2.second; });
+	
+	// Check if the biggest element from the SoldierAwarenessMap is bigger than .01f
+	if (it->second > .01f)
+	{
+		// Get the actor associated to the biggest value in the map
+		AActor* Actor = it->first;
+
+		// Check if the awareness of the actor is going up
+		if (!CurrentBarFillingSound)
+		{
+			// Set the volume multiplier to increase or decrease with the awareness
+			CurrentBarFillingSound = UGameplayStatics::SpawnSound2D(this, BarFillingSound, 0.25f, 3*it->second);
+		} else
+		{
+			CurrentBarFillingSound->SetVolumeMultiplier(it->second);
+		}
+		if (it->second >= 1.f)
+		{
+			if (!CurrentDetectionSound)
+			{
+				CurrentChaseMusic = UGameplayStatics::SpawnSound2D(this, ChaseMusic, 0.05f);
+				CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, 0.25f);
+			}
+			if (CurrentBarFillingSound)
+			{
+				CurrentBarFillingSound->FadeOut(1.5f, 0.f);
+			}
+		}
+	} else
+	{
+		if (CurrentBarFillingSound)
+		{
+			CurrentBarFillingSound->FadeOut(1.0f, 0.f);
+            CurrentBarFillingSound = nullptr;
+		}
+		if (CurrentDetectionSound)
+		{
+			CurrentDetectionSound = nullptr;
+		}
+		if (CurrentChaseMusic)
+        {
+            CurrentChaseMusic->FadeOut(2.0f, 0.f);
+            if (!CurrentChaseMusic->bIsFadingOut)
+            {
+                CurrentChaseMusic = nullptr;
+            }
+        }
+	}
 }
 
 ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
