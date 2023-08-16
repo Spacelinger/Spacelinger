@@ -19,15 +19,15 @@ EBTNodeResult::Type UBTTask_Soldier_AimAtPlayer::ExecuteTask(UBehaviorTreeCompon
 
 void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) {
 	AAIController* MyController = OwnerComp.GetAIOwner();
-	ensure(MyController);
+	if (ensure(MyController)) return;
 
 	AActor *MyActor = Cast<AActor>(MyController->GetInstigator());
-	ensure(MyActor);
+	if (ensure(MyActor)) return;
 
 	UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
-	ensure(MyBlackboard);
+	if (ensure(MyBlackboard)) return;
 	AActor *PlayerActor = Cast<AActor>(MyBlackboard->GetValueAsObject(PlayerSeenKey));
-	ensure(PlayerActor);
+	if (ensure(PlayerActor)) return;
 
 	FVector MyLocation     = MyActor->GetActorLocation();
 	FVector PlayerLocation = PlayerActor->GetActorLocation();
