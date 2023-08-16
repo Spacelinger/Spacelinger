@@ -29,3 +29,8 @@ void USLFunctionLibrary::DrawDebugPredictionPath(
 		DrawDebugSphere(World, HitPoint, SphereRadius, 12, Color, false, -1.0f, 0U, Thickness);
 	}
 }
+
+const TArray<ULevelStreaming*>& USLFunctionLibrary::GetWorldStreamingLevels(const UObject* WorldContextObject) {
+	UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull);
+	return World->GetStreamingLevels();
+}
