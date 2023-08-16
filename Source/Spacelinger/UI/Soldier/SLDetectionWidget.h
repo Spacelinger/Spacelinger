@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include <map>
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "SLDetectionWidget.generated.h"
 
 class ASoldierAIController;
@@ -26,10 +29,24 @@ class SPACELINGER_API USLDetectionWidget : public UUserWidget
 protected:
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidgetOptional))
 	UCanvasPanel *RotationPanel;
+	std::map<AActor*, float> SoldierAwarenessMap; // [!!!!!] This should be a TEMPORARY solution since we'll need some sort of hive mind for the AI, not every widget should know about every soldier
+	std::map<AActor*, float> MostAwareSoldier;
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
 	AActor *OwningActor;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * BarFillingSound;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * DetectionSound;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * ChaseMusic; // This 100% should NOT be here
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentBarFillingSound;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentDetectionSound;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentChaseMusic;
 
 	// Bound functions
 	UFUNCTION(BlueprintCallable)
@@ -39,13 +56,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FLinearColor GetBarBackgroundColor() const;
 	UFUNCTION(BlueprintCallable)
-	ESlateVisibility GetBarVisibility() const;
+	ESlateVisibility GetBarVisibility();
 	UFUNCTION(BlueprintCallable)
-	ESlateVisibility GetBarVisibilityOffscreen() const;
+	ESlateVisibility GetBarVisibilityOffscreen();
 
 	// Helper functions
 	UFUNCTION(BlueprintCallable)
-	bool IsActorAware(AActor *Actor) const;
+	bool IsActorAware(AActor *Actor);
+	UFUNCTION(BlueprintCallable)
+	void PlaySounds();
 
 private:
 	ASoldierAIController* GetAIController(AActor *Actor) const;
