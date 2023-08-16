@@ -24,4 +24,6 @@ public:
 			const FVector HitPoint,
 			const float SphereRadius);
 
+	UFUNCTION(BlueprintCallable, Category = "SL Streaming Levels", meta = (WorldContext = "WorldContextObject"))
+	static const TArray<ULevelStreaming*>& GetWorldStreamingLevels(const UObject* WorldContextObject);
 };

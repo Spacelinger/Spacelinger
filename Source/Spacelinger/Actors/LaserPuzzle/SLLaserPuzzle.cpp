@@ -31,45 +31,41 @@ void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) {
 	MeshRight->SetRelativeLocation(MeshRightLocation);
 
 	// Set the new state for the visual elements
-	UpdateAssociatedVisualElements(bActiveBeamBot && bActiveBeamTop);
+	UpdateAssociatedVisualElements();
 
-	// TODO: Set keys in the editor (as well as abstract the code to be written once)
 	BeamLength = MeshRightLocation.Length() + OffsetMeshes;
-	BeamTop->SetVectorParameter(FName(TEXT("BallLocation")), FVector(BeamLength, 0.0f, 0.0f));
-	BeamTop->SetVectorParameter(FName(TEXT("Line1")),        FVector(BeamLength, 0.0f, 0.0f));
-	BeamTop->SetVectorParameter(FName(TEXT("Line2")),        FVector(BeamLength, 0.0f, 0.0f));
-	BeamTop->SetVectorParameter(FName(TEXT("Line3")),        FVector(BeamLength, 0.0f, 0.0f));
-	BeamTop->SetFloatParameter(FName(TEXT("LittleParticles")), BeamLength/100.0f);
+	SetBeamVisuals(BeamTop, LengthParticleParameters, BeamLength, false);
+	SetBeamVisuals(BeamBot, LengthParticleParameters, BeamLength, false);
 
-	BeamBot->SetVectorParameter(FName(TEXT("BallLocation")), FVector(BeamLength, 0.0f, 0.0f));
-	BeamBot->SetVectorParameter(FName(TEXT("Line1")),        FVector(BeamLength, 0.0f, 0.0f));
-	BeamBot->SetVectorParameter(FName(TEXT("Line2")),        FVector(BeamLength, 0.0f, 0.0f));
-	BeamBot->SetVectorParameter(FName(TEXT("Line3")),        FVector(BeamLength, 0.0f, 0.0f));
-	BeamBot->SetFloatParameter(FName(TEXT("LittleParticles")), BeamLength/100.0f);
 }
 
 void ASLLaserPuzzle::BeginPlay() {
 	Super::BeginPlay();
 
-	SetBeamVisuals(BeamBot, bActiveBeamBot, false);
-	SetBeamVisuals(BeamTop, bActiveBeamTop, false);
+	SetBeamVisuals(BeamTop, bActiveBeamTop ? SolvedParticleParameters : UnsolvedParticleParameters, 1.0f, false);
+	SetBeamVisuals(BeamBot, bActiveBeamBot ? SolvedParticleParameters : UnsolvedParticleParameters, 1.0f, false);
 }
 
-void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, bool IsActive, bool RefreshParticleSytem) {
-	// TODO: Set keys in the editor
-	Beam->SetEmitterEnable(FName(TEXT("Beam2")), IsActive);
-	Beam->SetEmitterEnable(FName(TEXT("Beam3")), IsActive);
-	Beam->SetEmitterEnable(FName(TEXT("EnergyDust")), IsActive);
-	Beam->SetEmitterEnable(FName(TEXT("OrbSource")), IsActive);
-	Beam->SetEmitterEnable(FName(TEXT("OrbDestination")), IsActive);
+void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLParticleParameter> Parameters, float Magnitude, bool RefreshParticleSytem) {
+	for (FSLParticleParameter PP : Parameters) {
+		switch(PP.Type) {
+			case SLParticleParameterType::Enable: Beam->SetEmitterEnable  (PP.Key, PP.bEnabled);              break;
+			case SLParticleParameterType::Float:  Beam->SetFloatParameter (PP.Key, PP.FloatValue *Magnitude); break;
+			case SLParticleParameterType::Vector: Beam->SetVectorParameter(PP.Key, PP.VectorValue*Magnitude); break;
+			default: UE_LOG(LogTemp, Error, TEXT("ASLLaserPuzzle::SetBeamVisuals enum not supported!"));
+		}
+	}
 
 	// This resets the particles, but if we reset it at the start then it doesn't properly update
 	if (RefreshParticleSytem) Beam->Activate(true);
 }
 
-void ASLLaserPuzzle::UpdateAssociatedVisualElements(bool NewState) {
-	for (auto Element : AssociatedVisualElements) {
-		Element->SetState(NewState);
+void ASLLaserPuzzle::UpdateAssociatedVisualElements() {
+	for (auto Element : TopVisualElements) {
+		Element->SetState(bActiveBeamTop);
+	}
+	for (auto Element : BotVisualElements) {
+		Element->SetState(bActiveBeamBot);
 	}
 }
 
@@ -84,18 +80,13 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 
 		if (IsWebConnectingBeam(BeamTop, WebStart, WebEnd)) {
 			bActiveBeamTop = true;
-			SetBeamVisuals(BeamTop, true);
+			SetBeamVisuals(BeamTop, SolvedParticleParameters);
+			UpdateAssociatedVisualElements();
 		}
 		else if (IsWebConnectingBeam(BeamBot, WebStart, WebEnd)) {
 			bActiveBeamBot = true;
-			SetBeamVisuals(BeamBot, true);
-		}
-
-		if (bActiveBeamBot && bActiveBeamTop) {
-			UpdateAssociatedVisualElements(true);
-			for(ASLLockedDoor *Element : AssociatedDoors) {
-				Element->OpenDoor();
-			}
+			SetBeamVisuals(BeamBot, SolvedParticleParameters);
+			UpdateAssociatedVisualElements();
 		}
 	}
 }

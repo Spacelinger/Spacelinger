@@ -12,6 +12,30 @@ class UParticleSystemComponent;
 class ASpiderWeb;
 class ASLLockedDoor;
 
+UENUM(BlueprintType)
+enum class SLParticleParameterType : uint8 {
+	Enable = 0,
+	Float,
+	Vector,
+};
+
+USTRUCT()
+struct FSLParticleParameter {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	FName Key;
+	UPROPERTY(EditAnywhere)
+	SLParticleParameterType Type;
+	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Enable", EditConditionHides))
+	bool bEnabled;
+	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Float", EditConditionHides))
+	float FloatValue;
+	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Vector", EditConditionHides))
+	FVector VectorValue;
+};
+
+
 UCLASS()
 class SPACELINGER_API ASLLaserPuzzle: public AActor
 {
@@ -29,10 +53,20 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent *BeamBot;
 
-	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	bool bActiveBeamTop = false;
-	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	bool bActiveBeamBot = false;
+
+	// Parameters when we put the right mesh closer or further away. Values are going to be adjusted for the actual distance between meshes
+	UPROPERTY(EditAnywhere, Category = "Spacelinger")
+	TArray<FSLParticleParameter> LengthParticleParameters;
+	// Parameters when the puzzle is solved
+	UPROPERTY(EditAnywhere, Category = "Spacelinger")
+	TArray<FSLParticleParameter> SolvedParticleParameters;
+	// Parameters when the puzzle isn't solved
+	UPROPERTY(EditAnywhere, Category = "Spacelinger")
+	TArray<FSLParticleParameter> UnsolvedParticleParameters;
 
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger", Meta = (MakeEditWidget = true))
 	FVector MeshRightLocation = FVector::ZeroVector;
@@ -41,9 +75,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	float ConnectedRadius = 75.0f;
 
-	// Elements to trigger once the puzzle is set as solved
+	// Elements to trigger once the top puzzle is solved
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
-	TArray<ATogglableVisualElement*> AssociatedVisualElements;
+	TArray<ATogglableVisualElement*> TopVisualElements;
+	// Elements to trigger once the bottom puzzle is solved
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
+	TArray<ATogglableVisualElement*> BotVisualElements;
+	// Doors to unlock once the full puzzle is solved
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	TArray<ASLLockedDoor*> AssociatedDoors;
 
@@ -60,7 +98,7 @@ private:
 	float BeamLength = 0.0f;
 
 	bool IsWebConnectingBeam(UParticleSystemComponent *Beam, FVector WebStart, FVector WebEnd);
-	void SetBeamVisuals(UParticleSystemComponent *Beam, bool IsActive, bool RefreshParticleSytem = true);
-	void UpdateAssociatedVisualElements(bool NewState);
+	void SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLParticleParameter> Parameters, float Magnitude = 1.0f, bool RefreshParticleSytem = true);
+	void UpdateAssociatedVisualElements();
 
 };

@@ -9,7 +9,6 @@
 #include "Perception/AISenseConfig.h"
 #include "Perception/AISenseConfig_Sight.h"
 #include "Spider/Slime_A.h"
-#include "Soldier\SLSoldier.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -33,14 +32,12 @@ void ASoldierAIController::BeginPlay() {
 	Super::BeginPlay();
 	AIPerceptionComponent->OnTargetPerceptionInfoUpdated.AddDynamic(this, &ASoldierAIController::OnTargetPerceptionInfoUpdated);
 
-	if (APawn *InstigatorPawn = GetInstigator()) {
-		InitialTransform = InstigatorPawn->GetTransform();
-	}
-
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
 		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
 			RunningSpeed = InstigatorComponent->MaxWalkSpeed;
 		}
+
+		InitialTransform = InstigatorSoldier->GetTransform();
 	}
 
 	SetIsAlerted(false);
@@ -49,14 +46,7 @@ void ASoldierAIController::BeginPlay() {
 bool ASoldierAIController::CanPatrol() const
 {
 	ASLSoldier *InstigatorSoldier = GetInstigatorSoldier();
-	return (InstigatorSoldier && InstigatorSoldier->bCanPatrol);
-}
-
-void ASoldierAIController::ResumePatrol()
-{
-	if (!bIsAlerted && CanPatrol() && PatrolPoints.Num() > 0) {
-		GetWorldTimerManager().SetTimer(PatrolTimerHandle, this, &ASoldierAIController::Patrol, TimerTickRate, true);
-	}
+	return (InstigatorSoldier && InstigatorSoldier->PatrolType != SLIdleType::Standing);
 }
 
 void ASoldierAIController::OnActorDetected() {
@@ -97,7 +87,6 @@ void ASoldierAIController::OnActorUndetected() {
 	}
 	
 	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
-	ResumePatrol();
 }
 
 void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionUpdateInfo& UpdateInfo) {
@@ -131,25 +120,6 @@ void ASoldierAIController::OnTargetPerceptionInfoUpdated(const FActorPerceptionU
 	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
 }
 
-
-void ASoldierAIController::Patrol() {
-	// Get the patrol point
-	// AActor* CurrentPatrolPointActor = PatrolPoints[CurrentPatrolPointIndex]; // To be applied when we have patrol points
-	if (bFoundPatrolPoint) {
-		// Move to the patrol point
-		MoveToLocation(CurrentPatrolPoint, PatrolAcceptanceRadius);
-		float Distance = FVector::Dist(GetPawn()->GetActorLocation(), CurrentPatrolPoint);
-		if (Distance <= 5.0f) {
-			// When we're near, we'll find a new patrol point
-			bFoundPatrolPoint = false;
-		}
-	} else
-	{
-		// Find a new patrol point
-		bFoundPatrolPoint = UNavigationSystemV1::K2_GetRandomReachablePointInRadius(this, GetPawn()->GetActorLocation(), CurrentPatrolPoint, 500.0f);
-	}
-}
-
 void ASoldierAIController::SetIsAlerted(bool NewState) {
 	bIsAlerted = NewState;
 	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f; 
@@ -166,8 +136,6 @@ void ASoldierAIController::RefreshDetectionTimers() {
 	GetWorldTimerManager().SetTimer(DetectionTimerHandle, this, TimerFunction, TimerTickRate, true);
 	LastTimeSecondsTimer = GetWorld()->GetTimeSeconds();
 }
-
-ASLSoldier* ASoldierAIController::GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
 
 void ASoldierAIController::StopLogic()
 {

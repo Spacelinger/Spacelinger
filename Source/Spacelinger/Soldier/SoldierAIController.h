@@ -4,12 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Soldier\SLSoldier.h"
 #include "SoldierAIController.generated.h"
 
 class UAIPerceptionComponent;
 struct FActorPerceptionUpdateInfo;
 class UAISenseConfig_Sight;
-class ASLSoldier;
 
 UCLASS()
 class SPACELINGER_API ASoldierAIController : public AAIController
@@ -58,19 +58,6 @@ public:
 	float WalkingSpeed = 180.0f;
 	float RunningSpeed = 400.0f; // Obtained in BeginPlay()
 
-	// AI Patrol
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
-	TArray<AActor*> PatrolPoints; // To be used in the future
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
-	float PatrolAcceptanceRadius = 5.0f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
-	bool bFoundPatrolPoint = false;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
-	FVector CurrentPatrolPoint;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
@@ -101,13 +88,8 @@ private:
 	FTimerHandle DetectionTimerHandle; // Timers are going to be set to loop
 	float LastTimeSecondsTimer = 0.0f;
 
-	// Patrol
-	int32 CurrentPatrolPointIndex = 0;
-	FTimerHandle PatrolTimerHandle;
-	void Patrol();
-	void ResumePatrol();
-	
 	const float TimerTickRate = 0.001f; // We want to make our timers tick every frame
 
-	ASLSoldier* GetInstigatorSoldier() const;
+	// Helper functions
+	ASLSoldier* GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
 };
