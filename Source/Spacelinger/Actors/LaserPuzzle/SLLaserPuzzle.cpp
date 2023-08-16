@@ -61,11 +61,11 @@ void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLPa
 }
 
 void ASLLaserPuzzle::UpdateAssociatedVisualElements() {
-	for (auto Element : TopVisualElements) {
-		Element->SetState(bActiveBeamTop);
+	for (ATogglableVisualElement *Element : TopVisualElements) {
+		if (Element) Element->SetState(bActiveBeamTop);
 	}
-	for (auto Element : BotVisualElements) {
-		Element->SetState(bActiveBeamBot);
+	for (ATogglableVisualElement *Element : BotVisualElements) {
+		if (Element) Element->SetState(bActiveBeamBot);
 	}
 }
 
