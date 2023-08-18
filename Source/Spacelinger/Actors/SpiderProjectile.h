@@ -8,6 +8,8 @@
 #include "Materials/Material.h"
 #include "SpiderProjectile.generated.h"
 
+class ASlime_A;
+
 UCLASS()
 class SPACELINGER_API ASpiderProjectile : public AActor
 {
@@ -29,6 +31,9 @@ public:
         USphereComponent* SphereCollider;
     UPROPERTY(VisibleAnywhere, Category = "Components")
         UProjectileMovementComponent* ProjectileMovementComponent;
+
+    UPROPERTY(VisibleAnywhere, Category = "Spider")
+        ASlime_A* Spider = nullptr;
 
 private:
     

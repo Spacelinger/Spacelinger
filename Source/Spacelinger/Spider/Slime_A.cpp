@@ -305,53 +305,32 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 {
 	ensure(TraceDistance > 0);
 
-	TPair<TMap<FVector, FHitResult>, int32> Result = GenerateHitNormals(ActorLocation);
-	TMap<FVector, FHitResult> HitNormals = Result.Key;
-	int32 ImpactCount = Result.Value;
+	TArray<FHitResult> HitResults = GenerateHitNormals(ActorLocation);
+	int32 ImpactCount = HitResults.Num(); // Get the impact count from the number of hit results
 
-	FHitResult HitDirectionDiagonal = ExecuteDiagonalTrace(ActorLocation, TraceParams);
-
-	if (HitNormals.Num() > 0)
+	if (ImpactCount > 0)
 	{
-		// Convert the integer to FString (Unreal's string type)
-		//FString Message = FString::Printf(TEXT("YourNumber: %d"), HitNormals.Num());
+		HandleNormalHits(HitResults, ActorLocation, TraceParams);
 
-		// Display the message on the screen
-		//FColor Color = FColor::Red; // Change the color as desired
-		//float Duration = 0.1f; // Display time in seconds, change as needed
-		//GEngine->AddOnScreenDebugMessage(-1, Duration, Color, Message);
+		bool AllStairs = true; // Flag to track if all elements have the tag "Stairs"
 
-		if (ImpactCount > 7)
+		for (const FHitResult& HitResult : HitResults)
 		{
-			bCanClimb = false;
+			AActor* HitActor = HitResult.GetActor();
+			if (HitActor && !HitActor->ActorHasTag("Stairs"))
+			{
+				AllStairs = false;
+				break;
+			}
+		}
+
+		if (AllStairs)
+		{
 			StopClimbing();
 		}
-		else
-		{
-			HandleNormalHits(HitNormals, ActorLocation, TraceParams);
-
-			bool AllStairs = true; // Flag to track if all elements have the tag "Stairs"
-
-			for (const auto& HitPair : HitNormals)
-			{
-				AActor* HitActor = HitPair.Value.GetActor();
-				if (HitActor && !HitActor->ActorHasTag("Stairs"))
-				{
-					AllStairs = false;
-					break;
-				}
-			}
-
-			if (AllStairs)
-			{
-				StopClimbing();
-			}
-		}
+	
 	}
-	else if (HitDirectionDiagonal.IsValidBlockingHit())
-	{
-		previousLocation = HitDirectionDiagonal.Location;
-	}
+
 	else
 	{
 		StopClimbing();
@@ -360,27 +339,48 @@ void ASlime_A::PerformClimbingBehaviour(FVector ActorLocation)
 	HandleFloorAndCeiling();
 }
 
-TPair<TMap<FVector, FHitResult>, int32> ASlime_A::GenerateHitNormals(FVector ActorLocation)
+TArray<FHitResult> ASlime_A::GenerateHitNormals(FVector ActorLocation)
 {
-	TMap<FVector, FHitResult> HitNormals;
+	TArray<FHitResult> AllHitResults;
 	int32 ImpactCount = 0;
 
 	for (const FVector& DiagonalDirection : DiagonalDirections)
 	{
-		FHitResult CurrentHitResult;
 		FVector EndRayLocation = ActorLocation + DiagonalDirection * TraceDistance;
 		DrawDebugLinesIfNeeded(ActorLocation, EndRayLocation);
 
-		bool bHit2 = GetWorld()->LineTraceSingleByChannel(CurrentHitResult, ActorLocation, EndRayLocation, ECC_Visibility, TraceParams);
-		if (bHit2)
+		FHitResult OutHitResult;
+
+		bool bHit = GetWorld()->LineTraceSingleByChannel(OutHitResult, ActorLocation, EndRayLocation, ECC_Visibility, TraceParams);
+		if (bHit)
 		{
-			HitNormals.Add(CurrentHitResult.Normal, CurrentHitResult);
+			AllHitResults.Add(OutHitResult);
 			ImpactCount++;
+			//ActorLocation = OutHitResult.Location + OutHitResult.Normal * SmallOffset; // Move the actor slightly along the hit normal
+		}
+
+
+	}
+
+	for (int32 i = 0; i < AllHitResults.Num(); i++)
+	{
+		for (int32 j = i + 1; j < AllHitResults.Num(); )
+		{
+			if (AllHitResults[i].Normal == AllHitResults[j].Normal) // Using Normal for comparison
+			{
+				AllHitResults.RemoveAt(j);
+			}
+			else
+			{
+				j++;
+			}
 		}
 	}
 
-	return TPair<TMap<FVector, FHitResult>, int32>(HitNormals, ImpactCount);
+
+	return AllHitResults;
 }
+
 
 FHitResult ASlime_A::ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQueryParams& Params)
 {
@@ -390,7 +390,7 @@ FHitResult ASlime_A::ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQuery
 	return HitDirectionDiagonal;
 }
 
-void ASlime_A::HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params)
+void ASlime_A::HandleNormalHits(TArray<FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params)
 {
 	if (GetCapsuleComponent()->IsSimulatingPhysics())
 		GetCapsuleComponent()->SetSimulatePhysics(false);
@@ -411,16 +411,20 @@ void ASlime_A::HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector A
 	}
 }
 
-FVector ASlime_A::CalculateAverageNormal(TMap<FVector, FHitResult>& HitNormals)
-{
-	FVector AverageNormal = HitNormals.Array()[0].Key;
 
-	if (HitNormals.Num() > 1)
+
+
+
+
+FVector ASlime_A::CalculateAverageNormal(TArray<FHitResult>& HitResults)
+{
+	FVector AverageNormal = HitResults[0].Normal;
+
+	if (HitResults.Num() > 1)
 	{
 		AverageNormal = FVector::ZeroVector;
-		for (const auto& Pair : HitNormals.Array())
+		for (const FHitResult& HitResult : HitResults)
 		{
-			FHitResult HitResult = Pair.Value;
 			AverageNormal += HitResult.Normal * (1 - HitResult.Distance / TraceDistance);
 		}
 		AverageNormal.Normalize();
@@ -428,6 +432,7 @@ FVector ASlime_A::CalculateAverageNormal(TMap<FVector, FHitResult>& HitNormals)
 
 	return AverageNormal;
 }
+
 
 void ASlime_A::HandleFloorAndCeiling()
 {
@@ -445,30 +450,27 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 	bool bAllAreStairs = true;
 	FVector SurfaceNormal;
 
-	TPair<TMap<FVector, FHitResult>, int32> Result = GenerateHitNormals(ActorLocation);
-	TMap<FVector, FHitResult> HitNormals = Result.Key;
-	int32 ImpactCount = Result.Value;
+	TArray<FHitResult> HitResults = GenerateHitNormals(ActorLocation);
+	int32 ImpactCount = HitResults.Num();
 
-	if (HitNormals.Num() > 0) {
+	if (HitResults.Num() > 0) {
 		FVector selectedNormal;
-		for (auto& It : HitNormals) {
-			selectedNormal = It.Value.Normal;
-			if (!IsFloor(It.Value.Normal)) {
-				selectedNormal = It.Value.Normal;
+		for (const FHitResult& HitResult : HitResults) {
+			selectedNormal = HitResult.Normal;
+			if (!IsFloor(HitResult.Normal)) {
+				selectedNormal = HitResult.Normal;
 				break;
 			}
 		}
-		for (auto& It : HitNormals) {
-			if (It.Value.GetActor() != nullptr){
-				AActor* actor = It.Value.GetActor();
+		for (const FHitResult& HitResult : HitResults) {
+			if (HitResult.GetActor() != nullptr) {
+				AActor* actor = HitResult.GetActor();
 				if (!actor->ActorHasTag("Stair")) {
 					bAllAreStairs = false;
 					break;
 				}
-				
 			}
 		}
-
 
 		if (GetCapsuleComponent()->IsSimulatingPhysics())
 		{
@@ -484,14 +486,12 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 		}
 		else if (!IsFloor(selectedNormal))
 		{
-			if (ImpactCount <= 6) {
-				bCanClimb = true;
-				bHitSurface = true;
-				SurfaceNormal = selectedNormal;
-			}
+			bCanClimb = true;
+			bHitSurface = true;
+			SurfaceNormal = selectedNormal;
+			
 		}
 	}
-
 
 	if (bHitSurface && !bAllAreStairs)
 	{
@@ -512,6 +512,7 @@ void ASlime_A::PerformGroundBehaviour(FVector ActorLocation)
 		StopClimbing();
 	}
 }
+
 
 void ASlime_A::UpdateRotationOverTime(float DeltaTime) {
 	if (bIsRotating) {
@@ -1089,7 +1090,6 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	case SLSpiderAbility::Hook: HandleHook(); break;
 	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(false); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
-	case SLSpiderAbility::MeleeAttack: MeleeAttack(); break;
 	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
 
 	default:
@@ -1329,6 +1329,7 @@ void ASlime_A::ThrowStunningWeb()
 	if (ASpiderProjectile* Projectile = GetWorld()->SpawnActor<ASpiderProjectile>(ASpiderProjectile::StaticClass(), StartPosition, FRotator::ZeroRotator))
 	{
 		// Ignore ASpider
+		Projectile->Spider = this;
 		Projectile->SphereCollider->IgnoreActorWhenMoving(this, true);
 		// Make ASpider ignore the Projectile
 		GetCapsuleComponent()->IgnoreActorWhenMoving(Projectile, true);

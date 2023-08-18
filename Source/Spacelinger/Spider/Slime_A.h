@@ -32,7 +32,6 @@ enum SLSpiderAbility {
 	PutSpiderWeb = 0,
 	PutTrap,
 	ThrowSpiderWeb,
-	MeleeAttack,
 	ThrowStunningWeb,
 	Hook,
 	COUNT UMETA(Hidden),
@@ -198,10 +197,10 @@ protected:
 
 	// Helpers
 	void PerformClimbingBehaviour(FVector ActorLocation);
-	TPair<TMap<FVector, FHitResult>, int32> GenerateHitNormals(FVector ActorLocation);
+	TArray<FHitResult> GenerateHitNormals(FVector ActorLocation);
 	FHitResult ExecuteDiagonalTrace(FVector ActorLocation, FCollisionQueryParams& Params);
-	void HandleNormalHits(TMap<FVector, FHitResult>& HitNormals, FVector ActorLocation, FCollisionQueryParams& Params);
-	FVector CalculateAverageNormal(TMap<FVector, FHitResult>& HitNormals);
+	void HandleNormalHits(TArray<FHitResult>& HitResults, FVector ActorLocation, FCollisionQueryParams& Params);
+	FVector CalculateAverageNormal(TArray<FHitResult>& HitResults);
 	void HandleFloorAndCeiling();
 	void PerformGroundBehaviour(FVector ActorLocation);
 	bool ExecuteGroundTrace(FVector StartLocation, FVector EndRayLocation, FCollisionQueryParams& Params, FHitResult& HitResult);
@@ -234,7 +233,7 @@ protected:
 	}
 
 private:
-	const float TraceDistance = 70.0f;
+	const float TraceDistance = 100.0f;
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
