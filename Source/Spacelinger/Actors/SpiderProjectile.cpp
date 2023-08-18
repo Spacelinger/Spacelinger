@@ -3,6 +3,8 @@
 #include "Actors/SpiderProjectile.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include <Soldier/SLSoldier.h>
+#include <Spider/Slime_A.h>
+
 
 ASpiderProjectile::ASpiderProjectile()
 {
@@ -68,6 +70,8 @@ void ASpiderProjectile::OnSphereColliderHit(UPrimitiveComponent* HitComponent, A
 	if (ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor)) {
 		Soldier->Stun(10.0f, this->GetActorLocation());
 	}
+    Spider->bHasTrownSpiderWeb = false;
 	Destroy();
+
 
 }
