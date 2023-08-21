@@ -27,7 +27,9 @@ public:
 
 	// Boolean indicating if the door is always open to the player
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement")
-	bool ReactToPlayer = true;
+	bool ReactToPlayer  = true;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement")
+	bool ReactToSoldier = true;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement", meta = (UIMin = "0.0"))
 	float DoorSpeed = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement")
@@ -37,20 +39,25 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-		void BoxTrigger_OnBeginOverlap(
-			UPrimitiveComponent* OverlappedComponent,
-			AActor* OtherActor,
-			UPrimitiveComponent* OtherComp,
-			int32 OtherBodyIndex,
-			bool bFromSweep,
-			const FHitResult& SweepResult);
+	void BoxTrigger_OnBeginOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex,
+		bool bFromSweep,
+		const FHitResult& SweepResult);
 
 	UFUNCTION()
-		void BoxTrigger_OnEndOverlap(
-			UPrimitiveComponent* OverlappedComponent,
-			AActor* OtherActor,
-			UPrimitiveComponent* OtherComp,
-			int32 OtherBodyIndex);
+	void BoxTrigger_OnEndOverlap(
+		UPrimitiveComponent* OverlappedComponent,
+		AActor* OtherActor,
+		UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoorOpenStarted();
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoorCloseStarted();
 
 private:
 	int ActorsOnTrigger = 0;
@@ -65,6 +72,7 @@ private:
 	FTimerHandle DoorTickHandle; // Timers are going to be set to loop
 
 	USceneComponent* GetPlayerRoot();
+	bool ShouldDoorOpen(AActor* OtherActor, UPrimitiveComponent* OtherComponent);
 	
 
 };

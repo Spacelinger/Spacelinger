@@ -33,7 +33,7 @@ void ASLLockedDoor::BeginPlay()
 
 	Reset();
 
-	BoxTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//BoxTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	InteractableComponent->OnSetCandidateDelegate.AddDynamic(this, &ASLLockedDoor::SetAsCandidate);
 	InteractableComponent->OnRemoveCandidateDelegate.AddDynamic(this, &ASLLockedDoor::RemoveAsCandidate);
@@ -82,14 +82,12 @@ void ASLLockedDoor::OpenDoor()
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	// May want to call the DoorTickOpen at SLDoor --> NO! "tick" function works based on collition delegate
 	
-	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ASLLockedDoor::BoxTrigger_OnBeginOverlap);
-	BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &ASLLockedDoor::BoxTrigger_OnEndOverlap);
-
-	BoxTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	ReactToPlayer = true;
+	//BoxTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	//UE_LOG(LogActor, Warning, TEXT("Success!"));
 
-	SetKeyVisibility();
+	SetKeyVisibility(); // Remove Key UI
 }
 
 

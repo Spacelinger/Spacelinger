@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "Components/SceneComponent.h"
+#include "Soldier/SLSoldier.h"
 
 ASLDoor::ASLDoor() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -22,10 +23,8 @@ void ASLDoor::BeginPlay() {
 
 	InitialDoorLocation = DoorMesh->GetRelativeLocation();
 
-	if (ReactToPlayer) {
-		BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ASLDoor::BoxTrigger_OnBeginOverlap);
-		BoxTrigger->OnComponentEndOverlap  .AddDynamic(this, &ASLDoor::BoxTrigger_OnEndOverlap);
-	}
+	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ASLDoor::BoxTrigger_OnBeginOverlap);
+	BoxTrigger->OnComponentEndOverlap  .AddDynamic(this, &ASLDoor::BoxTrigger_OnEndOverlap);
 }
 
 void ASLDoor::BoxTrigger_OnBeginOverlap(
@@ -36,11 +35,12 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 	bool bFromSweep,
 	const FHitResult & SweepResult)
 {
-	//if (OtherComp != GetPlayerRoot()) return;
+	if (!ShouldDoorOpen(OtherActor, OtherComp)) return;
 
 	ActorsOnTrigger += 1;
 	if (ActorsOnTrigger == 1) {
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
+		DoorOpenStarted();
 	}
 }
 
@@ -50,13 +50,14 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
-	//if (OtherComp != GetPlayerRoot()) return;
+	if (!ShouldDoorOpen(OtherActor, OtherComp)) return;
+
 	ActorsOnTrigger <= 0 ? ActorsOnTrigger = 0 : ActorsOnTrigger -= 1;
-	//ActorsOnTrigger -= 1;
 	ensure(ActorsOnTrigger >= 0);
 	if (ActorsOnTrigger == 0) {
 		DoorMesh->SetVisibility(true);
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickClose, .001f, true);
+		DoorCloseStarted();
 	}
 }
 
@@ -96,4 +97,12 @@ USceneComponent* ASLDoor::GetPlayerRoot() {
 	if (!PlayerPawn) return nullptr;
 
 	return PlayerPawn->GetRootComponent();
+}
+
+bool ASLDoor::ShouldDoorOpen(AActor* OtherActor, UPrimitiveComponent* OtherComponent) {
+	bool Result = false;
+	if (ReactToPlayer)  Result |= OtherComponent == GetPlayerRoot();
+	if (ReactToSoldier) Result |= Cast<ASLSoldier>(OtherActor) != nullptr;
+
+	return Result;
 }
