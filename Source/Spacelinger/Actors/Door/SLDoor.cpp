@@ -36,7 +36,7 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 	bool bFromSweep,
 	const FHitResult & SweepResult)
 {
-	if (OtherComp != GetPlayerRoot()) return;
+	//if (OtherComp != GetPlayerRoot()) return;
 
 	ActorsOnTrigger += 1;
 	if (ActorsOnTrigger == 1) {
@@ -50,7 +50,7 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex)
 {
-	if (OtherComp != GetPlayerRoot()) return;
+	//if (OtherComp != GetPlayerRoot()) return;
 	ActorsOnTrigger <= 0 ? ActorsOnTrigger = 0 : ActorsOnTrigger -= 1;
 	//ActorsOnTrigger -= 1;
 	ensure(ActorsOnTrigger >= 0);
