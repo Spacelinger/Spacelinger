@@ -783,6 +783,7 @@ void ASlime_A::ThrowSpiderWeb(bool bisHook)
 
 void ASlime_A::CutThrownSpiderWeb() {
 	if (SelectedSpiderAbility == SLSpiderAbility::ThrowSpiderWeb) {
+		isHanging = true;
 		CutSpiderWeb();
 	}
 }
@@ -797,7 +798,8 @@ void ASlime_A::CutSpiderWeb()
 		isHanging = false;
 		bhangingAnimation = false;
 		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-		spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
+		if(spiderWebReference!=nullptr)
+			spiderWebReference->ResetConstraint(); // Function to encapsulate resetting constraint 
 	}
 	else if (spiderWebReference)
 	{
