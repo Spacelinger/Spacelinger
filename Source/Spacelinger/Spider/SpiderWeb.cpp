@@ -140,10 +140,13 @@ void ASpiderWeb::ResetConstraint()
 			nullptr, NAME_None,
 			nullptr, NAME_None
 		);
-		CableComponent->bAttachEnd = false;
+		if (CableComponent != nullptr) {
+			CableComponent->bAttachEnd = false;
+		}
 		ConstraintComp = nullptr;
 	}
 }
+
 
 void ASpiderWeb::SetTrap()
 {

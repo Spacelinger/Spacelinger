@@ -233,7 +233,7 @@ protected:
 	}
 
 private:
-	const float TraceDistance = 100.0f;
+	const float TraceDistance = 70.0f;
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
