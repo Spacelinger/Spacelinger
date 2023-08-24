@@ -58,12 +58,14 @@ public:
 	void MoveToCeiling();
 	void StopAdaptToCeiling();
 	void AdaptToCeiling();
-	void ReceiveDamage();
+	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
 	bool IsStunned();
 	float GetRemainingTimeToUnstunAsPercentage();
-	void Die();
+	void Die(AActor *Killer);
+	UFUNCTION(BlueprintImplementableEvent)
+	void SoldierHasDied(AActor *Killer);
 
 	UFUNCTION()
 	void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
@@ -81,6 +83,12 @@ public:
 	TEnumAsByte<SoldierAIState> AnimationState = SoldierAIState::IDLE;
 
 	FVector GetNextPatrolPoint();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SoldierDied();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
+	bool bHasKey = false;
 
 private:
 	// Patrol

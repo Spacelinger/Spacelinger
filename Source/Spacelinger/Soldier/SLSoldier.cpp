@@ -169,9 +169,9 @@ void ASLSoldier::StopAdaptToCeiling() {
 	*/
 }
 
-void ASLSoldier::ReceiveDamage()
+void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 {
-	Die();
+	Die(DamageDealer);
 }
 
 void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
@@ -208,7 +208,7 @@ bool ASLSoldier::IsStunned()
 }
 
 
-void ASLSoldier::Die()
+void ASLSoldier::Die(AActor *Killer)
 {
 	DetectionWidget->Deactivate();
 	OffscreenDetectionWidget->RemoveFromParent();
@@ -219,6 +219,8 @@ void ASLSoldier::Die()
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+
+	SoldierHasDied(Killer);
 }
 
 FVector ASLSoldier::GetNextPatrolPoint() {
