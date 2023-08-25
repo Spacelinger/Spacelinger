@@ -6,6 +6,8 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Spider/SpiderWeb.h"
 #include "Actors/Door/LockedDoor/SLLockedDoor.h"
+#include "Components/BoxComponent.h"
+#include "Engine/TriggerSphere.h"
 
 ASLLaserPuzzle::ASLLaserPuzzle() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -14,11 +16,20 @@ ASLLaserPuzzle::ASLLaserPuzzle() {
 	MeshRight = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh Right"));
 	BeamTop = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Beam Top"));
 	BeamBot = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Beam Bot"));
+	
+	TriggerLeftTop  = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger Left Top"));
+	TriggerRightTop = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger Right Top"));
+	TriggerLeftBot  = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger Left Bot"));
+	TriggerRightBot = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger Right Bot"));
 
 	MeshLeft ->SetupAttachment(RootComponent);
 	MeshRight->SetupAttachment(RootComponent);
 	BeamTop->SetupAttachment(MeshLeft);
 	BeamBot->SetupAttachment(MeshLeft);
+	TriggerLeftTop ->SetupAttachment(MeshLeft);
+	TriggerRightTop->SetupAttachment(MeshRight);
+	TriggerLeftBot ->SetupAttachment(MeshLeft);
+	TriggerRightBot->SetupAttachment(MeshRight);
 }
 
 void ASLLaserPuzzle::OnConstruction(const FTransform& Transform) {
@@ -49,7 +60,7 @@ void ASLLaserPuzzle::BeginPlay() {
 void ASLLaserPuzzle::SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLParticleParameter> Parameters, float Magnitude, bool RefreshParticleSytem) {
 	for (FSLParticleParameter PP : Parameters) {
 		switch(PP.Type) {
-			case SLParticleParameterType::Enable: Beam->SetEmitterEnable  (PP.Key, PP.bEnabled);              break;
+			case SLParticleParameterType::Bool:   Beam->SetEmitterEnable  (PP.Key, PP.bEnabled);              break;
 			case SLParticleParameterType::Float:  Beam->SetFloatParameter (PP.Key, PP.FloatValue *Magnitude); break;
 			case SLParticleParameterType::Vector: Beam->SetVectorParameter(PP.Key, PP.VectorValue*Magnitude); break;
 			default: UE_LOG(LogTemp, Error, TEXT("ASLLaserPuzzle::SetBeamVisuals enum not supported!"));
@@ -69,6 +80,7 @@ void ASLLaserPuzzle::UpdateAssociatedVisualElements() {
 	}
 }
 
+#include "DrawDebugHelpers.h"
 void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 	// If both beams are active there is nothing to do here!
 	if (bActiveBeamBot && bActiveBeamTop) return;
@@ -77,34 +89,27 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 	if (LastAttachedWeb == Web) {
 		FVector WebStart = Web->GetStartAttachLocation();
 		FVector WebEnd   = Web->GetEndAttachLocation();
+		ATriggerSphere *SphereStart = GetWorld()->SpawnActor<ATriggerSphere>(WebStart, FRotator::ZeroRotator);
+		ATriggerSphere *SphereEnd   = GetWorld()->SpawnActor<ATriggerSphere>(WebEnd,   FRotator::ZeroRotator);
 
-		if (IsWebConnectingBeam(BeamTop, WebStart, WebEnd)) {
-			bActiveBeamTop = true;
-			SetBeamVisuals(BeamTop, SolvedParticleParameters);
-			UpdateAssociatedVisualElements();
-		}
-		else if (IsWebConnectingBeam(BeamBot, WebStart, WebEnd)) {
+		if (
+		    (TriggerLeftBot->IsOverlappingActor(SphereStart) && TriggerRightBot->IsOverlappingActor(SphereEnd))
+		 || (TriggerLeftBot->IsOverlappingActor(SphereEnd)   && TriggerRightBot->IsOverlappingActor(SphereStart))
+		) {
 			bActiveBeamBot = true;
 			SetBeamVisuals(BeamBot, SolvedParticleParameters);
 			UpdateAssociatedVisualElements();
 		}
+		else if (
+		    (TriggerLeftTop->IsOverlappingActor(SphereStart) && TriggerRightTop->IsOverlappingActor(SphereEnd))
+		 || (TriggerLeftTop->IsOverlappingActor(SphereEnd)   && TriggerRightTop->IsOverlappingActor(SphereStart))
+		) {
+			bActiveBeamTop = true;
+			SetBeamVisuals(BeamTop, SolvedParticleParameters);
+			UpdateAssociatedVisualElements();
+		}
+		
+		SphereStart->Destroy();
+		SphereEnd->Destroy();
 	}
-}
-
-bool ASLLaserPuzzle::IsWebConnectingBeam(UParticleSystemComponent *Beam, FVector WebStart, FVector WebEnd) {
-	FVector BeamStart = Beam->GetComponentLocation();
-	FVector BeamEnd   = BeamStart - FVector(.0f, BeamLength, .0f);
-
-	// Calc distances
-	float WebStartBeamStart = FVector::Distance(WebStart, BeamStart);
-	float WebStartBeamEnd   = FVector::Distance(WebStart, BeamEnd);
-	float WebEndBeamStart   = FVector::Distance(WebEnd,   BeamStart);
-	float WebEndBeamEnd     = FVector::Distance(WebEnd,   BeamEnd);
-	
-	bool IsConnecting = ((WebStartBeamStart <= ConnectedRadius && WebEndBeamEnd   <= ConnectedRadius)
-	                  || (WebStartBeamEnd   <= ConnectedRadius && WebEndBeamStart <= ConnectedRadius));
-
-	if (IsConnecting) UE_LOG(LogTemp, Display, TEXT("SLLaserPuzzle: Web is connecting beam! -> %s"), *Beam->GetName());
-
-	return IsConnecting;
 }
