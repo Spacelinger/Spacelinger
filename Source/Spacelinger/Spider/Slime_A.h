@@ -26,6 +26,7 @@ class UBoxComponent;
 class UInventoryComponent;
 class ULifeComponent;
 class UUIHUD;
+class UMaterialBillboardComponent;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -83,7 +84,7 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInventoryComponent* InventoryComponent = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* HookCollisionMark = nullptr;
+	UMaterialBillboardComponent* HookTargetCrosshair = nullptr;
 
 	UFUNCTION()
 		void OnDie(AActor* Killer);

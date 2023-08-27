@@ -27,6 +27,7 @@
 #include "Components/LifeComponent.h"
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 #include "UI/Game/UIHUD.h"
+#include "Components/MaterialBillboardComponent.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -98,11 +99,12 @@ ASlime_A::ASlime_A()
 	SpiderTrapsAttributeSet = CreateDefaultSubobject<USpiderTrapsAttributeSet>(TEXT("Spider Traps Attribute Set"));
 	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
 
-	// Hook Sphere gizmo mesh
-	HookCollisionMark = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Hook Sphere Mark"));
-	HookCollisionMark->SetupAttachment(RootComponent);
-	HookCollisionMark->SetVisibility(false);
-	HookCollisionMark->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	// Hook target crosshair
+	HookTargetCrosshair = CreateDefaultSubobject<UMaterialBillboardComponent>(TEXT("Hook Target Crosshair"));
+	HookTargetCrosshair->SetupAttachment(RootComponent);
+	HookTargetCrosshair->SetVisibility(false);
+	HookTargetCrosshair->bHiddenInGame = false;
+	HookTargetCrosshair->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
@@ -1067,7 +1069,7 @@ void ASlime_A::PutSpiderWebAbility() {
 
 void ASlime_A::HandleHook()
 {
-	HookCollisionMark->SetVisibility(false);	// todo: not ideal implementation. May be a better way
+	HookTargetCrosshair->SetVisibility(false);	// todo: not ideal implementation. May be a better way
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.Hook.Started")), Payload);
 }
@@ -1098,13 +1100,13 @@ void ASlime_A::AimAbility(const FInputActionValue& value)
 {
 	switch (SelectedSpiderAbility)
 	{
-		case SLSpiderAbility::ThrowStunningWeb: AimStunningWeb(); break;
+		case SLSpiderAbility::ThrowStunningWeb: 
+			AimStunningWeb();
+			break;
 		case SLSpiderAbility::Hook:
-			// todo: Create gizmo to get where we land
 			ToggleAimHook();
 			break;
-
-		default:
+		default: 
 			break;
 	}
 }
@@ -1112,7 +1114,7 @@ void ASlime_A::AimAbility(const FInputActionValue& value)
 void ASlime_A::ToggleAimHook()
 {
 	bIsAimingHook = true;
-	HookCollisionMark->SetVisibility(true);
+	HookTargetCrosshair->SetVisibility(true);
 }
 
 void ASlime_A::AimHook()
@@ -1127,13 +1129,13 @@ void ASlime_A::AimHook()
 	CollisionQueryParams.AddIgnoredActor(this);
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility, CollisionQueryParams);
 
-	HookCollisionMark->SetWorldLocation(HitResult.ImpactPoint);
+	HookTargetCrosshair->SetWorldLocation(HitResult.ImpactPoint);
 }
 
 void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 {
 	SetCrosshairVisibility(false);
-	HookCollisionMark->SetVisibility(false);
+	HookTargetCrosshair->SetVisibility(false);
 }
 
 void ASlime_A::MeleeAttack() {
