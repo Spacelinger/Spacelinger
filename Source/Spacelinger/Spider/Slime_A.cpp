@@ -109,17 +109,12 @@ ASlime_A::ASlime_A()
 	TraceParams.AddIgnoredActor(this);
 
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
-
-	UE_LOG(LogTemp, Warning, TEXT("End of constructor - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
 }
 
 void ASlime_A::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Begin of BeginPlay - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
 
 	Super::BeginPlay();
-
-	UE_LOG(LogTemp, Warning, TEXT("Middle of BeginPlay (after super call) - Stamina attr. set?: %s"), StaminaAttributeSet != nullptr ? TEXT("True") : TEXT("False"));
 
 	//Add Input Mapping Context
 	if (APlayerController* PlayerController = GetPlayerController())
