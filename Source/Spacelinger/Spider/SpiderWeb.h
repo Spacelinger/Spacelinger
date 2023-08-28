@@ -81,4 +81,7 @@ public:
 	// Both of these assume there is a start and end attachm locations
 	FORCEINLINE FVector GetStartAttachLocation() const { return StartLocationCable->GetComponentLocation(); }
 	FORCEINLINE FVector GetEndAttachLocation() const { return StartLocationCable->GetComponentLocation() + CableComponent->EndLocation; }
+
+private:
+	FName FootBoneName = "Bip001-R-Foot";
 };

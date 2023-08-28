@@ -94,4 +94,6 @@ private:
 	// Patrol
 	int32 CurrentPatrolPointIndex = 0;
 	TArray<FVector> WorldPatrolPoints; // Patrol points in World Space. Generated at BeginPlay()
+
+	bool bIsDead = false;
 };

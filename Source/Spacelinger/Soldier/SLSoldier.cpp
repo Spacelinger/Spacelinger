@@ -122,10 +122,11 @@ void ASLSoldier::Tick(float DeltaTime) {
 }
 
 void ASLSoldier::MoveToCeiling() {
+	Die(nullptr);
+
 	/* Disable all collision on capsule */
-
-
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	SetActorEnableCollision(true);
 
 	// Ragdoll
@@ -189,6 +190,8 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 
 void ASLSoldier::Unstun() 
 {
+	if (bIsDead) return;
+
 	bIsStunned = false;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
@@ -210,6 +213,7 @@ bool ASLSoldier::IsStunned()
 
 void ASLSoldier::Die(AActor *Killer)
 {
+	bIsDead = true;
 	DetectionWidget->Deactivate();
 	OffscreenDetectionWidget->RemoveFromParent();
 
@@ -219,6 +223,7 @@ void ASLSoldier::Die(AActor *Killer)
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
+	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 
 	SoldierHasDied(Killer);
 }
