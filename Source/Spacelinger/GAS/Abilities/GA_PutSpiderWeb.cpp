@@ -57,6 +57,44 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 				LaserPuzzle->LastAttachedWeb = Spider->spiderWebReference;
 			}
 		}
+		else {
+			
+			if (Spider->spiderWebReference != nullptr) {
+				Spider->CutSpiderWeb();
+			}
+			Spider->bHasTrownSpiderWeb = true;
+			FVector2D ScreenLocation = Spider->GetViewportCenter();
+			FVector LookDirection = Spider->GetLookDirection(ScreenLocation);
+			FVector StartPosition = Spider->GetMesh()->GetSocketLocation("Mouth");
+			float LineTraceDistance = 1000.0f;
+			FVector EndPosition = StartPosition + (LookDirection * LineTraceDistance);
+			FHitResult HitResult = Spider->PerformLineTrace(StartPosition, EndPosition);
+
+
+			// Perform ray trace in the direction of the negative Actor Up Vector.
+			FVector StartPositionRayTrace = Spider->GetActorLocation(); // Start at the actor's location.
+			FVector EndPositionRayTrace = StartPositionRayTrace - (Spider->GetActorUpVector() * LineTraceDistance); // Move in the direction of the negative Actor Up Vector.
+
+			// Perform the ray trace.
+			FHitResult RayTraceHitResult;
+			GetWorld()->LineTraceSingleByChannel(RayTraceHitResult, StartPositionRayTrace, EndPositionRayTrace, ECC_Visibility);
+
+			// If the ray trace hits a static mesh, store the actor in the global variable.
+			if (RayTraceHitResult.bBlockingHit && RayTraceHitResult.GetActor() != nullptr && RayTraceHitResult.GetActor()->IsA(UStaticMeshComponent::StaticClass()))
+			{
+				Spider->previousActorCollision = RayTraceHitResult.GetActor();
+			}
+
+			if (HitResult.bBlockingHit)
+			{
+				Spider->SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true, false);
+			}
+			else
+			{
+				Spider->SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false, false);
+			}
+			
+		}
 	}
 
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);

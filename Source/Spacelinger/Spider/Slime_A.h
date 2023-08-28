@@ -31,7 +31,6 @@ UENUM(BlueprintType)
 enum SLSpiderAbility {
 	PutSpiderWeb = 0,
 	PutTrap,
-	ThrowSpiderWeb,
 	ThrowStunningWeb,
 	Hook,
 	COUNT UMETA(Hidden),
@@ -72,6 +71,12 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInputAction* InteractAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MeleeAttackAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* PutTrapAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* HookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* ThrowStunningAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInteractingComponent* InteractingComponent;
@@ -154,6 +159,14 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = HUD, BlueprintReadOnly)
 		TSubclassOf<UUIHUD> HUDClass;
+
+	FVector2D GetViewportCenter();
+	FVector GetLookDirection(FVector2D ScreenLocation);
+	FVector GetLookAtLocation(FVector2D ScreenLocation);
+	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
+	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHock);
+
+
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);
@@ -164,7 +177,7 @@ protected:
 	void AimAbility(const FInputActionValue& Value);
 	void StopAimingAbility(const FInputActionValue& Value);
 	void Interact(const FInputActionValue& Value);
-	void SwitchAbility(const FInputActionValue& Value);
+	void ChangeSpiderWebSize(const FInputActionValue& Value);
 	void StopJumpToPosition();
 
 	void PutTrap();
@@ -181,15 +194,16 @@ protected:
 	void ThrowStunningWeb();
 	void AimStunningWeb();
 
+	//Mode
+	void setHookMode();
+	void setStunningMode();
+	void setTrapMode();
+
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	//ThrowSpiderWeb
-	FVector2D GetViewportCenter();
-	FVector GetLookDirection(FVector2D ScreenLocation);
-	FVector GetLookAtLocation(FVector2D ScreenLocation);
-	FHitResult PerformLineTrace(FVector StartPosition, FVector EndPosition);
-	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHock);
+	
 	void SpawnStunningWeb(FVector Location, FVector HitLocation);
 	FVector ReturnCenterScreenWorld();
 

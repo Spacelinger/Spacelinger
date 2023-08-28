@@ -221,7 +221,7 @@ void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* Other
 
 }
 
-void ASlime_A::SwitchAbility(const FInputActionValue& Value)
+void ASlime_A::ChangeSpiderWebSize(const FInputActionValue& Value)
 {
 	if (isHanging)
 	{
@@ -242,15 +242,7 @@ void ASlime_A::SwitchAbility(const FInputActionValue& Value)
 		FVector HangingForce = FVector(0.0f, 0.0f, 0.0f) * 3000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 
-		// Force an immediate update of component transforms
 	}
-	else {
-		int ActionValue = Value.GetMagnitude();
-		int CurrentAbility = SelectedSpiderAbility.GetValue();
-		CurrentAbility = (ActionValue + CurrentAbility + SLSpiderAbility::COUNT) % SLSpiderAbility::COUNT;
-		SelectedSpiderAbility = static_cast<SLSpiderAbility>(CurrentAbility);
-	}
-
 }
 
 void ASlime_A::ModifyDamping() {
@@ -653,8 +645,6 @@ void ASlime_A::StopClimbing() {
 void ASlime_A::Climb(const FInputActionValue& Value)
 {
 
-	SelectedSpiderAbility = SLSpiderAbility::ThrowSpiderWeb;
-
 	if (isHanging) {
 		CutSpiderWeb();
 	}
@@ -782,8 +772,18 @@ void ASlime_A::ThrowSpiderWeb(bool bisHook)
 }
 
 void ASlime_A::CutThrownSpiderWeb() {
-	if (SelectedSpiderAbility == SLSpiderAbility::ThrowSpiderWeb) {
-		isHanging = true;
+	if (SelectedSpiderAbility == SLSpiderAbility::PutSpiderWeb) {
+		// Perform the raycast
+		FHitResult HitResult;
+		FVector StartLocation = GetActorLocation();
+		FVector EndLocation = StartLocation - GetActorUpVector() * 30.0f; // Adjust RaycastDistance to your preference
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, StartLocation, EndLocation, ECC_Visibility, TraceParams);
+
+		if (bHit)
+			isHanging = false;
+		else
+			isHanging = true;
+
 		CutSpiderWeb();
 	}
 }
@@ -1090,7 +1090,6 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
 	//case SLSpiderAbility::Hook: ThrowSpiderWeb(true); break; // Implemented in GAS
 	case SLSpiderAbility::Hook: HandleHook(); break;
-	case SLSpiderAbility::ThrowSpiderWeb: ThrowSpiderWeb(false); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
 	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
 
@@ -1238,6 +1237,27 @@ void ASlime_A::Move(const FInputActionValue& Value)
 	}
 }
 
+void ASlime_A::setHookMode() {
+	if (SelectedSpiderAbility != SLSpiderAbility::Hook)
+		SelectedSpiderAbility = SLSpiderAbility::Hook;
+	else
+		SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
+}
+
+void ASlime_A::setTrapMode() {
+	if (SelectedSpiderAbility != SLSpiderAbility::PutTrap)
+		SelectedSpiderAbility = SLSpiderAbility::PutTrap;
+	else
+		SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
+}
+
+void ASlime_A::setStunningMode() {
+	if (SelectedSpiderAbility != SLSpiderAbility::ThrowStunningWeb)
+		SelectedSpiderAbility = SLSpiderAbility::ThrowStunningWeb;
+	else
+		SelectedSpiderAbility = SLSpiderAbility::PutSpiderWeb;
+}
+
 void ASlime_A::Look(const FInputActionValue& Value) {
 	if (Controller == nullptr) { return; }
 
@@ -1268,7 +1288,7 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::StopAimingAbility);
 
-		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::SwitchAbility);
+		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ChangeSpiderWebSize);
 
 		// Slow Time Ability
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started, this, &ASlime_A::SlowTime);
@@ -1277,6 +1297,10 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASlime_A::Interact);
 
 		EnhancedInputComponent->BindAction(MeleeAttackAction, ETriggerEvent::Started, this, &ASlime_A::MeleeAttack);
+
+		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASlime_A::setHookMode);
+		EnhancedInputComponent->BindAction(PutTrapAction, ETriggerEvent::Started, this, &ASlime_A::setTrapMode);
+		EnhancedInputComponent->BindAction(ThrowStunningAction, ETriggerEvent::Started, this, &ASlime_A::setStunningMode);
 	}
 }
 
