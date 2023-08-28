@@ -33,7 +33,6 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 
 public:
 	ASLSoldier();
-	virtual void Tick(float DeltaTime) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 
@@ -45,7 +44,7 @@ public:
 	UPROPERTY()
 	USLDetectionWidget *OffscreenDetectionWidget;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
 	ASLSoldierPath *PathActor;
 
 	FTimerHandle UnstunTimerHandle;
@@ -56,8 +55,6 @@ public:
 	//void Interact(AActor* ActorInteracting);	//LUIS: Interact has been refactored
 	//void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
-	void StopAdaptToCeiling();
-	void AdaptToCeiling();
 	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
@@ -66,9 +63,6 @@ public:
 	void Die(AActor *Killer);
 	UFUNCTION(BlueprintImplementableEvent)
 	void SoldierHasDied(AActor *Killer);
-
-	UFUNCTION()
-	void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
 	bool bMoveToCeiling = false;

@@ -7,11 +7,10 @@
 #include "Components/WidgetComponent.h"
 #include "UI/Soldier/SLDetectionWidget.h"
 #include "Soldier/SLSoldierPath.h"
+#include "EngineUtils.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
-	GetMesh()->OnComponentHit.AddDynamic(this, &ASLSoldier::OnEndPointCollision);
 
 	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
 	DetectionWidget->SetupAttachment(RootComponent);
@@ -21,9 +20,27 @@ ASLSoldier::ASLSoldier() {
 void ASLSoldier::OnConstruction(const FTransform& Transform) {
 	if (PatrolType == SLIdleType::PatrolGuided) {
 		if (!PathActor) {
-			FActorSpawnParameters SpawnParameters;
-			SpawnParameters.Owner = this;
-			PathActor = GetWorld()->SpawnActor<ASLSoldierPath>(ASLSoldierPath::StaticClass(), GetTransform(), SpawnParameters);
+			FString NewName = this->GetActorLabel();
+			NewName.Append("_Path");
+			FName NewFName(*NewName);
+
+			// Try to find if it already exists
+			for (TActorIterator<ASLSoldierPath> It(GetWorld(), ASLSoldierPath::StaticClass()); It; ++It) {
+				if ((*It)->GetActorLabel().Equals(NewName)) {
+					PathActor = *It;
+					break;
+				}
+			}
+
+			// If it doesn't then let's create it
+			if (!PathActor) {
+				FActorSpawnParameters SpawnParameters;
+				SpawnParameters.Owner = this;
+				PathActor = GetWorld()->SpawnActor<ASLSoldierPath>(ASLSoldierPath::StaticClass(), GetTransform(), SpawnParameters);
+				PathActor->SetActorLabel(NewName);
+			}
+
+			PathActor->OwnerSoldier = this;
 		}
 	}
 }
@@ -89,37 +106,7 @@ void ASLSoldier::SetAsCandidate(bool IsCandidate) {
 }
 */
 
-void ASLSoldier::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
-	// Check if OtherActor is a StaticMesh
-	/*AStaticMeshActor* StaticMeshActor = Cast<AStaticMeshActor>(OtherActor);
-	if (StaticMeshActor) {
-		if (bMoveToCeiling) {
 
-			FTimerHandle TimerHandle;
-
-			// Start the timer
-			float DelaySeconds = 2.0f; // Delay in seconds before calling the method
-			GetWorldTimerManager().SetTimer(TimerHandle, this, &ASLSoldier::StopMoveToCeiling, DelaySeconds, false);
-		}
-		
-	}
-	*/
-}
-
-
-
-
-
-void ASLSoldier::Tick(float DeltaTime) {
-	/*if (bMoveToCeiling) {
-		// Apply a constant force to make the ragdoll stick to the ceiling
-		FVector ForceDirection = FVector::UpVector; // Adjust the force direction as desired
-		float ForceMagnitude = 5000.0f; // Adjust the force magnitude as desired
-		//GetMesh()->AddForce(ForceDirection * ForceMagnitude, NAME_None, true);
-		GetMesh()->AddForceToAllBodiesBelow(ForceDirection * ForceMagnitude, FName("pelvis"), false, true);
-	}
-	*/
-}
 
 void ASLSoldier::MoveToCeiling() {
 	Die(nullptr);
@@ -139,35 +126,6 @@ void ASLSoldier::MoveToCeiling() {
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetEnableGravity(false);
 	
-}
-
-void ASLSoldier::AdaptToCeiling() {
-	/*
-	// Disable physics-based movement for the OtherComp
-	GetMesh()->SetSimulatePhysics(false);
-	GetMesh()->SetEnableGravity(false);
-
-	// Optionally, you can also set the component's velocity to zero to stop any residual movement
-	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
-
-	GetCharacterMovement()->Deactivate();
-	*/
-}
-
-
-void ASLSoldier::StopAdaptToCeiling() {
-	/* Disable all collision on capsule 
-	bMoveToCeiling = false;
-
-	// Disable physics-based movement for the OtherComp
-	GetMesh()->SetSimulatePhysics(false);
-	GetMesh()->SetEnableGravity(false);
-
-	// Optionally, you can also set the component's velocity to zero to stop any residual movement
-	GetMesh()->SetPhysicsLinearVelocity(FVector::ZeroVector);
-
-	GetCharacterMovement()->Deactivate();
-	*/
 }
 
 void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
