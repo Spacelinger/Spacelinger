@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Actors/Door/SLDoor.h"
+#include "Actors/TogglableVisualElement.h"
 #include "SLLockedDoor.generated.h"
 
 class UInteractableComponent;
@@ -33,6 +34,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	DoorLockType LockType = DoorLockType::KEY;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
+	TArray<ATogglableVisualElement*> VisualElements;
 
 	// Hide the key when it doesn't need to be shown
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "HUD")
@@ -59,4 +62,6 @@ protected:
 private:
 
 	void Reset();
+	void UpdateAssociatedVisualElements(bool State);
+
 };

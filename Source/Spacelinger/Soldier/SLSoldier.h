@@ -33,7 +33,6 @@ class ASLSoldier : public ACharacter, public IInteractInterface
 
 public:
 	ASLSoldier();
-	virtual void Tick(float DeltaTime) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 
@@ -45,7 +44,7 @@ public:
 	UPROPERTY()
 	USLDetectionWidget *OffscreenDetectionWidget;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
 	ASLSoldierPath *PathActor;
 
 	FTimerHandle UnstunTimerHandle;
@@ -56,17 +55,14 @@ public:
 	//void Interact(AActor* ActorInteracting);	//LUIS: Interact has been refactored
 	//void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
-	void StopAdaptToCeiling();
-	void AdaptToCeiling();
-	void ReceiveDamage();
+	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
 	bool IsStunned();
 	float GetRemainingTimeToUnstunAsPercentage();
-	void Die();
-
-	UFUNCTION()
-	void OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	void Die(AActor *Killer);
+	UFUNCTION(BlueprintImplementableEvent)
+	void SoldierHasDied(AActor *Killer);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
 	bool bMoveToCeiling = false;
@@ -82,8 +78,16 @@ public:
 
 	FVector GetNextPatrolPoint();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SoldierDied();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
+	bool bHasKey = false;
+
 private:
 	// Patrol
 	int32 CurrentPatrolPointIndex = 0;
 	TArray<FVector> WorldPatrolPoints; // Patrol points in World Space. Generated at BeginPlay()
+
+	bool bIsDead = false;
 };

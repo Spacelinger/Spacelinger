@@ -11,10 +11,11 @@ class UStaticMeshComponent;
 class UParticleSystemComponent;
 class ASpiderWeb;
 class ASLLockedDoor;
+class UBoxComponent;
 
 UENUM(BlueprintType)
 enum class SLParticleParameterType : uint8 {
-	Enable = 0,
+	Bool = 0,
 	Float,
 	Vector,
 };
@@ -27,7 +28,7 @@ struct FSLParticleParameter {
 	FName Key;
 	UPROPERTY(EditAnywhere)
 	SLParticleParameterType Type;
-	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Enable", EditConditionHides))
+	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Bool", EditConditionHides))
 	bool bEnabled;
 	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Float", EditConditionHides))
 	float FloatValue;
@@ -52,6 +53,15 @@ public:
 	UParticleSystemComponent *BeamTop;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UParticleSystemComponent *BeamBot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UBoxComponent *TriggerLeftTop;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UBoxComponent *TriggerRightTop;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UBoxComponent *TriggerLeftBot;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UBoxComponent *TriggerRightBot;
 
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	bool bActiveBeamTop = false;
@@ -97,7 +107,6 @@ protected:
 private:
 	float BeamLength = 0.0f;
 
-	bool IsWebConnectingBeam(UParticleSystemComponent *Beam, FVector WebStart, FVector WebEnd);
 	void SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLParticleParameter> Parameters, float Magnitude = 1.0f, bool RefreshParticleSytem = true);
 	void UpdateAssociatedVisualElements();
 

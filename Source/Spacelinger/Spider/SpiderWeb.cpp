@@ -81,7 +81,7 @@ void ASpiderWeb::Tick(float DeltaTime)
 
 		if (!bTrapFinished) {
 			//ConstraintComp->SetConstraintReferencePosition(EConstraintFrame::Frame2, newRelativeLocation);
-			FVector vectorDirection = Soldier->GetMesh()->GetBoneLocation("Bip001-R-Foot") - ConstraintComp->GetComponentLocation();
+			FVector vectorDirection = Soldier->GetMesh()->GetBoneLocation(FootBoneName) - ConstraintComp->GetComponentLocation();
 			FVector newLocation = getVectorInConstraintCoordinates(vectorDirection, 500.0f, DeltaTime);
 			initialRelativePosition = initialRelativePosition + newLocation;
 
@@ -97,10 +97,10 @@ void ASpiderWeb::Tick(float DeltaTime)
 FVector ASpiderWeb::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {
 
 	// Get the world space location of the physics constraint and the bone
-	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation("Bip001-R-Foot");
+	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation(FootBoneName);
 
 	// Convert the constraint location to the local space of the bone
-	FTransform boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex("Bip001-R-Foot"));
+	FTransform boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex(FootBoneName));
 
 	// Normalize the input vector
 	FVector NormalizedInput = input.GetSafeNormal();
@@ -120,10 +120,10 @@ FVector ASpiderWeb::getRelativePositionPhysicsConstraint() {
 
 	// Get the world space location of the physics constraint and the bone
 	FVector WorldConstraintLocation = ConstraintComp->GetComponentLocation();
-	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation("Bip001-R-Foot");
+	FVector WorldBoneLocation = Soldier->GetMesh()->GetBoneLocation(FootBoneName);
 
 	// Convert the constraint location to the local space of the bone
-	FTransform boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex("Bip001-R-Foot"));
+	FTransform boneTransform = Soldier->GetMesh()->GetBoneTransform(Soldier->GetMesh()->GetBoneIndex(FootBoneName));
 
 	FVector LocalConstraintLocation = boneTransform.InverseTransformPosition(WorldConstraintLocation);
 
@@ -173,13 +173,13 @@ void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 
 			ConstraintComp->SetConstrainedComponents(
 				StartLocationCable, NAME_None,
-				Soldier->GetMesh(), "Bip001-R-Foot"
+				Soldier->GetMesh(), FootBoneName
 			);
 
 			// Set the linear motion types to 'limited'
 			ConstraintComp->ConstraintInstance.SetLinearLimits(ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, ELinearConstraintMotion::LCM_Locked, 0.0f);
 			bTrapActivated = true;
-			distanceTrap = Soldier->GetMesh()->GetBoneLocation("Bip001-R-Foot");
+			distanceTrap = Soldier->GetMesh()->GetBoneLocation(FootBoneName);
 			// Set angular limits to restrict swinging
 			ConstraintComp->SetAngularSwing1Limit(EAngularConstraintMotion::ACM_Locked,0.0f);
 			ConstraintComp->SetAngularSwing2Limit(EAngularConstraintMotion::ACM_Locked,0.0f);
@@ -188,7 +188,7 @@ void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 
 			CableComponent->EndLocation = FVector(0.0f, 0.0f, 0.0f);
 			CableComponent->AttachEndTo.OverrideComponent = Soldier->GetMesh();
-			CableComponent->AttachEndToSocketName = "Bip001-R-Foot";
+			CableComponent->AttachEndToSocketName = FootBoneName;
 
 			Soldier->MoveToCeiling();
 		}

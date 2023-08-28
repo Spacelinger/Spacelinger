@@ -1141,6 +1141,7 @@ void ASlime_A::MeleeAttack() {
 	if (fBlendingFactor == 0) {
 		fBlendingFactor = 1.0f;
 	}
+	MeleeAttackTriggered();
 }
 
 void ASlime_A::MeleeAttackTriggered()
@@ -1158,7 +1159,7 @@ void ASlime_A::MeleeAttackTriggered()
 	FCollisionQueryParams TraceParameters;
 	TraceParameters.AddIgnoredActor(this);
 	FHitResult HitResult;
-	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, TraceStart, TraceStart, FQuat::Identity, ECC_Visibility, TraceShape, TraceParameters);
+	bool bHit = GetWorld()->SweepSingleByChannel(HitResult, TraceStart, TraceStart, FQuat::Identity, ECC_Pawn, TraceShape, TraceParameters);
 
 	// DrawDebugSphere for visualization
 	//DrawDebugSphere(GetWorld(), TraceStart, TraceRadius, 12, FColor::Red, false, 1.0f, 0, 1.0f);
@@ -1171,7 +1172,7 @@ void ASlime_A::MeleeAttackTriggered()
 			ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor);
 			if (Soldier)
 			{
-				Soldier->ReceiveDamage();
+				Soldier->ReceiveDamage(this);
 			}
 		}
 		

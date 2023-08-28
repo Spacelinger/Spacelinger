@@ -25,6 +25,7 @@ ASLLockedDoor::ASLLockedDoor()
 void ASLLockedDoor::OnConstruction(const FTransform& Transform) {
 	Reset();
 	InteractPromptWidget->SetVisibility(LockType == DoorLockType::KEY);
+	UpdateAssociatedVisualElements(false);
 }
 
 void ASLLockedDoor::BeginPlay()
@@ -75,6 +76,7 @@ void ASLLockedDoor::Interact(AActor* InteractingActor)
 	
 	// OpenDoor
 	OpenDoor();
+	UpdateAssociatedVisualElements(true);
 }
 
 void ASLLockedDoor::OpenDoor()
@@ -82,14 +84,12 @@ void ASLLockedDoor::OpenDoor()
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	// May want to call the DoorTickOpen at SLDoor --> NO! "tick" function works based on collition delegate
 	
-	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ASLLockedDoor::BoxTrigger_OnBeginOverlap);
-	BoxTrigger->OnComponentEndOverlap.AddDynamic(this, &ASLLockedDoor::BoxTrigger_OnEndOverlap);
-
+	ReactToPlayer = true;
 	BoxTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 
 	//UE_LOG(LogActor, Warning, TEXT("Success!"));
 
-	SetKeyVisibility();
+	SetKeyVisibility(); // Remove Key UI
 }
 
 
@@ -111,4 +111,10 @@ void ASLLockedDoor::Reset()
 	InteractPromptWidget->SetVisibility(false);
 
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+}
+
+void ASLLockedDoor::UpdateAssociatedVisualElements(bool State) {
+	for (ATogglableVisualElement *Element : VisualElements) {
+		if (Element) Element->SetState(State);
+	}
 }
