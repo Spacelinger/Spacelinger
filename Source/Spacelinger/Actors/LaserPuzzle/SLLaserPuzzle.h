@@ -27,13 +27,13 @@ struct FSLParticleParameter {
 	UPROPERTY(EditAnywhere)
 	FName Key;
 	UPROPERTY(EditAnywhere)
-	SLParticleParameterType Type;
+	SLParticleParameterType Type = SLParticleParameterType::Bool;
 	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Bool", EditConditionHides))
-	bool bEnabled;
+	bool bEnabled = false;
 	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Float", EditConditionHides))
-	float FloatValue;
+	float FloatValue = 0.0f;
 	UPROPERTY(EditAnywhere, meta=(EditCondition="Type == SLParticleParameterType::Vector", EditConditionHides))
-	FVector VectorValue;
+	FVector VectorValue = FVector::ZeroVector;
 };
 
 
