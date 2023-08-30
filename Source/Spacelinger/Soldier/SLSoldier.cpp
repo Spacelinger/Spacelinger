@@ -18,6 +18,7 @@ ASLSoldier::ASLSoldier() {
 }
 
 void ASLSoldier::OnConstruction(const FTransform& Transform) {
+#if WITH_EDITOR // Labels only exist in the editor
 	if (PatrolType == SLIdleType::PatrolGuided) {
 		if (!PathActor) {
 			FString NewName = this->GetActorLabel();
@@ -43,6 +44,7 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 			PathActor->OwnerSoldier = this;
 		}
 	}
+#endif
 }
 
 
