@@ -49,7 +49,7 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 
 	TryDoorOpen();
 
-	/*Luis was here: this code was useful to call from elsewhere, so I moved it and called throug TryDoorOpen - new method
+	/*Luis was here: this code was useful to call from elsewhere, so I moved it and called through TryDoorOpen - new method
 	if (ActorsOnTrigger == 1) {
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
 		DoorOpenStarted();
@@ -79,6 +79,9 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 }
 
 void ASLDoor::DoorTickOpen() {
+	if (bIsDoorBlocked)
+		return;
+
 	CurrentDoorOffset += GetWorld()->DeltaTimeSeconds * DoorSpeed;
 	if (CurrentDoorOffset >= DoorOffset) {
 		CurrentDoorOffset = DoorOffset;

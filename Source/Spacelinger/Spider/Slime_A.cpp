@@ -84,7 +84,7 @@ ASlime_A::ASlime_A()
 	
 	// Interact Collider components
 	InteractCollisionComponentCamera = CreateDefaultSubobject<UBoxComponent>(TEXT("Camera Interact Collision Component"));
-	InteractCollisionComponentCamera->SetupAttachment(GetArrowComponent());
+	InteractCollisionComponentCamera->SetupAttachment(RootComponent);
 	InteractCollisionComponentCamera->ComponentTags.Add(FName(TEXT("Interact Volume")));
 	
 	InteractCollisionComponentBody = CreateDefaultSubobject<UBoxComponent>(TEXT("Body Interact Collision Component"));

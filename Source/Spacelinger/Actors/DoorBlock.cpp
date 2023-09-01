@@ -85,6 +85,8 @@ void ADoorBlock::BeginDoorBlock()
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewStaticMeshComponent->SetVisibility(false);
 	FinalStaticMeshComponent->SetVisibility(true);
+
+	BlockStatusChangeDelegate.Broadcast(true);
 }
 
 void ADoorBlock::DoorBlockSuccess()
