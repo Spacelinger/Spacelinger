@@ -93,6 +93,7 @@ void ADoorBlock::DoorBlockSuccess()
 
 	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);	// BUG: This collision affects the query to try to interact, so prompts to interact again
 																						// Currently using InteractableComponent->bCanInteract flag to disable from the actor the ability to be interactable
+	BlockStatusChangeDelegate.Broadcast(true);
 
 	// Dummy timer to handle reset
 	UWorld* World = GetWorld();
@@ -122,6 +123,8 @@ void ADoorBlock::Reset()
 	InteractPromptWidget->SetVisibility(false);
 
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	BlockStatusChangeDelegate.Broadcast(false);
 }
 
 void ADoorBlock::UpdateDoorBlockProgress(float NormalizedProgress)

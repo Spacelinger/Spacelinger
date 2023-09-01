@@ -10,6 +10,7 @@ class UBoxComponent;
 class UStaticMeshComponent;
 class USpotLightComponent;
 class USceneComponent;
+class UChildActorComponent;
 
 UCLASS()
 class SPACELINGER_API ASLDoor : public AActor
@@ -24,6 +25,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UBoxComponent* BoxTrigger;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UChildActorComponent* DoorBlock;
 
 	// Boolean indicating if the door is always open to the player
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement")
@@ -63,6 +67,7 @@ private:
 	int ActorsOnTrigger = 0;
 	float CurrentDoorOffset = 0.0f;
 	FVector InitialDoorLocation;
+	bool bIsDoorBlocked = false;
 
 	// Tick functions
 	void DoorTickOpen();
@@ -74,5 +79,9 @@ private:
 	USceneComponent* GetPlayerRoot();
 	bool ShouldDoorOpen(AActor* OtherActor, UPrimitiveComponent* OtherComponent);
 	
+	void TryDoorOpen();
+	void TryDoorClose();
 
+	UFUNCTION()
+	void HandleDoorBlock(bool bBlockStatus);
 };

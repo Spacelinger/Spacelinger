@@ -7,6 +7,7 @@
 #include "Components/SpotLightComponent.h"
 #include "Components/SceneComponent.h"
 #include "Soldier/SLSoldier.h"
+#include "Actors/DoorBlock.h"
 
 ASLDoor::ASLDoor() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -14,8 +15,11 @@ ASLDoor::ASLDoor() {
 
 	BoxTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Box Trigger"));
 
+	DoorBlock = CreateDefaultSubobject<UChildActorComponent>(TEXT("Door Block"));
+
 	DoorMesh  ->SetupAttachment(RootComponent);
 	BoxTrigger->SetupAttachment(RootComponent);
+	DoorBlock ->SetupAttachment(RootComponent);
 }
 
 void ASLDoor::BeginPlay() {
@@ -25,6 +29,10 @@ void ASLDoor::BeginPlay() {
 
 	BoxTrigger->OnComponentBeginOverlap.AddDynamic(this, &ASLDoor::BoxTrigger_OnBeginOverlap);
 	BoxTrigger->OnComponentEndOverlap  .AddDynamic(this, &ASLDoor::BoxTrigger_OnEndOverlap);
+
+	ADoorBlock* DoorBlockActor = Cast<ADoorBlock>(DoorBlock->GetChildActor());
+	if (DoorBlockActor)
+		DoorBlockActor->BlockStatusChangeDelegate.AddDynamic(this, &ASLDoor::HandleDoorBlock);
 }
 
 void ASLDoor::BoxTrigger_OnBeginOverlap(
@@ -38,10 +46,14 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 	if (!ShouldDoorOpen(OtherActor, OtherComp)) return;
 
 	ActorsOnTrigger += 1;
+
+	TryDoorOpen();
+
+	/*Luis was here: this code was useful to call from elsewhere, so I moved it and called throug TryDoorOpen - new method
 	if (ActorsOnTrigger == 1) {
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
 		DoorOpenStarted();
-	}
+	}*/
 }
 
 void ASLDoor::BoxTrigger_OnEndOverlap(
@@ -53,12 +65,17 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	if (!ShouldDoorOpen(OtherActor, OtherComp)) return;
 
 	ActorsOnTrigger <= 0 ? ActorsOnTrigger = 0 : ActorsOnTrigger -= 1;
+
 	ensure(ActorsOnTrigger >= 0);
+
+	TryDoorClose();
+
+	/* Luis was here: this code was useful to call from elsewhere, so I moved it and called through TryDoorClose - new method
 	if (ActorsOnTrigger == 0) {
 		DoorMesh->SetVisibility(true);
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickClose, .001f, true);
 		DoorCloseStarted();
-	}
+	}*/
 }
 
 void ASLDoor::DoorTickOpen() {
@@ -105,4 +122,33 @@ bool ASLDoor::ShouldDoorOpen(AActor* OtherActor, UPrimitiveComponent* OtherCompo
 	if (ReactToSoldier) Result |= Cast<ASLSoldier>(OtherActor) != nullptr;
 
 	return Result;
+}
+
+void ASLDoor::TryDoorOpen() {
+	if (bIsDoorBlocked) return;
+
+	if (ActorsOnTrigger >= 1) {
+		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
+		DoorOpenStarted();
+	}
+}
+
+void ASLDoor::TryDoorClose() {
+	if (bIsDoorBlocked) return;
+
+	if (ActorsOnTrigger == 0) {
+		DoorMesh->SetVisibility(true);
+		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickClose, .001f, true);
+		DoorCloseStarted();
+	}
+}
+
+void ASLDoor::HandleDoorBlock(bool bBlockStatus){
+
+	bIsDoorBlocked = bBlockStatus;
+
+	if (bIsDoorBlocked == false) {
+		TryDoorOpen();
+		TryDoorClose();
+	}
 }

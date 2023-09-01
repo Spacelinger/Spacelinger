@@ -83,7 +83,10 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UInteractingComponent* InteractingComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	UBoxComponent* InteractCollisionComponent;
+	UBoxComponent* InteractCollisionComponentCamera;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* InteractCollisionComponentBody;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInventoryComponent* InventoryComponent = nullptr;

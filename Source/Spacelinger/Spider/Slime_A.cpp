@@ -28,6 +28,7 @@
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 #include "UI/Game/UIHUD.h"
 #include "Components/MaterialBillboardComponent.h"
+#include "Components/ArrowComponent.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -81,10 +82,14 @@ ASlime_A::ASlime_A()
 	// Interact Component
 	InteractingComponent = CreateDefaultSubobject<UInteractingComponent>(TEXT("Interacting Component"));
 	
-	// Interact Collider component
-	InteractCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Interact Collision Component"));
-	InteractCollisionComponent->SetupAttachment(CameraBoom);
-	InteractCollisionComponent->ComponentTags.Add(FName(TEXT("Interact Volume")));
+	// Interact Collider components
+	InteractCollisionComponentCamera = CreateDefaultSubobject<UBoxComponent>(TEXT("Camera Interact Collision Component"));
+	InteractCollisionComponentCamera->SetupAttachment(GetArrowComponent());
+	InteractCollisionComponentCamera->ComponentTags.Add(FName(TEXT("Interact Volume")));
+	
+	InteractCollisionComponentBody = CreateDefaultSubobject<UBoxComponent>(TEXT("Body Interact Collision Component"));
+	InteractCollisionComponentBody->SetupAttachment(RootComponent);
+	InteractCollisionComponentBody->ComponentTags.Add(FName(TEXT("Interact Volume")));
 
 	// Inventory Component
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
