@@ -62,7 +62,12 @@ protected:
 
 private:
 
+	void DissolveBlock();
 	void Reset();
 	UMaterialInstanceDynamic* DynamicChannelingProgressMaterial = nullptr;
+
+	FTimerHandle DissolveMaterialTimerHandle;
+	float MaterialDissolveStartingValue = 0.0f;
+	float MaterialDissolveCurrentValue = 0.0f;
 
 };

@@ -63,6 +63,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void DoorCloseStarted();
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoorBlocked(); 
+	UFUNCTION(BlueprintImplementableEvent)
+	void DoorUnblocked();
+
 private:
 	int ActorsOnTrigger = 0;
 	float CurrentDoorOffset = 0.0f;

@@ -149,9 +149,12 @@ void ASLDoor::TryDoorClose() {
 void ASLDoor::HandleDoorBlock(bool bBlockStatus){
 
 	bIsDoorBlocked = bBlockStatus;
-
-	if (bIsDoorBlocked == false) {
+	if (bIsDoorBlocked) {
+		DoorBlocked();
+	}
+	else if (!bIsDoorBlocked) {
 		TryDoorOpen();
 		TryDoorClose();
+		DoorUnblocked();
 	}
 }
