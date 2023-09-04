@@ -1285,13 +1285,13 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ASlime_A::Climb);
 
-		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
-		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
+		EnhancedInputComponent->BindAction(PutSpiderWebAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
+		EnhancedInputComponent->BindAction(PutSpiderWebAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
 
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::StopAimingAbility);
 
-		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ChangeSpiderWebSize);
+		EnhancedInputComponent->BindAction(ChangeSpiderWebSizeAction, ETriggerEvent::Started, this, &ASlime_A::ChangeSpiderWebSize);
 
 		// Slow Time Ability
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started, this, &ASlime_A::SlowTime);
