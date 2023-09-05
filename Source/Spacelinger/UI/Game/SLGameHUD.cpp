@@ -13,8 +13,9 @@ void ASLGameHUD::BeginPlay() {
 }
 
 UUserWidget* ASLGameHUD::InstantiateWidget(UClass *InterfaceClass) {
+	
 	if (!InterfaceClass) {
-		UE_LOG(LogTemp, Error, TEXT("UI Interface Widget Class not set in player character!"));
+		//UE_LOG(LogTemp, Error, TEXT("UI Interface Widget Class not set in player character!"));
 		return nullptr;
 	}
 
@@ -24,4 +25,5 @@ UUserWidget* ASLGameHUD::InstantiateWidget(UClass *InterfaceClass) {
 		return nullptr;
 	}
 	return NewInterface;
+	
 }
