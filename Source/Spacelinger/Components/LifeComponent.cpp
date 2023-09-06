@@ -17,7 +17,7 @@ void ULifeComponent::ReceiveDamage(int Damage, AActor* DamageDealer) {
     CurrentLife = FMath::Max(CurrentLife - Damage, 0);
     OnDamageReceivedDelegate.Broadcast(Damage, DamageDealer);
 
-    if (CurrentLife == 0) {
+    if (CurrentLife <= 0) {
         OnDie(DamageDealer);
     }
 }
