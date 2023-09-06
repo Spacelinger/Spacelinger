@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "DoorBlock.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBlockStatusChange, bool, bBlockStatus);
+
 class UInteractableComponent;
 class UBoxComponent;
 class UWidgetComponent;
@@ -34,6 +36,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float TimeToUnblock = 7.0f;
 
+
+	UPROPERTY(BlueprintAssignable)
+	FBlockStatusChange BlockStatusChangeDelegate;
+
 	ADoorBlock();
 
 	UFUNCTION(BlueprintCallable)
@@ -56,7 +62,12 @@ protected:
 
 private:
 
+	void DissolveBlock();
 	void Reset();
 	UMaterialInstanceDynamic* DynamicChannelingProgressMaterial = nullptr;
+
+	FTimerHandle DissolveMaterialTimerHandle;
+	float MaterialDissolveStartingValue = 0.0f;
+	float MaterialDissolveCurrentValue = 0.0f;
 
 };
