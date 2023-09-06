@@ -28,6 +28,7 @@
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 #include "UI/Game/UIHUD.h"
 #include "Components/MaterialBillboardComponent.h"
+#include "Components/ArrowComponent.h"
 
 #include <Kismet/KismetMathLibrary.h>
 #include <Soldier/SLSoldier.h>
@@ -81,10 +82,14 @@ ASlime_A::ASlime_A()
 	// Interact Component
 	InteractingComponent = CreateDefaultSubobject<UInteractingComponent>(TEXT("Interacting Component"));
 	
-	// Interact Collider component
-	InteractCollisionComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("Interact Collision Component"));
-	InteractCollisionComponent->SetupAttachment(CameraBoom);
-	InteractCollisionComponent->ComponentTags.Add(FName(TEXT("Interact Volume")));
+	// Interact Collider components
+	InteractCollisionComponentCamera = CreateDefaultSubobject<UBoxComponent>(TEXT("Camera Interact Collision Component"));
+	InteractCollisionComponentCamera->SetupAttachment(RootComponent);
+	InteractCollisionComponentCamera->ComponentTags.Add(FName(TEXT("Interact Volume")));
+	
+	InteractCollisionComponentBody = CreateDefaultSubobject<UBoxComponent>(TEXT("Body Interact Collision Component"));
+	InteractCollisionComponentBody->SetupAttachment(RootComponent);
+	InteractCollisionComponentBody->ComponentTags.Add(FName(TEXT("Interact Volume")));
 
 	// Inventory Component
 	InventoryComponent = CreateDefaultSubobject<UInventoryComponent>(TEXT("Inventory Component"));
@@ -1152,7 +1157,7 @@ void ASlime_A::MeleeAttackTriggered()
 
 	// Calculate the start and end locations as the middle points between the bones
 	FVector TraceStart = (LFootLocation + RFootLocation) * 0.5f;
-	float TraceRadius = 10.0f; // Adjust the radius as needed
+	float TraceRadius = 50.0f; // Adjust the radius as needed
 
 	// Perform the sphere trace using SweepSingleByChannel
 	FCollisionShape TraceShape = FCollisionShape::MakeSphere(TraceRadius);
@@ -1280,13 +1285,13 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 
 		EnhancedInputComponent->BindAction(ClimbAction, ETriggerEvent::Started, this, &ASlime_A::Climb);
 
-		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
-		EnhancedInputComponent->BindAction(throwAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
+		EnhancedInputComponent->BindAction(PutSpiderWebAction, ETriggerEvent::Started, this, &ASlime_A::ThrowAbility);
+		EnhancedInputComponent->BindAction(PutSpiderWebAction, ETriggerEvent::Completed, this, &ASlime_A::CutThrownSpiderWeb);
 
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Started, this, &ASlime_A::AimAbility);
 		EnhancedInputComponent->BindAction(AimAbilityAction, ETriggerEvent::Completed, this, &ASlime_A::StopAimingAbility);
 
-		EnhancedInputComponent->BindAction(SwitchAbilityAction, ETriggerEvent::Started, this, &ASlime_A::ChangeSpiderWebSize);
+		EnhancedInputComponent->BindAction(ChangeSpiderWebSizeAction, ETriggerEvent::Started, this, &ASlime_A::ChangeSpiderWebSize);
 
 		// Slow Time Ability
 		EnhancedInputComponent->BindAction(SlowTimeAbility, ETriggerEvent::Started, this, &ASlime_A::SlowTime);

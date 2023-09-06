@@ -68,6 +68,9 @@ void UAbilityTask_DoorBlock::TickTask(float DeltaTime)
 		if (ShouldBroadcastAbilityTaskDelegates())
 		{
 			ChannelingCanceled.Broadcast();	// Cancel channeling
+			
+			UWorld* World = GetWorld();
+			World->GetTimerManager().ClearTimer(TimerHandle);
 		}
 		if (bOnlyTriggerOnce)
 		{

@@ -111,5 +111,11 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		
 		SphereStart->Destroy();
 		SphereEnd->Destroy();
+
+		if (bActiveBeamTop && bActiveBeamBot) {
+			for(ASLLockedDoor *Door : AssociatedDoors) {
+				if (Door) Door->OpenDoor();
+			}
+		}
 	}
 }

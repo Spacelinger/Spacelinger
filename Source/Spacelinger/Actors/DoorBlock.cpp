@@ -77,7 +77,6 @@ void ADoorBlock::Interact(AActor* InteractingActor)
 	Payload.Instigator = InteractingActor;
 	Payload.Target = this;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(InteractingActor, FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Started")), Payload);
-	//UE_LOG(LogActor, Warning, TEXT("Actor %s was interacted."), *GetName());
 }
 
 void ADoorBlock::BeginDoorBlock()
@@ -85,36 +84,32 @@ void ADoorBlock::BeginDoorBlock()
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	PreviewStaticMeshComponent->SetVisibility(false);
 	FinalStaticMeshComponent->SetVisibility(true);
+
+	BlockStatusChangeDelegate.Broadcast(true);
 }
 
 void ADoorBlock::DoorBlockSuccess()
 {
-	//UE_LOG(LogActor, Warning, TEXT("Success!"));
-
 	FinalStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);	// BUG: This collision affects the query to try to interact, so prompts to interact again
 																						// Currently using InteractableComponent->bCanInteract flag to disable from the actor the ability to be interactable
+	BlockStatusChangeDelegate.Broadcast(true);
 
-	// Dummy timer to handle reset
+	//MaterialDissolveStartingValue = MaterialDissolveCurrentValue;		Currently not used
+
 	UWorld* World = GetWorld();
-	FTimerHandle TimerHandle;
-	World->GetTimerManager().SetTimer(TimerHandle, this, &ADoorBlock::Reset, TimeToUnblock, false);
+	World->GetTimerManager().SetTimer(DissolveMaterialTimerHandle, this, &ADoorBlock::DissolveBlock, .001f, true, TimeToUnblock);
 }
 
 void ADoorBlock::DoorBlockFail()
 {
-	//UE_LOG(LogActor, Warning, TEXT("Failed!"));
+	//MaterialDissolveStartingValue = MaterialDissolveCurrentValue;		Currently not used
+
 	UWorld* World = GetWorld();
-	FTimerHandle TimerHandle;
-	// Use a dummy timer handle as we don't need to store it for later but we don't need to look for something to clear
-	// Hard coded a 1s cooldown on reset after a failed attempt to block a door. May want to turn into parameter
-	World->GetTimerManager().SetTimer(TimerHandle, this, &ADoorBlock::Reset, 1.0f, false);
-	Reset();
+	World->GetTimerManager().SetTimer(DissolveMaterialTimerHandle, this, &ADoorBlock::DissolveBlock, .001f, true);
 }
 
 void ADoorBlock::Reset()
 {
-	InteractableComponent->bCanInteract = true;
-
 	PreviewStaticMeshComponent->SetVisibility(false);
 	PreviewStaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	FinalStaticMeshComponent->SetVisibility(false);
@@ -122,9 +117,28 @@ void ADoorBlock::Reset()
 	InteractPromptWidget->SetVisibility(false);
 
 	ColliderComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+
+	BlockStatusChangeDelegate.Broadcast(false);
+
+	InteractableComponent->bCanInteract = true;
+}
+
+void ADoorBlock::DissolveBlock()
+{
+	MaterialDissolveCurrentValue -= 0.001f;		// Hard coded might want to calculate a dissolve rate based on a set time and the starting material dissolve value
+	
+	if (MaterialDissolveCurrentValue <= 0.01f) {
+		UWorld* World = GetWorld();
+		World->GetTimerManager().ClearTimer(DissolveMaterialTimerHandle);
+		Reset();
+	}
+	else {
+		UpdateDoorBlockProgress(MaterialDissolveCurrentValue);
+	}
 }
 
 void ADoorBlock::UpdateDoorBlockProgress(float NormalizedProgress)
 {
 	DynamicChannelingProgressMaterial->SetScalarParameterValue("DissolveAmount", NormalizedProgress);
+	MaterialDissolveCurrentValue = NormalizedProgress;
 }
