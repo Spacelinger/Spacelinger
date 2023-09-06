@@ -2,7 +2,7 @@
 
 #include "UI/Game/SLUILifeBar.h"
 #include "Components/LifeComponent.h"
-#include "Components/ProgressBar.h"
+#include "Components/Image.h"
 
 void UUILifeBar::NativeOnInitialized() {
 
@@ -10,7 +10,7 @@ void UUILifeBar::NativeOnInitialized() {
 
     if (LifeBar) {
 
-        LifeBar->SetPercent(1.0f);
+        LifeBar->GetDynamicMaterial()->SetScalarParameterValue(FName ("Percent"), 1.0f);
     }
     if (ULifeComponent* LifeComponent = GetLifeComponent()) {
 
@@ -24,7 +24,7 @@ void UUILifeBar::OnReceiveDamage(int Damage, AActor* DamageDelaer) {
     if (!LifeComponent)
         return;
     const float NewPercent = (1.0 / LifeComponent->GetMaxLife()) * LifeComponent->GetCurrentLife();
-    LifeBar->SetPercent(NewPercent);
+    LifeBar->GetDynamicMaterial()->SetScalarParameterValue(FName("Percent"), NewPercent);
     BP_OnReceiveDamage();
 }
 
