@@ -50,7 +50,8 @@ void UInteractingComponent::OnBoundsBeginOverlap(UPrimitiveComponent* Overlapped
 {
 	if (UInteractableComponent* Candidate = OtherActor->FindComponentByClass<UInteractableComponent>())
 	{
-		if (Candidate->CanInteract())
+		Candidate->InteractingCount += 1;
+		if (Candidate->InteractingCount == 1 && Candidate->CanInteract())
 		{
 			CurrentInteractables.AddUnique(Candidate);
 			CurrentInteractables.StableSort([](const UInteractableComponent& A, const UInteractableComponent& B) {
@@ -63,10 +64,13 @@ void UInteractingComponent::OnBoundsBeginOverlap(UPrimitiveComponent* Overlapped
 
 void UInteractingComponent::OnBoundsEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int OtherBodyIndex)
 {
-	if (OtherActor->FindComponentByClass<UInteractableComponent>())
+	if (UInteractableComponent* Candidate = OtherActor->FindComponentByClass<UInteractableComponent>())
 	{
-		CurrentInteractables.Remove(OtherActor->FindComponentByClass<UInteractableComponent>());
-		Refresh();
+		Candidate->InteractingCount -= 1;
+		if (Candidate->InteractingCount == 0) {
+			CurrentInteractables.Remove(OtherActor->FindComponentByClass<UInteractableComponent>());
+			Refresh();
+		}
 	}
 }
 
