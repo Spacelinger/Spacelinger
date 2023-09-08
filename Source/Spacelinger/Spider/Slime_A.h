@@ -227,7 +227,7 @@ protected:
 	void UpdateRotation(FVector planeNormal);
 	void StartClimbing();
 	void StopClimbing();
-	void ResetBlendingFactor();
+	void ResetAttack();
 	void ModifyDamping();
 	void MeleeAttack();
 
@@ -257,6 +257,8 @@ private:
 	TArray<FVector> InitialDiagonalDirections;
 	const float StunningWebStunDuration = 10.0f;
 	bool bIsAimingHook = false;
+	FTimerHandle AttackResetTimerHandle;
+
 
 	APlayerController* GetPlayerController();
 
@@ -327,7 +329,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "CR_Aniamtion")
 		bool bHasLanded = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
-		float fBlendingFactor;
+		bool bIsAttacking;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
