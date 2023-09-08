@@ -48,10 +48,10 @@ protected:
     void OnDestroyTimer();
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-        int CurrentLife = 110;
+        int CurrentLife = 100;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-        int MaxLife = 110;
+        int MaxLife = 100;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
         int TimeToDestroyAfterDeath = 3.0f;
