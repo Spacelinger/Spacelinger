@@ -1157,7 +1157,7 @@ void ASlime_A::MeleeAttackTriggered()
 
 	// Calculate the start and end locations as the middle points between the bones
 	FVector TraceStart = (LFootLocation + RFootLocation) * 0.5f;
-	float TraceRadius = 10.0f; // Adjust the radius as needed
+	float TraceRadius = 50.0f; // Adjust the radius as needed
 
 	// Perform the sphere trace using SweepSingleByChannel
 	FCollisionShape TraceShape = FCollisionShape::MakeSphere(TraceRadius);

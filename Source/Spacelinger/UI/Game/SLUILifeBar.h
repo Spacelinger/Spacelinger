@@ -6,7 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "SLUILifeBar.generated.h"
 
-class UProgressBar;
+class UImage;
 class ULifeComponent;
 
 UCLASS()
@@ -17,7 +17,7 @@ class SPACELINGER_API UUILifeBar : public UUserWidget
 
 protected:
 	UPROPERTY(BlueprintReadWrite, meta = (Bindwidget))
-		UProgressBar* LifeBar = nullptr;
+		UImage* LifeBar = nullptr;
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void BP_OnReceiveDamage();

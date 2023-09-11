@@ -91,6 +91,8 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		FVector WebEnd   = Web->GetEndAttachLocation();
 		ATriggerSphere *SphereStart = GetWorld()->SpawnActor<ATriggerSphere>(WebStart, FRotator::ZeroRotator);
 		ATriggerSphere *SphereEnd   = GetWorld()->SpawnActor<ATriggerSphere>(WebEnd,   FRotator::ZeroRotator);
+		Cast<USphereComponent>(SphereStart->GetCollisionComponent())->SetSphereRadius(2.0f);
+		Cast<USphereComponent>(SphereEnd  ->GetCollisionComponent())->SetSphereRadius(2.0f);
 
 		if (
 		    (TriggerLeftBot->IsOverlappingActor(SphereStart) && TriggerRightBot->IsOverlappingActor(SphereEnd))
@@ -111,5 +113,11 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		
 		SphereStart->Destroy();
 		SphereEnd->Destroy();
+
+		if (bActiveBeamTop && bActiveBeamBot) {
+			for(ASLLockedDoor *Door : AssociatedDoors) {
+				if (Door) Door->OpenDoor();
+			}
+		}
 	}
 }
