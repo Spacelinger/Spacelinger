@@ -1143,10 +1143,16 @@ void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 }
 
 void ASlime_A::MeleeAttack() {
-	if (fBlendingFactor == 0) {
-		fBlendingFactor = 1.0f;
+	if (!bIsAttacking) {
+		MeleeAttackTriggered();
+		bIsAttacking = true;
+
+		// Clear any existing timer
+		GetWorld()->GetTimerManager().ClearTimer(AttackResetTimerHandle);
+
+		// Schedule the ResetAttack method to be called after 1 second
+		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 1.0f, false);
 	}
-	MeleeAttackTriggered();
 }
 
 void ASlime_A::MeleeAttackTriggered()
@@ -1184,8 +1190,8 @@ void ASlime_A::MeleeAttackTriggered()
 	}
 }
 
-void ASlime_A::ResetBlendingFactor() {
-	fBlendingFactor = 0.0f;
+void ASlime_A::ResetAttack() {
+	bIsAttacking = false;
 }
 
 void ASlime_A::StopMoving(const FInputActionValue& Value) {
