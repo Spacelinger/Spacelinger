@@ -49,6 +49,10 @@ public:
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	//UWidgetComponent* InteractPromptWidget = nullptr;
 
+	// Num of interacting triggers currently overlapping with this component
+	// This is updated by InteractingComponent only
+	int InteractingCount = 0;
+
 protected:
 
 	UPROPERTY()

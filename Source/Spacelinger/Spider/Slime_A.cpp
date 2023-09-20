@@ -1075,6 +1075,7 @@ void ASlime_A::PutSpiderWebAbility() {
 void ASlime_A::HandleHook()
 {
 	HookTargetCrosshair->SetVisibility(false);	// todo: not ideal implementation. May be a better way
+	bIsAimingHook = false;
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.Hook.Started")), Payload);
 }
@@ -1133,6 +1134,15 @@ void ASlime_A::AimHook()
 	CollisionQueryParams.AddIgnoredActor(this);
 	GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility, CollisionQueryParams);
 
+	if (HitResult.ImpactPoint.Equals(FVector::Zero()))
+	{
+		HookTargetCrosshair->SetVisibility(false);
+	}
+	else
+	{
+		HookTargetCrosshair->SetVisibility(true);
+	}
+
 	HookTargetCrosshair->SetWorldLocation(HitResult.ImpactPoint);
 }
 
@@ -1140,13 +1150,20 @@ void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 {
 	SetCrosshairVisibility(false);
 	HookTargetCrosshair->SetVisibility(false);
+	bIsAimingHook = false;
 }
 
 void ASlime_A::MeleeAttack() {
-	if (fBlendingFactor == 0) {
-		fBlendingFactor = 1.0f;
+	if (!bIsAttacking) {
+		MeleeAttackTriggered();
+		bIsAttacking = true;
+
+		// Clear any existing timer
+		GetWorld()->GetTimerManager().ClearTimer(AttackResetTimerHandle);
+
+		// Schedule the ResetAttack method to be called after 1 second
+		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 1.0f, false);
 	}
-	MeleeAttackTriggered();
 }
 
 void ASlime_A::MeleeAttackTriggered()
@@ -1184,8 +1201,8 @@ void ASlime_A::MeleeAttackTriggered()
 	}
 }
 
-void ASlime_A::ResetBlendingFactor() {
-	fBlendingFactor = 0.0f;
+void ASlime_A::ResetAttack() {
+	bIsAttacking = false;
 }
 
 void ASlime_A::StopMoving(const FInputActionValue& Value) {
