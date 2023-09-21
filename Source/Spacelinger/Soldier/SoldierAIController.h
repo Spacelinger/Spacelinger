@@ -10,6 +10,7 @@
 class UAIPerceptionComponent;
 struct FActorPerceptionUpdateInfo;
 class UAISenseConfig_Sight;
+class ASlime_A;
 
 UCLASS()
 class SPACELINGER_API ASoldierAIController : public AAIController
@@ -18,13 +19,12 @@ class SPACELINGER_API ASoldierAIController : public AAIController
 
 	ASoldierAIController();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
-	UAIPerceptionComponent *AIPerceptionComponent;
-
 	UAISenseConfig_Sight *AISenseConfigSight;
 
 protected:
 	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime);
+	bool IsPlayerInSight();
 	
 public:
 	// If we see the player and they are at this distance or closer, they will be detected instanly.
@@ -75,21 +75,12 @@ public:
 	bool IsStunned();
 
 	void SetIsAlerted(bool NewState);
-	void RefreshDetectionTimers();
 
 private:
-	UFUNCTION()
-	void OnTargetPerceptionInfoUpdated(const FActorPerceptionUpdateInfo& UpdateInfo);
-
-	// Tick functions we're going to enable and disable as we see fit
-	void OnActorDetected();
-	void OnActorUndetected();
-	
-	FTimerHandle DetectionTimerHandle; // Timers are going to be set to loop
-	float LastTimeSecondsTimer = 0.0f;
-
-	const float TimerTickRate = 0.001f; // We want to make our timers tick every frame
-
 	// Helper functions
 	ASLSoldier* GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
+
+	UPROPERTY()
+	ASlime_A *PlayerCharacterRef = nullptr;
+	ASlime_A* GetPlayerCharacter();
 };

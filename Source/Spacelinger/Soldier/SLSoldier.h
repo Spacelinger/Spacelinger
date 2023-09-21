@@ -84,10 +84,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
 	bool bHasKey = false;
 
+	bool bIsDead = false;
+
+// AI stuff
+	// Radius of sight
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	float SightRadius = 800;
+	// Height of sight (both up and down)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	float SightHeight = 300;
+	// Peripherial Vision in degrees
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	float PeripherialVision = 40;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	bool bDrawDebugAI = false;
+
+	void DebugDrawConeOfVision();
+
+	FTimerHandle DrawDebugTimerHandle;
+
 private:
 	// Patrol
 	int32 CurrentPatrolPointIndex = 0;
 	TArray<FVector> WorldPatrolPoints; // Patrol points in World Space. Generated at BeginPlay()
-
-	bool bIsDead = false;
 };

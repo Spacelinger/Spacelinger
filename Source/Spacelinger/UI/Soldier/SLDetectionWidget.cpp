@@ -2,6 +2,7 @@
 
 
 #include "UI/Soldier/SLDetectionWidget.h"
+#include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
 #include "Soldier/SLSoldier.h"
@@ -47,10 +48,16 @@ ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() {
 	ASlime_A *PlayerCharacter = Cast<ASlime_A>(PlayerController->GetPawn());
 	if (!PlayerCharacter) return ESlateVisibility::Hidden;
 
+	ASLSoldier *SoldierActor = Cast<ASLSoldier>(OwningActor);
+	if (!SoldierActor) return ESlateVisibility::Hidden;
+
 	ESlateVisibility Result = ESlateVisibility::Hidden;
+	FVector WidgetWorldPosition = SoldierActor->DetectionWidget->GetComponentLocation();
 	FVector2D OutScreenPosition;
-	if (UGameplayStatics::ProjectWorldToScreen(PlayerController, OwningActor->GetActorLocation(), OutScreenPosition)) {
+	if (UGameplayStatics::ProjectWorldToScreen(PlayerController, WidgetWorldPosition, OutScreenPosition)) {
 		FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
+		//FVector2D OutScreenOffset = FVector2D(0, -130);
+		//OutScreenPosition += OutScreenOffset;
 		bool IsOnScreen = (OutScreenPosition.X > .0f && OutScreenPosition.X <= ViewportSize.X &&
 					       OutScreenPosition.Y > .0f && OutScreenPosition.Y <= ViewportSize.Y);
 		if (!IsOnScreen) {
