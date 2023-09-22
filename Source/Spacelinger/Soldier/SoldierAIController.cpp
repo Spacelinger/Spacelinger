@@ -51,7 +51,8 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	if (SecondsTillNextTick > 0) return;
 	SecondsTillNextTick = SecondsPerTick;*/
 
-	if (IsPlayerInSight()) {
+	bPlayerInSight = IsPlayerInSight();
+	if (bPlayerInSight) {
 		//UE_LOG(LogTemp, Display, TEXT("Player detected!!"));
 
 		DetectedActor = GetPlayerCharacter();

@@ -54,6 +54,12 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 	}
 }
 
+void ASLSoldier::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+	if (bDrawDebugAI) DebugDrawConeOfVision();
+}
+
 void ASLSoldier::BeginPlay() {
 	Super::BeginPlay();
 
@@ -209,7 +215,7 @@ void ASLSoldier::DebugDrawConeOfVision() {
 	uint8 DepthPriority = 0;
 	float Thickness = 2.f;
 	float Radius = SightRadius;
-	int32 Segments = 10;
+	int32 Segments = (int32)(PeripherialVision/10);
 
 	// Positions stuff
 	FVector Origin = GetActorLocation();

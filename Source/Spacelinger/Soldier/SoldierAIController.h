@@ -42,6 +42,13 @@ public:
 	// If the AI is alerted, but not necessarily detecting the player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	bool bIsAlerted = false;
+	// If the AI is seeing the player
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	bool bPlayerInSight = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	TWeakObjectPtr<AActor> DetectedActor; // NOTE: Probably not needed anymore
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	FVector DetectedLocation; // NOTE: Wrong accessors??
 
 	// If the AI is stunned by the player (currently not in use, but might be considered useful if the stun implementation is changed -- else delete)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
@@ -57,11 +64,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
 	float WalkingSpeed = 180.0f;
 	float RunningSpeed = 400.0f; // Obtained in BeginPlay()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
-	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
-	FVector DetectedLocation;
 
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;

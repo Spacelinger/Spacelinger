@@ -26,6 +26,10 @@ enum class SLIdleType : uint8 {
 	PatrolGuided UMETA(ToolTip="Moves from waypoint to waypoint"),
 };
 
+// TODO: Support different cone of vision
+//USTRUCT()
+//struct SLAISettings {};
+
 UCLASS(config=Game)
 class ASLSoldier : public ACharacter, public IInteractInterface
 {
@@ -35,6 +39,7 @@ public:
 	ASLSoldier();
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* DetectionWidget;
@@ -88,13 +93,13 @@ public:
 
 // AI stuff
 	// Radius of sight
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception", meta = (UIMin = "0.0"))
 	float SightRadius = 800;
 	// Height of sight (both up and down)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception", meta = (UIMin = "0.0"))
 	float SightHeight = 300;
 	// Peripherial Vision in degrees
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception", meta = (UIMin = "0.0", UIMax = "360.0"))
 	float PeripherialVision = 40;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
 	bool bDrawDebugAI = false;
