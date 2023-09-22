@@ -98,32 +98,41 @@ bool ASoldierAIController::IsPlayerInSight() {
 	ASLSoldier *SoldierCharacter = Cast<ASLSoldier>(GetInstigator());
 	if (!SoldierCharacter) return false;
 
-	// Check if player is close enough
 	FVector SoldierPosition = SoldierCharacter->GetActorLocation();
 	FVector PlayerPosition  = PlayerCharacter ->GetActorLocation();
-	FVector SoldierToPlayer = PlayerPosition - SoldierPosition;
-	float DistanceSqr = SoldierToPlayer.SquaredLength();
-	if (DistanceSqr > SoldierCharacter->SightRadius*SoldierCharacter->SightRadius) return false;
-
-	// Check if player is at the right height
 	float ZDistance = FMath::Abs(SoldierPosition.Z - PlayerPosition.Z);
-	if (ZDistance > SoldierCharacter->SightHeight) return false;
-
-	// Check if player is in front
+	FVector SoldierPositionNoZ = FVector (SoldierPosition.X, SoldierPosition.Y, 0);
+	FVector  PlayerPositionNoZ = FVector ( PlayerPosition.X,  PlayerPosition.Y, 0);
+	FVector SoldierToPlayer = PlayerPositionNoZ - SoldierPositionNoZ;
+	float DistanceSqr = SoldierToPlayer.SquaredLength();
 	FVector SoldierForward = SoldierCharacter->GetActorForwardVector();
+	SoldierForward .Normalize();
 	SoldierToPlayer.Normalize();
 	float DotResult = FVector::DotProduct(SoldierForward, SoldierToPlayer);
-	if (DotResult <= FMath::Cos(FMath::DegreesToRadians(SoldierCharacter->PeripherialVision/2))) return false;
-	//UE_LOG(LogTemp, Display, TEXT("Dot Result = %f | Soldier Peripherial Vision %f"), DotResult, FMath::Cos(SoldierCharacter->PeripherialVision));
 
-	// Raycast to check if we are looking at the player
-	FHitResult HitResult;
-	FCollisionQueryParams TraceParams;
-	TraceParams.AddIgnoredActor(this);
-	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, ECC_Camera, TraceParams);
-	if (!bHit || HitResult.GetActor() != PlayerCharacter) return false;
+	for (FUSLAICone Cone : SoldierCharacter->ConesOfVision) {
+		// Check if player is close enough
+		float MaxRadiusSqr = Cone.MaxSightRadius * Cone.MaxSightRadius;
+		float MinRadiusSqr = Cone.MinSightRadius * Cone.MinSightRadius;
+		if (DistanceSqr > MaxRadiusSqr) continue;
+		if (DistanceSqr < MinRadiusSqr) continue;
 
-	return true;
+		// Check if player is at the right height
+		if (ZDistance > Cone.SightHeight) continue;
+
+		// Check if player is in front
+		float CosPeripherialVision = FMath::Cos(FMath::DegreesToRadians(Cone.PeripherialVision/2));
+		if (DotResult <= CosPeripherialVision) continue;
+
+		// Raycast to check if we are looking at the player
+		FHitResult HitResult;
+		FCollisionQueryParams TraceParams;
+		TraceParams.AddIgnoredActor(this);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, ECC_Camera, TraceParams);
+		if (bHit && HitResult.GetActor() == PlayerCharacter) return true;
+	}
+
+	return false;
 }
 
 ASlime_A* ASoldierAIController::GetPlayerCharacter() {

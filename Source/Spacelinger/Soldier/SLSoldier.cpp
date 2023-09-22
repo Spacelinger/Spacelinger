@@ -15,6 +15,8 @@ ASLSoldier::ASLSoldier() {
 	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
 	DetectionWidget->SetupAttachment(RootComponent);
 	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
+
+	ConesOfVision.Add(FUSLAICone());
 }
 
 void ASLSoldier::OnConstruction(const FTransform& Transform) {
@@ -47,7 +49,7 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 #endif
 
 	if (bDrawDebugAI) {
-		GetWorldTimerManager().SetTimer(DrawDebugTimerHandle, this, &ASLSoldier::DebugDrawConeOfVision, .01f, true);
+		GetWorldTimerManager().SetTimer(DrawDebugTimerHandle, this, &ASLSoldier::DrawDebugCones, .01f, true);
 	}
 	else {
 		GetWorldTimerManager().ClearTimer(DrawDebugTimerHandle);
@@ -57,7 +59,7 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 void ASLSoldier::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
-	if (bDrawDebugAI) DebugDrawConeOfVision();
+	if (bDrawDebugAI) DrawDebugCones();
 }
 
 void ASLSoldier::BeginPlay() {
@@ -205,37 +207,45 @@ FVector ASLSoldier::GetNextPatrolPoint() {
 	return WorldPatrolPoints[i];
 }
 
-void ASLSoldier::DebugDrawConeOfVision() {
-	// DrawDebug stuff
+void ASLSoldier::DrawDebugCones() {
+	const bool PL = false; // bPersistentLines 
+	const float LT = .1f;  // LifeTime
+	const uint8 DP = 0;    //DepthPriority
+
+	const float Thickness = 2.f;
+
 	FVector Direction = GetActorForwardVector();
-	float AngleWidth = FMath::DegreesToRadians(PeripherialVision/2);
-	FColor Color = FColor::Red;
-	bool bPersistentLines = false;
-	float LifeTime = .1f;
-	uint8 DepthPriority = 0;
-	float Thickness = 2.f;
-	float Radius = SightRadius;
-	int32 Segments = (int32)(PeripherialVision/10);
-
-	// Positions stuff
 	FVector Origin = GetActorLocation();
-	FVector LineEndR = Origin + Direction.RotateAngleAxis( PeripherialVision/2, FVector::UpVector)*SightRadius;
-	FVector LineEndL = Origin + Direction.RotateAngleAxis(-PeripherialVision/2, FVector::UpVector)*SightRadius;
+	for (FUSLAICone Cone : ConesOfVision) {
+		float AngleWidth = FMath::DegreesToRadians(Cone.PeripherialVision/2);
+		int32 Segments = (int32)(Cone.PeripherialVision/10);
+		FColor Color = Cone.DebugColor;
 
-	float ZOffsetArray[] = { 0.0f, SightHeight, -SightHeight };
-	for (float ZOffset : ZOffsetArray) {
-		FVector Origin2   = FVector(Origin.X,   Origin.Y,   Origin.Z   + ZOffset);
-		FVector LineEndR2 = FVector(LineEndR.X, LineEndR.Y, LineEndR.Z + ZOffset);
-		FVector LineEndL2 = FVector(LineEndL.X, LineEndL.Y, LineEndL.Z + ZOffset);
-		DrawDebugCircleArc(GetWorld(), Origin2, Radius, Direction, AngleWidth, Segments, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
-		DrawDebugLine(GetWorld(), Origin2, LineEndR2,  Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
-		DrawDebugLine(GetWorld(), Origin2, LineEndL2, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
+		// Positions stuff
+		FVector SrcPosR = Origin + Direction.RotateAngleAxis( Cone.PeripherialVision/2, FVector::UpVector)*Cone.MinSightRadius;
+		FVector SrcPosL = Origin + Direction.RotateAngleAxis(-Cone.PeripherialVision/2, FVector::UpVector)*Cone.MinSightRadius;
+		FVector DstPosR = Origin + Direction.RotateAngleAxis( Cone.PeripherialVision/2, FVector::UpVector)*Cone.MaxSightRadius;
+		FVector DstPosL = Origin + Direction.RotateAngleAxis(-Cone.PeripherialVision/2, FVector::UpVector)*Cone.MaxSightRadius;
+
+		float ZOffsetArray[] = { 0.0f, Cone.SightHeight, -Cone.SightHeight };
+		for (float ZOffset : ZOffsetArray) {
+			FVector Origin2  = FVector(Origin.X,  Origin.Y,  Origin.Z  + ZOffset);
+			FVector SrcPosR2 = FVector(SrcPosR.X, SrcPosR.Y, SrcPosR.Z + ZOffset);
+			FVector SrcPosL2 = FVector(SrcPosL.X, SrcPosL.Y, SrcPosL.Z + ZOffset);
+			FVector DstPosR2 = FVector(DstPosR.X, DstPosR.Y, DstPosR.Z + ZOffset);
+			FVector DstPosL2 = FVector(DstPosL.X, DstPosL.Y, DstPosL.Z + ZOffset);
+			DrawDebugCircleArc(GetWorld(), Origin2, Cone.MaxSightRadius, Direction, AngleWidth, Segments, Color, PL, LT, DP, Thickness);
+			DrawDebugCircleArc(GetWorld(), Origin2, Cone.MinSightRadius, Direction, AngleWidth, Segments, Color, PL, LT, DP, Thickness);
+			DrawDebugLine(GetWorld(), SrcPosR2, DstPosR2,  Color, PL, LT, DP, Thickness);
+			DrawDebugLine(GetWorld(), SrcPosL2, DstPosL2,  Color, PL, LT, DP, Thickness);
+		}
+
+		FVector ConeVertex[] = { SrcPosR, SrcPosL, DstPosR, DstPosL };
+		for (FVector Point : ConeVertex) {
+			FVector PointT = FVector(Point.X, Point.Y, Point.Z + Cone.SightHeight);
+			FVector PointB = FVector(Point.X, Point.Y, Point.Z - Cone.SightHeight);
+			DrawDebugLine(GetWorld(), PointT, PointB, Color, PL, LT, DP, Thickness);
+		}
 	}
 
-	FVector ConeVertex[] = { Origin, LineEndR, LineEndL };
-	for (FVector Point : ConeVertex) {
-		FVector PointT = FVector(Point.X, Point.Y, Point.Z + SightHeight);
-		FVector PointB = FVector(Point.X, Point.Y, Point.Z - SightHeight);
-		DrawDebugLine(GetWorld(), PointT, PointB, Color, bPersistentLines, LifeTime, DepthPriority, Thickness);
-	}
 }
