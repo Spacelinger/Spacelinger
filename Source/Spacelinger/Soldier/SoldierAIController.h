@@ -47,8 +47,10 @@ public:
 	bool bPlayerInSight = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	TWeakObjectPtr<AActor> DetectedActor; // NOTE: Probably not needed anymore
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	FVector DetectedLocation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
-	FVector DetectedLocation; // NOTE: Wrong accessors??
+	bool bLastLocationKnown = false; // This will be modified by tasks in the Behavior Tree too
 
 	// If the AI is stunned by the player (currently not in use, but might be considered useful if the stun implementation is changed -- else delete)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")

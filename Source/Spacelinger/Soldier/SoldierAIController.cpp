@@ -51,12 +51,16 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	if (SecondsTillNextTick > 0) return;
 	SecondsTillNextTick = SecondsPerTick;*/
 
+	ASlime_A *PlayerCharacter = GetPlayerCharacter();
+	if (!PlayerCharacter) return;
+
+	DetectedLocation = PlayerCharacter->GetActorLocation();
 	bPlayerInSight = IsPlayerInSight();
 	if (bPlayerInSight) {
 		//UE_LOG(LogTemp, Display, TEXT("Player detected!!"));
+		bLastLocationKnown = true;
 
-		DetectedActor = GetPlayerCharacter();
-		DetectedLocation = DetectedActor.Get()->GetActorLocation();
+		DetectedActor = PlayerCharacter;
 		if (bIsAlerted) {
 			CurrentAwareness = 1.0f;
 		}
