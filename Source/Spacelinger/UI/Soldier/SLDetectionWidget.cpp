@@ -10,6 +10,7 @@
 #include "Components/CanvasPanel.h"
 #include "Spider/Slime_A.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
@@ -51,31 +52,30 @@ ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() {
 	ASLSoldier *SoldierActor = Cast<ASLSoldier>(OwningActor);
 	if (!SoldierActor) return ESlateVisibility::Hidden;
 
-	ESlateVisibility Result = ESlateVisibility::Hidden;
 	FVector WidgetWorldPosition = SoldierActor->DetectionWidget->GetComponentLocation();
 	FVector2D OutScreenPosition;
 	if (UGameplayStatics::ProjectWorldToScreen(PlayerController, WidgetWorldPosition, OutScreenPosition)) {
 		FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
-		//FVector2D OutScreenOffset = FVector2D(0, -130);
-		//OutScreenPosition += OutScreenOffset;
 		bool IsOnScreen = (OutScreenPosition.X > .0f && OutScreenPosition.X <= ViewportSize.X &&
 					       OutScreenPosition.Y > .0f && OutScreenPosition.Y <= ViewportSize.Y);
-		if (!IsOnScreen) {
-			Result = ESlateVisibility::HitTestInvisible;
-		}
+
+		if (IsOnScreen) return ESlateVisibility::Hidden;
+
+		// Check if Soldier is behind the camera
+		FVector CameraToSoldier = WidgetWorldPosition - PlayerCharacter->GetFollowCamera()->GetComponentLocation();
+		if (FVector::DotProduct(PlayerCharacter->GetFollowCamera()->GetForwardVector(), CameraToSoldier) < 0)
+			return ESlateVisibility::Hidden;
 	}
 
 	// Set rotation to point to actor if we are going to show the widget
-	if (Result == ESlateVisibility::HitTestInvisible) {
-		FRotator LookAtRotator = FRotationMatrix::MakeFromX(OwningActor->GetActorLocation() - PlayerCharacter->GetActorLocation()).Rotator();
-		FRotator CameraRotation = PlayerCharacter->GetCameraBoom()->GetTargetRotation();
-		FRotator Delta = LookAtRotator - CameraRotation;
-		Delta.Normalize();
+	FRotator LookAtRotator = FRotationMatrix::MakeFromX(OwningActor->GetActorLocation() - PlayerCharacter->GetActorLocation()).Rotator();
+	FRotator CameraRotation = PlayerCharacter->GetCameraBoom()->GetTargetRotation();
+	FRotator Delta = LookAtRotator - CameraRotation;
+	Delta.Normalize();
 		
-		RotationPanel->SetRenderTransformAngle(Delta.Yaw);
-	}
+	RotationPanel->SetRenderTransformAngle(Delta.Yaw);
 
-	return Result;
+	return ESlateVisibility::HitTestInvisible;
 }
 
 FLinearColor USLDetectionWidget::GetBarColor() const {

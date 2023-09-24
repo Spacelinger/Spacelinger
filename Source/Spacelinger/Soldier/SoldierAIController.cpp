@@ -58,7 +58,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	bPlayerInSight = IsPlayerInSight();
 	if (bPlayerInSight) {
 		//UE_LOG(LogTemp, Display, TEXT("Player detected!!"));
-		bLastLocationKnown = true;
+		bSearchLastLocation = true;
 
 		DetectedActor = PlayerCharacter;
 		if (bIsAlerted) {
@@ -87,7 +87,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 		//UE_LOG(LogTemp, Display, TEXT("Player undetected!!"));
 		DetectedActor.Reset();
 
-		if (CurrentAwareness > 0.0f) {
+		if (!bSearchLastLocation && CurrentAwareness > 0.0f) {
 			CurrentAwareness -= DeltaTime * UndetectionSpeed;
 			if (CurrentAwareness <= 0.0f) {
 				SetIsAlerted(false);
