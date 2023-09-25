@@ -70,9 +70,6 @@ public:
 
 // Interact stuff
 	int InteractPriority = 99;
-	//int GetInteractPriority() const;
-	//void Interact(AActor* ActorInteracting);	//LUIS: Interact has been refactored
-	//void SetAsCandidate(bool IsCandidate);
 	void MoveToCeiling();
 	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
