@@ -7,9 +7,6 @@
 #include "Soldier\SLSoldier.h"
 #include "SoldierAIController.generated.h"
 
-class UAIPerceptionComponent;
-struct FActorPerceptionUpdateInfo;
-class UAISenseConfig_Sight;
 class ASlime_A;
 
 UCLASS()
@@ -18,8 +15,6 @@ class SPACELINGER_API ASoldierAIController : public AAIController
 	GENERATED_BODY()
 
 	ASoldierAIController();
-
-	UAISenseConfig_Sight *AISenseConfigSight;
 
 protected:
 	virtual void BeginPlay();
@@ -46,11 +41,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	bool bPlayerInSight = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	bool bSearchLastLocation = false; // This will be modified by tasks in the Behavior Tree too
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
 	TWeakObjectPtr<AActor> DetectedActor; // NOTE: Not needed, but I don't want to break things rn by deleting this
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	FVector DetectedLocation;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
-	bool bSearchLastLocation = false; // This will be modified by tasks in the Behavior Tree too
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	float MaxSightRadius = 0.0f; // Radius of the biggest cone of vision, retrieved on BeginPlay
 
 	// If the AI is stunned by the player (currently not in use, but might be considered useful if the stun implementation is changed -- else delete)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")

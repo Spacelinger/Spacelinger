@@ -86,7 +86,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
 	bool bMoveToCeiling = false;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Patrol")
 	SLIdleType PatrolType = SLIdleType::Standing;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
@@ -106,7 +106,7 @@ public:
 	bool bIsDead = false;
 
 // AI stuff
-	UPROPERTY(EditAnywhere, Category = "Spacelinger|AI")
+	UPROPERTY(EditAnywhere, Category = "Spacelinger|AI|Perception")
 	TArray<FUSLAICone> ConesOfVision;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
 	bool bDrawDebugAI = false;

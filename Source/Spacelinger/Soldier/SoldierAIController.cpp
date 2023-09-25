@@ -5,26 +5,12 @@
 
 #include "NavigationSystem.h"
 #include "BrainComponent.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig.h"
-#include "Perception/AISenseConfig_Sight.h"
 #include "Spider/Slime_A.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 
-ASoldierAIController::ASoldierAIController() {
-	AISenseConfigSight = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("AISenseConfigSight"));
-	AISenseConfigSight->DetectionByAffiliation.bDetectEnemies    = false;
-	AISenseConfigSight->DetectionByAffiliation.bDetectNeutrals   = true;
-	AISenseConfigSight->DetectionByAffiliation.bDetectFriendlies = false;
-	AISenseConfigSight->SightRadius     = 800;
-	AISenseConfigSight->LoseSightRadius = 1000;
-	AISenseConfigSight->AutoSuccessRangeFromLastSeenLocation = 50.0f;
-
-	// Initialize patrol parameters
-	// CurrentPatrolPoint = 0;
-}
+ASoldierAIController::ASoldierAIController() { }
 
 void ASoldierAIController::BeginPlay() {
 	Super::BeginPlay();
@@ -35,6 +21,11 @@ void ASoldierAIController::BeginPlay() {
 		}
 
 		InitialTransform = InstigatorSoldier->GetTransform();
+
+		MaxSightRadius = 0.0f;
+		for (FUSLAICone Cone : InstigatorSoldier->ConesOfVision) {
+			if (Cone.MaxSightRadius > MaxSightRadius) MaxSightRadius = Cone.MaxSightRadius;
+		}
 	}
 
 	SetIsAlerted(false);
@@ -46,10 +37,6 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	if (IsStunned()) return;
 	ASLSoldier *SoldierCharacter = Cast<ASLSoldier>(GetInstigator());
 	if (!SoldierCharacter || SoldierCharacter->bIsDead) return;
-
-	/*SecondsTillNextTick -= DeltaTime;
-	if (SecondsTillNextTick > 0) return;
-	SecondsTillNextTick = SecondsPerTick;*/
 
 	ASlime_A *PlayerCharacter = GetPlayerCharacter();
 	if (!PlayerCharacter) return;
@@ -72,7 +59,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 			}
 			else {
 				// Calc new awareness
-				float DistanceNormalized = (Distance - DistanceInstantDetection)/(AISenseConfigSight->LoseSightRadius - DistanceInstantDetection);
+				float DistanceNormalized = (Distance-DistanceInstantDetection) / (MaxSightRadius-DistanceInstantDetection);
 				if (DistanceNormalized >= 1.0f) { DistanceNormalized = 1.0f; } // Just in case we got away but it didn't quite undetected us yet.
 
 				CurrentAwareness += DeltaTime * (1-DistanceNormalized) * DetectionSpeed;
@@ -87,7 +74,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 		//UE_LOG(LogTemp, Display, TEXT("Player undetected!!"));
 		DetectedActor.Reset();
 
-		if (!bSearchLastLocation && CurrentAwareness > 0.0f) {
+		if (CurrentAwareness > 0.0f && (!bIsAlerted || !bSearchLastLocation)) {
 			CurrentAwareness -= DeltaTime * UndetectionSpeed;
 			if (CurrentAwareness <= 0.0f) {
 				SetIsAlerted(false);
@@ -104,11 +91,15 @@ bool ASoldierAIController::IsPlayerInSight() {
 
 	FVector SoldierPosition = SoldierCharacter->GetActorLocation();
 	FVector PlayerPosition  = PlayerCharacter ->GetActorLocation();
-	float ZDistance = FMath::Abs(SoldierPosition.Z - PlayerPosition.Z);
 	FVector SoldierPositionNoZ = FVector (SoldierPosition.X, SoldierPosition.Y, 0);
 	FVector  PlayerPositionNoZ = FVector ( PlayerPosition.X,  PlayerPosition.Y, 0);
 	FVector SoldierToPlayer = PlayerPositionNoZ - SoldierPositionNoZ;
 	float DistanceSqr = SoldierToPlayer.SquaredLength();
+
+	// Check if the player is too far away to avoid executing more operations
+	if (DistanceSqr > MaxSightRadius*MaxSightRadius) return false;
+
+	float ZDistance = FMath::Abs(SoldierPosition.Z - PlayerPosition.Z);
 	FVector SoldierForward = SoldierCharacter->GetActorForwardVector();
 	SoldierForward .Normalize();
 	SoldierToPlayer.Normalize();
