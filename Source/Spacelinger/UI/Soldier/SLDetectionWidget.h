@@ -7,6 +7,7 @@
 #include <map>
 #include "Components/AudioComponent.h"
 #include "Sound/SoundCue.h"
+#include "Soldier/SLSoldier.h"
 #include "SLDetectionWidget.generated.h"
 
 class ASoldierAIController;
@@ -29,12 +30,12 @@ class SPACELINGER_API USLDetectionWidget : public UUserWidget
 protected:
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidgetOptional))
 	UCanvasPanel *RotationPanel;
-	std::map<AActor*, float> SoldierAwarenessMap; // [!!!!!] This should be a TEMPORARY solution since we'll need some sort of hive mind for the AI, not every widget should know about every soldier
-	std::map<AActor*, float> MostAwareSoldier;
+	std::map<ASLSoldier*, float> SoldierAwarenessMap; // [!!!!!] This should be a TEMPORARY solution since we'll need some sort of hive mind for the AI, not every widget should know about every soldier
+	std::map<ASLSoldier*, float> MostAwareSoldier;
 
-public:
+public:	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
-	AActor *OwningActor;
+	ASLSoldier *OwningActor;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * BarFillingSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -42,11 +43,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * ChaseMusic; // This 100% should NOT be here
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SoldierVoiceSound;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentBarFillingSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentDetectionSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentChaseMusic;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentSoldierVoiceSound;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
+	USpacelingerAudioComponent* AudioManager = nullptr;
 
 	// Bound functions
 	UFUNCTION(BlueprintCallable)
@@ -62,7 +69,7 @@ public:
 
 	// Helper functions
 	UFUNCTION(BlueprintCallable)
-	bool IsActorAware(AActor *Actor);
+	bool IsActorAware(ASLSoldier *Actor);
 	UFUNCTION(BlueprintCallable)
 	void PlaySounds();
 

@@ -8,6 +8,7 @@
 #include "UI/Soldier/SLDetectionWidget.h"
 #include "Soldier/SLSoldierPath.h"
 #include "EngineUtils.h"
+#include "Audio/SpacelingerAudioComponent.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -51,6 +52,9 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 void ASLSoldier::BeginPlay() {
 	Super::BeginPlay();
 
+	GameInstance = GetGameInstance();
+	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
+	
 	if (USLDetectionWidget *DetectionInterface = Cast<USLDetectionWidget>(DetectionWidget->GetWidget())) {
 		DetectionInterface->OwningActor = this;
 	}
@@ -59,7 +63,7 @@ void ASLSoldier::BeginPlay() {
 	}
 
 	if (OffscreenDetectionWidgetClass) {
-		OffscreenDetectionWidget = Cast<USLDetectionWidget>(CreateWidget(GetGameInstance()->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
+		OffscreenDetectionWidget = Cast<USLDetectionWidget>(CreateWidget(GameInstance->GetPrimaryPlayerController(), OffscreenDetectionWidgetClass));
 		if (OffscreenDetectionWidget) {
 			OffscreenDetectionWidget->AddToViewport();
 			OffscreenDetectionWidget->OwningActor = this;
@@ -184,9 +188,25 @@ void ASLSoldier::Die(AActor *Killer)
 	GetMesh()->SetSimulatePhysics(true);
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
-
+	
 	SoldierHasDied(Killer);
+	AudioManager->SoldierDeathAudioReaction();
 }
+
+bool ASLSoldier::IsDead()
+{
+	return bIsDead;	
+}
+
+USpacelingerAudioComponent * ASLSoldier::GetAudioManager()
+{
+	if (AudioManager)
+	{
+		return AudioManager;
+	}
+	return nullptr;
+}
+
 
 FVector ASLSoldier::GetNextPatrolPoint() {
 	int i = CurrentPatrolPointIndex;
