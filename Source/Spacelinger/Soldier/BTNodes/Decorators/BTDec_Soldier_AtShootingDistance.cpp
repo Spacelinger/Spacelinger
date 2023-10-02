@@ -1,4 +1,4 @@
-
+// NOTE: No longer used, but leaving it here so we can use it as a template
 #include "BTDec_Soldier_AtShootingDistance.h"
 #include "Soldier/SoldierAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"

@@ -2,31 +2,30 @@
 
 
 #include "UI/Soldier/SLDetectionWidget.h"
+#include "Components/WidgetComponent.h"
 #include "Components/ProgressBar.h"
 #include "Components/Image.h"
-#include "Soldier/SLSoldier.h"
 #include "Soldier/SoldierAIController.h"
 #include "Components/CanvasPanel.h"
 #include "Spider/Slime_A.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 
 #include "Kismet/GameplayStatics.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 
+
 float USLDetectionWidget::GetBarPercent() const {
-	if (ASLSoldier *SoldierActor = Cast<ASLSoldier>(OwningActor)) {
 		// If stunned awareness is max, so we show how long until it gets unstunned
 		// otherwise we just show it's current awareness
-		if (SoldierActor->IsStunned()) {
-			return SoldierActor->GetRemainingTimeToUnstunAsPercentage();
+		if (OwningActor->IsStunned()) {
+			return OwningActor->GetRemainingTimeToUnstunAsPercentage();
 		}
 
 		if (ASoldierAIController *AIController = GetAIController(OwningActor)) {
 			return AIController->CurrentAwareness;
 		}
-	}
-	
-	return .0f;
+		return .0f;
 }
 
 ESlateVisibility USLDetectionWidget::GetBarVisibility() {
@@ -47,28 +46,33 @@ ESlateVisibility USLDetectionWidget::GetBarVisibilityOffscreen() {
 	ASlime_A *PlayerCharacter = Cast<ASlime_A>(PlayerController->GetPawn());
 	if (!PlayerCharacter) return ESlateVisibility::Hidden;
 
-	ESlateVisibility Result = ESlateVisibility::Hidden;
+	ASLSoldier *SoldierActor = Cast<ASLSoldier>(OwningActor);
+	if (!SoldierActor) return ESlateVisibility::Hidden;
+
+	FVector WidgetWorldPosition = SoldierActor->DetectionWidget->GetComponentLocation();
 	FVector2D OutScreenPosition;
-	if (UGameplayStatics::ProjectWorldToScreen(PlayerController, OwningActor->GetActorLocation(), OutScreenPosition)) {
+	if (UGameplayStatics::ProjectWorldToScreen(PlayerController, WidgetWorldPosition, OutScreenPosition)) {
 		FVector2D ViewportSize = UWidgetLayoutLibrary::GetViewportSize(GetWorld());
 		bool IsOnScreen = (OutScreenPosition.X > .0f && OutScreenPosition.X <= ViewportSize.X &&
 					       OutScreenPosition.Y > .0f && OutScreenPosition.Y <= ViewportSize.Y);
-		if (!IsOnScreen) {
-			Result = ESlateVisibility::HitTestInvisible;
-		}
+
+		if (IsOnScreen) return ESlateVisibility::Hidden;
+
+		// Check if Soldier is behind the camera
+		FVector CameraToSoldier = WidgetWorldPosition - PlayerCharacter->GetFollowCamera()->GetComponentLocation();
+		if (FVector::DotProduct(PlayerCharacter->GetFollowCamera()->GetForwardVector(), CameraToSoldier) < 0)
+			return ESlateVisibility::Hidden;
 	}
 
 	// Set rotation to point to actor if we are going to show the widget
-	if (Result == ESlateVisibility::HitTestInvisible) {
-		FRotator LookAtRotator = FRotationMatrix::MakeFromX(OwningActor->GetActorLocation() - PlayerCharacter->GetActorLocation()).Rotator();
-		FRotator CameraRotation = PlayerCharacter->GetCameraBoom()->GetTargetRotation();
-		FRotator Delta = LookAtRotator - CameraRotation;
-		Delta.Normalize();
+	FRotator LookAtRotator = FRotationMatrix::MakeFromX(OwningActor->GetActorLocation() - PlayerCharacter->GetActorLocation()).Rotator();
+	FRotator CameraRotation = PlayerCharacter->GetCameraBoom()->GetTargetRotation();
+	FRotator Delta = LookAtRotator - CameraRotation;
+	Delta.Normalize();
 		
-		RotationPanel->SetRenderTransformAngle(Delta.Yaw);
-	}
+	RotationPanel->SetRenderTransformAngle(Delta.Yaw);
 
-	return Result;
+	return ESlateVisibility::HitTestInvisible;
 }
 
 FLinearColor USLDetectionWidget::GetBarColor() const {
@@ -93,7 +97,7 @@ FLinearColor USLDetectionWidget::GetBarBackgroundColor() const {
 	return DefaultBackgroundColor;
 }
 
-bool USLDetectionWidget::IsActorAware(AActor *Actor) {
+bool USLDetectionWidget::IsActorAware(ASLSoldier *Actor) {
 	if (ASoldierAIController *AIController = GetAIController(Actor)) {
 		SoldierAwarenessMap[Actor] = AIController->CurrentAwareness;
 		return AIController->CurrentAwareness > .01f;
@@ -105,57 +109,79 @@ void USLDetectionWidget::PlaySounds()
 {
 	// Get the pair of elements with the biggest value in the map
 	auto it = std::max_element(SoldierAwarenessMap.begin(), SoldierAwarenessMap.end(),
-		[](const std::pair<AActor*, float>& p1, const std::pair<AActor*, float>& p2) {
+		[](const std::pair<ASLSoldier*, float>& p1, const std::pair<ASLSoldier*, float>& p2) {
 			return p1.second < p2.second; });
+
+	// Get the actor associated to the biggest value in the map
+	ASLSoldier* Actor = it->first;
 	
 	// Check if the biggest element from the SoldierAwarenessMap is bigger than .01f
 	if (it->second > .01f)
 	{
-		// Get the actor associated to the biggest value in the map
-		AActor* Actor = it->first;
-
-		// Check if the awareness of the actor is going up
-		if (!CurrentBarFillingSound)
+		// And make sure that only the wanted actor will trigger sounds
+		if (Actor == OwningActor && !Actor->IsDead())
 		{
-			// Set the volume multiplier to increase or decrease with the awareness
-			CurrentBarFillingSound = UGameplayStatics::SpawnSound2D(this, BarFillingSound, 0.25f, 3*it->second);
-		} else
-		{
-			CurrentBarFillingSound->SetVolumeMultiplier(it->second);
-		}
-		if (it->second >= 1.f)
-		{
-			if (!CurrentDetectionSound)
+			AudioManager = Actor->GetAudioManager();
+			// Check if the awareness of the actor is going up
+			if (!CurrentBarFillingSound)
 			{
-				CurrentChaseMusic = UGameplayStatics::SpawnSound2D(this, ChaseMusic, 0.05f);
-				CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, 0.25f);
-			}
-			if (CurrentBarFillingSound)
+				// Set the volume multiplier to increase or decrease with the awareness
+				CurrentBarFillingSound = UGameplayStatics::SpawnSound2D(this, BarFillingSound, 0.45f, 3*it->second);
+			} else
 			{
-				CurrentBarFillingSound->FadeOut(1.5f, 0.f);
+				CurrentBarFillingSound->SetVolumeMultiplier(it->second);
+			}
+			if (it->second >= 1.f)
+			{
+				if (!CurrentDetectionSound)
+				{
+					ActorRecentlyAware = true;
+					AudioManager->PlayChaseMusic();
+					CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, 0.25f);
+					AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
+				}
+				if (CurrentBarFillingSound)
+				{
+					CurrentBarFillingSound->FadeOut(1.5f, 0.f);
+				}
 			}
 		}
-	} else
+	}
+	else
 	{
+		
 		if (CurrentBarFillingSound)
 		{
 			CurrentBarFillingSound->FadeOut(1.0f, 0.f);
-            CurrentBarFillingSound = nullptr;
+			CurrentBarFillingSound = nullptr;
 		}
 		if (CurrentDetectionSound)
 		{
 			CurrentDetectionSound = nullptr;
 		}
-		if (CurrentChaseMusic)
-        {
-            CurrentChaseMusic->FadeOut(2.0f, 0.f);
-            if (!CurrentChaseMusic->bIsFadingOut)
-            {
-                CurrentChaseMusic = nullptr;
-            }
-        }
+		if (ActorRecentlyAware)
+		{
+			AudioManager = Actor->GetAudioManager();
+			if (Actor->IsDead())
+			{
+				AudioManager->SoldierDeathAudioReaction();
+			} else
+			{
+				AudioManager->Soldier_ResumePatrol();
+			}
+			AudioManager->StopChaseMusic();
+			ActorRecentlyAware = false;
+		}
 	}
-}
+	if (Actor != nullptr)
+			{
+				if (Actor == OwningActor && Actor->IsDead())
+				{
+					AudioManager->StopChaseMusic();
+				}
+			}
+	}
+	
 
 ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
 	APawn* AsPawn = Cast<APawn>(Actor);

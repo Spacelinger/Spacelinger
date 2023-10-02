@@ -1,6 +1,6 @@
 // Without Copyright. Project SpaceLinger, Master en Creacion de Videojuegos (MCV) at Universitat Pompeu Fabra (UPF)
 
-#include "Slime_A.h"
+#include "Spider/Slime_A.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
