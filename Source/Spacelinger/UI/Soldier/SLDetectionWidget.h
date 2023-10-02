@@ -41,15 +41,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * DetectionSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
-	USoundCue * ChaseMusic; // This 100% should NOT be here
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * SoldierVoiceSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentBarFillingSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentDetectionSound;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
-	UAudioComponent * CurrentChaseMusic;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentSoldierVoiceSound;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
@@ -75,6 +71,7 @@ public:
 
 private:
 	ASoldierAIController* GetAIController(AActor *Actor) const;
+	bool ActorRecentlyAware = false;
 
 protected:
 	//void NativeOnInitialized() override;

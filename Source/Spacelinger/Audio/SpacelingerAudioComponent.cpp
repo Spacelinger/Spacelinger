@@ -2,6 +2,8 @@
 
 
 #include "Audio/SpacelingerAudioComponent.h"
+
+#include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 bool USpacelingerAudioComponent::ShouldCreateSubsystem(UObject* Outer) const
@@ -43,6 +45,26 @@ void USpacelingerAudioComponent::Soldier_ResumePatrol()
 	}
 }
 
+void USpacelingerAudioComponent::PlayChaseMusic()
+{
+	if (!IsAnySoldierAlerted)
+	{
+		IsAnySoldierAlerted = true;
+		CurrentChaseMusic = UGameplayStatics::SpawnSound2D(this, ChaseMusic, 0.10f);
+	}
+}
+
+void USpacelingerAudioComponent::StopChaseMusic()
+{
+	if (this != nullptr)
+	{
+		IsAnySoldierAlerted = false;
+		if (CurrentChaseMusic)
+		{
+			CurrentChaseMusic->FadeOut(2.0f, 0.f);
+		}
+	}
+}
 
 
 

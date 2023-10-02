@@ -114,6 +114,7 @@ void USLDetectionWidget::PlaySounds()
 		// And make sure that only the wanted actor will trigger sounds
 		if (Actor == OwningActor && !Actor->IsDead())
 		{
+			AudioManager = Actor->GetAudioManager();
 			// Check if the awareness of the actor is going up
 			if (!CurrentBarFillingSound)
 			{
@@ -127,10 +128,11 @@ void USLDetectionWidget::PlaySounds()
 			{
 				if (!CurrentDetectionSound)
 				{
-					CurrentChaseMusic = UGameplayStatics::SpawnSound2D(this, ChaseMusic, 0.1f);
+					ActorRecentlyAware = true;
+					AudioManager->PlayChaseMusic();
 					CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, 0.25f);
 					CurrentSoldierVoiceSound = UGameplayStatics::SpawnSoundAtLocation(this, SoldierVoiceSound,
-					Actor->GetActorLocation(), Actor->GetActorRotation(), 0.1f);
+					Actor->GetActorLocation(), Actor->GetActorRotation(), 0.25f);
 				}
 				if (CurrentBarFillingSound)
 				{
@@ -141,6 +143,7 @@ void USLDetectionWidget::PlaySounds()
 	}
 	else
 	{
+		
 		if (CurrentBarFillingSound)
 		{
 			CurrentBarFillingSound->FadeOut(1.0f, 0.f);
@@ -150,7 +153,7 @@ void USLDetectionWidget::PlaySounds()
 		{
 			CurrentDetectionSound = nullptr;
 		}
-		if (CurrentChaseMusic)
+		if (ActorRecentlyAware)
 		{
 			AudioManager = Actor->GetAudioManager();
 			if (Actor->IsDead())
@@ -160,16 +163,15 @@ void USLDetectionWidget::PlaySounds()
 			{
 				AudioManager->Soldier_ResumePatrol();
 			}
-			// CurrentChaseMusic->FadeOut(2.0f, 0.f);
-			CurrentChaseMusic = nullptr;
+			AudioManager->StopChaseMusic();
+			ActorRecentlyAware = false;
 		}
 	}
 	if (Actor != nullptr)
 			{
-				if (Actor == OwningActor && CurrentChaseMusic && Actor->IsDead()) // ARREGLAR CAST PROBLEMÁTICO (NO DETECTA BIEN QUE ESTÉ MUERTO)
+				if (Actor == OwningActor && Actor->IsDead())
 				{
-					CurrentChaseMusic->FadeOut(2.0f, 0.f);
-					CurrentChaseMusic = nullptr;
+					AudioManager->StopChaseMusic();
 				}
 			}
 	}

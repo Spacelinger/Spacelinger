@@ -27,6 +27,8 @@ public:
 	
 	void SoldierDeathAudioReaction();
 	void Soldier_ResumePatrol();
+	void PlayChaseMusic();
+	void StopChaseMusic();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * FirstKillSFX;
@@ -35,12 +37,19 @@ public:
 	USoundCue * SoldierDeathSFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * ChaseMusic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * SoldierResumePatrolSFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentSoldierResumePatrolSFX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentChaseMusic;
+
 	bool IsResumingPatrol = false;
+	bool IsAnySoldierAlerted = false;
 
 private:
 	friend class FSubsystemCollectionBase;
