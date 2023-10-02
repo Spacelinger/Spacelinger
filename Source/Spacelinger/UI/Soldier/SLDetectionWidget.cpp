@@ -131,8 +131,7 @@ void USLDetectionWidget::PlaySounds()
 					ActorRecentlyAware = true;
 					AudioManager->PlayChaseMusic();
 					CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, 0.25f);
-					CurrentSoldierVoiceSound = UGameplayStatics::SpawnSoundAtLocation(this, SoldierVoiceSound,
-					Actor->GetActorLocation(), Actor->GetActorRotation(), 0.25f);
+					AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
 				}
 				if (CurrentBarFillingSound)
 				{

@@ -5,6 +5,7 @@
 
 #include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Soldier/SLSoldier.h"
 
 bool USpacelingerAudioComponent::ShouldCreateSubsystem(UObject* Outer) const
 {
@@ -23,6 +24,8 @@ void USpacelingerAudioComponent::Deinitialize()
 
 void USpacelingerAudioComponent::SoldierDeathAudioReaction()
 {
+	StopAllSoundsExceptDeathReaction();
+	
 	SoldierDeathCounter++;
 	
 	UGameplayStatics::SpawnSound2D(this, SoldierDeathSFX, 0.5f);
@@ -34,14 +37,37 @@ void USpacelingerAudioComponent::SoldierDeathAudioReaction()
 	
 }
 
+void USpacelingerAudioComponent::StopAllSoundsExceptDeathReaction()
+{
+	IsSoldierVoiceCuePlaying = false;
+	
+	if (CurrentSoldierVoiceCue)
+	{
+		CurrentSoldierVoiceCue->Stop();
+	}
+	
+	if (CurrentSoldierResumePatrolSFX)
+	{
+		CurrentSoldierResumePatrolSFX->Stop();
+	}
+}
+
 void USpacelingerAudioComponent::Soldier_ResumePatrol()
 {
 	if (!CurrentSoldierResumePatrolSFX)
 	{
+		IsSoldierVoiceCuePlaying = false;
 		CurrentSoldierResumePatrolSFX = UGameplayStatics::SpawnSound2D(this, SoldierResumePatrolSFX, 0.5f);
-	} else
+	}
+}
+
+void USpacelingerAudioComponent::Soldier_VoiceCue(FVector Location, FRotator Rotation)
+{
+	if (!IsSoldierVoiceCuePlaying)
 	{
-		CurrentSoldierResumePatrolSFX = nullptr;
+		IsSoldierVoiceCuePlaying = true;
+		CurrentSoldierVoiceCue = UGameplayStatics::SpawnSoundAtLocation(this, SoldierVoiceCue,
+						Location, Rotation, 0.25f);
 	}
 }
 

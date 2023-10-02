@@ -29,6 +29,8 @@ public:
 	void Soldier_ResumePatrol();
 	void PlayChaseMusic();
 	void StopChaseMusic();
+	void Soldier_VoiceCue(FVector Location, FRotator Rotation);
+	void StopAllSoundsExceptDeathReaction();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * FirstKillSFX;
@@ -40,6 +42,9 @@ public:
 	USoundCue * ChaseMusic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SoldierVoiceCue; // First encounter w/ spider and also random instances
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * SoldierResumePatrolSFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -48,8 +53,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentChaseMusic;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentSoldierVoiceCue;
+
 	bool IsResumingPatrol = false;
 	bool IsAnySoldierAlerted = false;
+	bool IsSoldierVoiceCuePlaying = false;
 
 private:
 	friend class FSubsystemCollectionBase;

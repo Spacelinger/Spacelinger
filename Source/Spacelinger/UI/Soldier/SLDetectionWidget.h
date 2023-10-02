@@ -46,8 +46,6 @@ public:
 	UAudioComponent * CurrentBarFillingSound;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentDetectionSound;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
-	UAudioComponent * CurrentSoldierVoiceSound;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
 	USpacelingerAudioComponent* AudioManager = nullptr;
 
