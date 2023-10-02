@@ -5,6 +5,7 @@
 #include "BehaviorTree/BTDecorator.h"
 #include "BTDec_Soldier_AtShootingDistance.generated.h"
 
+// NOTE: No longer used, but leaving it here so we can use it as a template
 UCLASS()
 class SPACELINGER_API UBTDec_Soldier_AtShootingDistance : public UBTDecorator
 {

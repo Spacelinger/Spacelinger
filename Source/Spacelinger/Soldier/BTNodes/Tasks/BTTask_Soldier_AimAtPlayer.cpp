@@ -4,6 +4,8 @@
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Spider/Slime_A.h"
 
 UBTTask_Soldier_AimAtPlayer::UBTTask_Soldier_AimAtPlayer()
 {
@@ -26,7 +28,7 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 
 	UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
 	if (!ensure(MyBlackboard)) return;
-	AActor *PlayerActor = Cast<AActor>(MyBlackboard->GetValueAsObject(PlayerSeenKey));
+	ASlime_A *PlayerActor = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
 	if (!ensure(PlayerActor)) return;
 
 	FVector MyLocation     = MyActor->GetActorLocation();

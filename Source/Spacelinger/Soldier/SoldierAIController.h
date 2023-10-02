@@ -7,9 +7,7 @@
 #include "Soldier\SLSoldier.h"
 #include "SoldierAIController.generated.h"
 
-class UAIPerceptionComponent;
-struct FActorPerceptionUpdateInfo;
-class UAISenseConfig_Sight;
+class ASlime_A;
 
 UCLASS()
 class SPACELINGER_API ASoldierAIController : public AAIController
@@ -18,13 +16,10 @@ class SPACELINGER_API ASoldierAIController : public AAIController
 
 	ASoldierAIController();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
-	UAIPerceptionComponent *AIPerceptionComponent;
-
-	UAISenseConfig_Sight *AISenseConfigSight;
-
 protected:
 	virtual void BeginPlay();
+	virtual void Tick(float DeltaTime);
+	bool IsPlayerInSight();
 	
 public:
 	// If we see the player and they are at this distance or closer, they will be detected instanly.
@@ -42,6 +37,17 @@ public:
 	// If the AI is alerted, but not necessarily detecting the player
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	bool bIsAlerted = false;
+	// If the AI is seeing the player
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	bool bPlayerInSight = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	bool bSearchLastLocation = false; // This will be modified by tasks in the Behavior Tree too
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	TWeakObjectPtr<AActor> DetectedActor; // NOTE: Not needed, but I don't want to break things rn by deleting this
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	FVector DetectedLocation;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
+	float MaxSightRadius = 0.0f; // Radius of the biggest cone of vision, retrieved on BeginPlay
 
 	// If the AI is stunned by the player (currently not in use, but might be considered useful if the stun implementation is changed -- else delete)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
@@ -58,11 +64,6 @@ public:
 	float WalkingSpeed = 180.0f;
 	float RunningSpeed = 400.0f; // Obtained in BeginPlay()
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
-	TWeakObjectPtr<AActor> DetectedActor; // if null, we're not detecting anyone
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
-	FVector DetectedLocation;
-
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;
 
@@ -75,21 +76,12 @@ public:
 	bool IsStunned();
 
 	void SetIsAlerted(bool NewState);
-	void RefreshDetectionTimers();
 
 private:
-	UFUNCTION()
-	void OnTargetPerceptionInfoUpdated(const FActorPerceptionUpdateInfo& UpdateInfo);
-
-	// Tick functions we're going to enable and disable as we see fit
-	void OnActorDetected();
-	void OnActorUndetected();
-	
-	FTimerHandle DetectionTimerHandle; // Timers are going to be set to loop
-	float LastTimeSecondsTimer = 0.0f;
-
-	const float TimerTickRate = 0.001f; // We want to make our timers tick every frame
-
 	// Helper functions
 	ASLSoldier* GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
+
+	UPROPERTY()
+	ASlime_A *PlayerCharacterRef = nullptr;
+	ASlime_A* GetPlayerCharacter();
 };

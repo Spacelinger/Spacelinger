@@ -16,6 +16,8 @@ ASLSoldier::ASLSoldier() {
 	DetectionWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("DetectionWidget"));
 	DetectionWidget->SetupAttachment(RootComponent);
 	DetectionWidget->SetWidgetSpace(EWidgetSpace::Screen);
+
+	ConesOfVision.Add(FUSLAICone());
 }
 
 void ASLSoldier::OnConstruction(const FTransform& Transform) {
@@ -46,8 +48,20 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 		}
 	}
 #endif
+
+	if (bDrawDebugAI) {
+		GetWorldTimerManager().SetTimer(DrawDebugTimerHandle, this, &ASLSoldier::DrawDebugCones, .01f, true);
+	}
+	else {
+		GetWorldTimerManager().ClearTimer(DrawDebugTimerHandle);
+	}
 }
 
+void ASLSoldier::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+	if (bDrawDebugAI) DrawDebugCones();
+}
 
 void ASLSoldier::BeginPlay() {
 	Super::BeginPlay();
@@ -83,36 +97,6 @@ void ASLSoldier::BeginPlay() {
 		}
 	}
 }
-
-/** LUIS WAS HERE: Interacting has been heavily refactored. We can review together
-//------------------------//
-//     Interact stuff     //
-//------------------------//
-int ASLSoldier::GetInteractPriority() const {
-	// TODO(Sergi): What if there's other enemies nearby who can be killed but this one can't? We should lower priority based on that!
-	return InteractPriority;
-}
-void ASLSoldier::Interact(AActor* ActorInteracting) {
-	// TODO(Sergi): Things that probably need to happen
-	// - Check if enemy can die (won't be able to if it's seeing the player or is already dying)
-	// - Play dying animation and set state to dying
-	// - Delete actor at some point
-}
-void ASLSoldier::SetAsCandidate(bool IsCandidate) {
-	// TO-DO
-
-	if (IsCandidate) 
-	{
-		// Show UI to interact
-	}
-	else 
-	{
-		// Hide UI to interact
-	}
-}
-*/
-
-
 
 void ASLSoldier::MoveToCeiling() {
 	Die(nullptr);
@@ -160,7 +144,6 @@ void ASLSoldier::Unstun()
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
 	ControllerReference->ResumeLogic();
-	ControllerReference->RefreshDetectionTimers();
 }
 
 float ASLSoldier::GetRemainingTimeToUnstunAsPercentage() {
@@ -212,4 +195,47 @@ FVector ASLSoldier::GetNextPatrolPoint() {
 	int i = CurrentPatrolPointIndex;
 	CurrentPatrolPointIndex = (CurrentPatrolPointIndex+1) % WorldPatrolPoints.Num();
 	return WorldPatrolPoints[i];
+}
+
+void ASLSoldier::DrawDebugCones() {
+	const bool PL = false; // bPersistentLines 
+	const float LT = .1f;  // LifeTime
+	const uint8 DP = 0;    //DepthPriority
+
+	const float Thickness = 2.f;
+
+	FVector Direction = GetActorForwardVector();
+	FVector Origin = GetActorLocation();
+	for (FUSLAICone Cone : ConesOfVision) {
+		float AngleWidth = FMath::DegreesToRadians(Cone.PeripherialVision/2);
+		int32 Segments = (int32)(Cone.PeripherialVision/10);
+		FColor Color = Cone.DebugColor;
+
+		// Positions stuff
+		FVector SrcPosR = Origin + Direction.RotateAngleAxis( Cone.PeripherialVision/2, FVector::UpVector)*Cone.MinSightRadius;
+		FVector SrcPosL = Origin + Direction.RotateAngleAxis(-Cone.PeripherialVision/2, FVector::UpVector)*Cone.MinSightRadius;
+		FVector DstPosR = Origin + Direction.RotateAngleAxis( Cone.PeripherialVision/2, FVector::UpVector)*Cone.MaxSightRadius;
+		FVector DstPosL = Origin + Direction.RotateAngleAxis(-Cone.PeripherialVision/2, FVector::UpVector)*Cone.MaxSightRadius;
+
+		float ZOffsetArray[] = { 0.0f, Cone.SightHeight, -Cone.SightHeight };
+		for (float ZOffset : ZOffsetArray) {
+			FVector Origin2  = FVector(Origin.X,  Origin.Y,  Origin.Z  + ZOffset);
+			FVector SrcPosR2 = FVector(SrcPosR.X, SrcPosR.Y, SrcPosR.Z + ZOffset);
+			FVector SrcPosL2 = FVector(SrcPosL.X, SrcPosL.Y, SrcPosL.Z + ZOffset);
+			FVector DstPosR2 = FVector(DstPosR.X, DstPosR.Y, DstPosR.Z + ZOffset);
+			FVector DstPosL2 = FVector(DstPosL.X, DstPosL.Y, DstPosL.Z + ZOffset);
+			DrawDebugCircleArc(GetWorld(), Origin2, Cone.MaxSightRadius, Direction, AngleWidth, Segments, Color, PL, LT, DP, Thickness);
+			DrawDebugCircleArc(GetWorld(), Origin2, Cone.MinSightRadius, Direction, AngleWidth, Segments, Color, PL, LT, DP, Thickness);
+			DrawDebugLine(GetWorld(), SrcPosR2, DstPosR2,  Color, PL, LT, DP, Thickness);
+			DrawDebugLine(GetWorld(), SrcPosL2, DstPosL2,  Color, PL, LT, DP, Thickness);
+		}
+
+		FVector ConeVertex[] = { SrcPosR, SrcPosL, DstPosR, DstPosL };
+		for (FVector Point : ConeVertex) {
+			FVector PointT = FVector(Point.X, Point.Y, Point.Z + Cone.SightHeight);
+			FVector PointB = FVector(Point.X, Point.Y, Point.Z - Cone.SightHeight);
+			DrawDebugLine(GetWorld(), PointT, PointB, Color, PL, LT, DP, Thickness);
+		}
+	}
+
 }
