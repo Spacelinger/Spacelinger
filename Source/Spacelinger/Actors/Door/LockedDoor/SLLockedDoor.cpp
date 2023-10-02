@@ -90,6 +90,8 @@ void ASLLockedDoor::OpenDoor()
 	//UE_LOG(LogActor, Warning, TEXT("Success!"));
 
 	SetKeyVisibility(); // Remove Key UI
+
+	OpenDoorResult(true);
 }
 
 
@@ -102,6 +104,8 @@ void ASLLockedDoor::OpenDoorFail()
 	// Hard coded a 1s cooldown on reset after a failed attempt to block a door. May want to turn into parameter
 	World->GetTimerManager().SetTimer(TimerHandle, this, &ASLLockedDoor::Reset, 1.0f, false);
 	Reset();
+
+	OpenDoorResult(false);
 }
 
 void ASLLockedDoor::Reset() 

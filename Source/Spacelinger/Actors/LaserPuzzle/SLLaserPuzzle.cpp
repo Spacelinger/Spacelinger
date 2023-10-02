@@ -99,6 +99,7 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		 || (TriggerLeftBot->IsOverlappingActor(SphereEnd)   && TriggerRightBot->IsOverlappingActor(SphereStart))
 		) {
 			bActiveBeamBot = true;
+			BotBeamActivated();
 			SetBeamVisuals(BeamBot, SolvedParticleParameters);
 			UpdateAssociatedVisualElements();
 		}
@@ -107,6 +108,7 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		 || (TriggerLeftTop->IsOverlappingActor(SphereEnd)   && TriggerRightTop->IsOverlappingActor(SphereStart))
 		) {
 			bActiveBeamTop = true;
+			TopBeamActivated();
 			SetBeamVisuals(BeamTop, SolvedParticleParameters);
 			UpdateAssociatedVisualElements();
 		}
@@ -117,6 +119,7 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		if (bActiveBeamTop && bActiveBeamBot) {
 			for(ASLLockedDoor *Door : AssociatedDoors) {
 				if (Door) Door->OpenDoor();
+				PuzzleSolved();
 			}
 		}
 	}
