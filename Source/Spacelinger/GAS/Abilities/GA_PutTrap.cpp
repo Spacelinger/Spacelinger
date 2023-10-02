@@ -49,7 +49,7 @@ void UGA_PutTrap::ActionPutTrap()
 {
 	ASlime_A* Spider = Cast<ASlime_A>(CurrentActorInfo->OwnerActor);
 
-	FVector spiderPoint = Spider->GetMesh()->GetSocketLocation("SpiderWebPoint");
+	FVector spiderPoint = Spider->GetMesh()->GetSocketLocation("Mouth");
 
 	FHitResult Hit;
 	FHitResult Hit2;
