@@ -26,8 +26,8 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	AActor *MyActor = Cast<AActor>(MyController->GetInstigator());
 	if (!ensure(MyActor)) return;
 
-	UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
-	if (!ensure(MyBlackboard)) return;
+	//UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
+	//if (!ensure(MyBlackboard)) return;
 	ASlime_A *PlayerActor = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
 	if (!ensure(PlayerActor)) return;
 
@@ -37,7 +37,6 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 
 	FRotator NewRotation = MyActor->GetActorRotation();
 	NewRotation.Yaw = LookAtRotator.Yaw;
-
 	MyActor->SetActorRotation(NewRotation);
 
 	RemainingTime -= DeltaSeconds;
