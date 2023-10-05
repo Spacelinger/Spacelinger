@@ -4,6 +4,7 @@
 #include "GAS/Abilities/GA_PutTrap.h"
 #include "AbilitySystemComponent.h"
 #include "Spider/Slime_A.h"
+#include "Actors/VFX/SLSpiderWebBall.h"
 #include "AbilityTask_PutTrap.h"
 
 
@@ -22,10 +23,20 @@ void UGA_PutTrap::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 	}*/
-
+	
+	ASlime_A* Spider = Cast<ASlime_A>(CurrentActorInfo->OwnerActor);
+	AActor* MyChildActor = Spider->SpiderWebBallF->GetChildActor();
+	ASLSpiderWebBall* SpiderWebBall = Cast<ASLSpiderWebBall>(MyChildActor);
+	
 	GetAbilitySystemComponentFromActorInfo()->AddLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")));
 
 	UAbilityTask_PutTrap* PutTrapTask = UAbilityTask_PutTrap::PutTrapChannelingTask(this, FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")), TimeToChannel);
+
+	if (MyChildActor)
+	{
+		SpiderWebBall->ResetTimeLine();
+		Spider->SpiderWebBallF->SetVisibility(true);
+	}
 
 	PutTrapTask->ChannelingComplete.AddDynamic(this, &UGA_PutTrap::AbilityChannelComplete);
 	PutTrapTask->ChannelingCanceled.AddDynamic(this, &UGA_PutTrap::AbilityChannelCanceled);
@@ -38,7 +49,7 @@ void UGA_PutTrap::ActionPutTrap()
 {
 	ASlime_A* Spider = Cast<ASlime_A>(CurrentActorInfo->OwnerActor);
 
-	FVector spiderPoint = Spider->GetMesh()->GetSocketLocation("SpiderWebPoint");
+	FVector spiderPoint = Spider->GetMesh()->GetSocketLocation("Mouth");
 
 	FHitResult Hit;
 	FHitResult Hit2;
@@ -80,7 +91,14 @@ void UGA_PutTrap::AbilityChannelCanceled()
 
 void UGA_PutTrap::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
+	ASlime_A* Spider = Cast<ASlime_A>(CurrentActorInfo->OwnerActor);
+	AActor* MyChildActor = Spider->SpiderWebBallF->GetChildActor();
+	ASLSpiderWebBall* SpiderWebBall = Cast<ASLSpiderWebBall>(MyChildActor);
 	//GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.DoorBlock.Status.Channeling")));
+	if (MyChildActor)
+	{
+		Spider->SpiderWebBallF->SetVisibility(false);
+	}
 	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")));
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

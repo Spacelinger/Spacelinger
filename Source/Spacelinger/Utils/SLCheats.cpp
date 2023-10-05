@@ -1,7 +1,7 @@
 #include "SLCheats.h"
 #include "Engine/Console.h"
-
 #include "Spider/Slime_A.h"
+#include "Components/InventoryComponent.h"
 
 namespace CheatUtils {
 	ASlime_A* GetPlayerCharacter(UWorld* World) {
@@ -41,6 +41,12 @@ void RegisterConsoleCheatsNames() {
 			Cmd.Desc    = FString::Printf(TEXT("Hide raycasts being thrown"));
 			Commands.Add(Cmd);
 		}
+		{
+			FAutoCompleteCommand Cmd;
+			Cmd.Command = FString::Printf(TEXT("sl.givekey"));
+			Cmd.Desc = FString::Printf(TEXT("Gives the player a key to unlock doors"));
+			Commands.Add(Cmd);
+		}
 	});
 }
 
@@ -56,3 +62,15 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatDebugRaycast(
 		}
 	}
 ), ECVF_Cheat);
+
+static FAutoConsoleCommandWithWorld FCheatGiveKey(
+	TEXT("sl.givekey"),
+	TEXT("Gives the player a key to unlock doors"),
+	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) {
+		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
+			UInventoryComponent* InventoryComponent = Player->FindComponentByClass<UInventoryComponent>();
+			if(InventoryComponent)
+				InventoryComponent->AddItem(TEXT("DoorKey"));
+		}
+	})
+);

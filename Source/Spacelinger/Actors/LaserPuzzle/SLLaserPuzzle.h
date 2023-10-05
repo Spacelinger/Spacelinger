@@ -100,6 +100,13 @@ public:
 	UFUNCTION()
 	void WebEndConnection(ASpiderWeb *Web);
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "QuestLog")
+		void TopBeamActivated();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "QuestLog")
+		void BotBeamActivated();
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "QuestLog")
+		void PuzzleSolved();
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;

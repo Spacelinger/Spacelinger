@@ -171,6 +171,9 @@ public:
 	void SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHock);
 
 
+	UPROPERTY(EditAnywhere)
+		UChildActorComponent* SpiderWebBallF;
+
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);

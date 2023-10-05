@@ -48,6 +48,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void OpenDoorFail();
 
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "QuestLog")
+		void OpenDoorResult(bool bResult);
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;

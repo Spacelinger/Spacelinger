@@ -116,8 +116,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
 	bool bHasKey = false;
 
-	bool bIsDead = false;
-
 // AI stuff
 	UPROPERTY(EditAnywhere, Category = "Spacelinger|AI|Perception")
 	TArray<FUSLAICone> ConesOfVision;
