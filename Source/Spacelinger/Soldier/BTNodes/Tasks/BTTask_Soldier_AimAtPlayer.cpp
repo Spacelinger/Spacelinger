@@ -37,7 +37,7 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 
 	FRotator NewRotation = MyActor->GetActorRotation();
 	NewRotation.Yaw = LookAtRotator.Yaw;
-	MyActor->SetActorRotation(NewRotation);
+	//MyActor->SetActorRotation(NewRotation);
 
 	RemainingTime -= DeltaSeconds;
 	if (RemainingTime <= 0) {
