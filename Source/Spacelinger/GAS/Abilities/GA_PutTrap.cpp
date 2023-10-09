@@ -14,16 +14,7 @@ UGA_PutTrap::UGA_PutTrap()
 }
 
 void UGA_PutTrap::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
-{
-	/*if (CommitAbility(Handle, ActorInfo, ActivationInfo))
-	{
-		ActionPutTrap();
-	}
-	else
-	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
-	}*/
-	
+{	
 	ASlime_A* Spider = Cast<ASlime_A>(CurrentActorInfo->OwnerActor);
 	AActor* MyChildActor = Spider->SpiderWebBallF->GetChildActor();
 	ASLSpiderWebBall* SpiderWebBall = Cast<ASLSpiderWebBall>(MyChildActor);
@@ -69,6 +60,8 @@ void UGA_PutTrap::ActionPutTrap()
 		else
 			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
 		spiderWebTrap->SetTrap();
+		
+		Spider->AddNewTrap(spiderWebTrap);
 	}
 
 	//EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
