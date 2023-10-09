@@ -60,6 +60,22 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 void ASLSoldier::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
+	if (AnimationState == SoldierAIState::AIMING) {
+		FRotator SoldierRotation = GetActorRotation();
+		FVector SrcVector = SoldierRotation         .Vector();
+		FVector DstVector = RotatorToFaceWhileAiming.Vector();
+		SrcVector.Z = 0; SrcVector.Normalize();
+		DstVector.Z = 0; DstVector.Normalize();
+
+		float DotProduct = FVector::DotProduct(SrcVector, DstVector);
+		bHasRotatedLastFrameWhileAiming = (DotProduct < .99f);
+		if (bHasRotatedLastFrameWhileAiming ) {
+			FRotator InterpRotator = FMath::RInterpTo(SoldierRotation, RotatorToFaceWhileAiming, DeltaTime, RotationSpeedWhileAiming);
+			SoldierRotation.Yaw = InterpRotator.Yaw;
+			SetActorRotation(SoldierRotation);
+		}
+	}
+
 	if (bDrawDebugAI) DrawDebugCones();
 }
 

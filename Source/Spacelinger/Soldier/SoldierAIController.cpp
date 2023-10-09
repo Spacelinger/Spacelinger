@@ -145,9 +145,10 @@ bool ASoldierAIController::CanPatrol() const
 
 void ASoldierAIController::SetIsAlerted(bool NewState) {
 	bIsAlerted = NewState;
-	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f; 
-
+	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f;
+	
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
+		InstigatorSoldier->AnimationState = NewState ? SoldierAIState::ALERTED : SoldierAIState::IDLE;
 		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
 			InstigatorComponent->MaxWalkSpeed = bIsAlerted ? RunningSpeed : WalkingSpeed;
 		}
