@@ -130,4 +130,14 @@ private:
 	// Patrol
 	int32 CurrentPatrolPointIndex = 0;
 	TArray<FVector> WorldPatrolPoints; // Patrol points in World Space. Generated at BeginPlay()
+
+public:
+	// When the soldier is aiming at the player it might rotate in place to not lose the line of sight
+	// All of this is related to that. Variable names are self-explanatory
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	bool bHasRotatedLastFrameWhileAiming = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	FRotator RotatorToFaceWhileAiming = FRotator::ZeroRotator;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	float RotationSpeedWhileAiming = 1.0f;
 };

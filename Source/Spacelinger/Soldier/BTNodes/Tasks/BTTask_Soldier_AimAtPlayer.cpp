@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Spider/Slime_A.h"
+#include "Soldier/SLSoldier.h"
 
 UBTTask_Soldier_AimAtPlayer::UBTTask_Soldier_AimAtPlayer()
 {
@@ -15,6 +16,12 @@ UBTTask_Soldier_AimAtPlayer::UBTTask_Soldier_AimAtPlayer()
 
 EBTNodeResult::Type UBTTask_Soldier_AimAtPlayer::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) 
 {
+	if (AAIController* MyController = OwnerComp.GetAIOwner()) {
+		if(ASLSoldier *SoldierActor = Cast<ASLSoldier>(MyController->GetInstigator())) {
+			SoldierActor->RotatorToFaceWhileAiming = SoldierActor->GetActorRotation();
+		}
+	}
+
 	RemainingTime = AimTime;
 	return EBTNodeResult::InProgress;
 }
@@ -23,24 +30,31 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	AAIController* MyController = OwnerComp.GetAIOwner();
 	if (!ensure(MyController)) return;
 
-	AActor *MyActor = Cast<AActor>(MyController->GetInstigator());
-	if (!ensure(MyActor)) return;
+	ASLSoldier *SoldierActor = Cast<ASLSoldier>(MyController->GetInstigator());
+	if (!ensure(SoldierActor)) return;
 
-	UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
-	if (!ensure(MyBlackboard)) return;
 	ASlime_A *PlayerActor = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
 	if (!ensure(PlayerActor)) return;
 
-	FVector MyLocation     = MyActor->GetActorLocation();
+	FVector MyLocation     = SoldierActor->GetActorLocation();
 	FVector PlayerLocation = PlayerActor->GetActorLocation();
-	FRotator LookAtRotator = FRotationMatrix::MakeFromX(PlayerLocation - MyLocation).Rotator(); // Code from FindLookAtRotation()
 
-	FRotator NewRotation = MyActor->GetActorRotation();
-	NewRotation.Yaw = LookAtRotator.Yaw;
+	FVector MyPlayerDir = PlayerLocation - MyLocation;
+	FVector MyForward   = SoldierActor->GetActorForwardVector();
+	MyPlayerDir.Z = 0; MyPlayerDir.Normalize();
+	MyForward  .Z = 0; MyForward  .Normalize();
+	float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(MyPlayerDir, MyForward)));
 
-	MyActor->SetActorRotation(NewRotation);
+	if (Angle > 35.0f) {
+		FRotator LookAtRotator = FRotationMatrix::MakeFromX(PlayerLocation - MyLocation).Rotator(); // Code from FindLookAtRotation()
+		SoldierActor->RotatorToFaceWhileAiming = LookAtRotator;
+		//FRotator NewRotation = SoldierActor->GetActorRotation();
+		//NewRotation.Yaw = LookAtRotator.Yaw;
+		//SoldierActor->SetActorRotation(NewRotation);
+	}
 
 	RemainingTime -= DeltaSeconds;
+	SoldierActor->AnimationState = (RemainingTime <= 0) ? SoldierAIState::ATTACK : SoldierAIState::AIMING;
 	if (RemainingTime <= 0) {
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
@@ -48,5 +62,11 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 
 EBTNodeResult::Type UBTTask_Soldier_AimAtPlayer::AbortTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) 
 {
+	if (AAIController* MyController = OwnerComp.GetAIOwner()) {
+		if (ASLSoldier *SoldierActor = Cast<ASLSoldier>(MyController->GetInstigator())) {
+			SoldierActor->AnimationState = SoldierAIState::ALERTED;
+		}
+	}
+
 	return EBTNodeResult::Aborted;
 }
