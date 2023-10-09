@@ -26,18 +26,24 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	AActor *MyActor = Cast<AActor>(MyController->GetInstigator());
 	if (!ensure(MyActor)) return;
 
-	//UBlackboardComponent *MyBlackboard = MyController->GetBlackboardComponent();
-	//if (!ensure(MyBlackboard)) return;
 	ASlime_A *PlayerActor = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
 	if (!ensure(PlayerActor)) return;
 
 	FVector MyLocation     = MyActor->GetActorLocation();
 	FVector PlayerLocation = PlayerActor->GetActorLocation();
-	FRotator LookAtRotator = FRotationMatrix::MakeFromX(PlayerLocation - MyLocation).Rotator(); // Code from FindLookAtRotation()
 
-	FRotator NewRotation = MyActor->GetActorRotation();
-	NewRotation.Yaw = LookAtRotator.Yaw;
-	//MyActor->SetActorRotation(NewRotation);
+	FVector MyPlayerDir = PlayerLocation - MyLocation;
+	FVector MyForward   = MyActor->GetActorForwardVector();
+	MyPlayerDir.Z = 0; MyPlayerDir.Normalize();
+	MyForward  .Z = 0; MyForward  .Normalize();
+	float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(MyPlayerDir, MyForward)));
+
+	if (Angle > 35.0f) {
+		FRotator LookAtRotator = FRotationMatrix::MakeFromX(PlayerLocation - MyLocation).Rotator(); // Code from FindLookAtRotation()
+		FRotator NewRotation = MyActor->GetActorRotation();
+		NewRotation.Yaw = LookAtRotator.Yaw;
+		MyActor->SetActorRotation(NewRotation);
+	}
 
 	RemainingTime -= DeltaSeconds;
 	if (RemainingTime <= 0) {
