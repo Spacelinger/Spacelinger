@@ -70,7 +70,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 	ASLSoldier* Soldier;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		float TimeToLive = 100.0f; // In seconds
+
 	UMaterial* StoredMaterial;
+
+	void SelfDestruction();	// Public because we need to be able to destroy once there are too many
+	
+	FTimerHandle SelfDestructTimerHandle;
 
 protected:
 	// Called when the game starts or when spawned

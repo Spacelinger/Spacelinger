@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/MCV_GameplayAbility.h"
+#include "Sound/SoundCue.h"
 #include "GA_Hook.generated.h"
 
 /**
@@ -25,6 +26,9 @@ protected:
 	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags = nullptr, const FGameplayTagContainer* TargetTags = nullptr, OUT FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;	
 
 	void ActionThrowHook();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Audio")
+		TArray<USoundCue*> HookShotSoundFXArray;
 
 	const float TraceDistance = 50.0f;
 

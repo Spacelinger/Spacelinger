@@ -1091,6 +1091,46 @@ void ASlime_A::PutTrap()
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
 }
 
+void ASlime_A::RemoveActiveTrap(ASpiderWeb* Trap)
+{
+	if (ActiveSpiderTraps.IsEmpty())
+		return;
+
+	TQueue<ASpiderWeb*> TempQueue;
+	ASpiderWeb* DequeuedTrap;
+
+	while (!ActiveSpiderTraps.IsEmpty())
+	{
+		ActiveSpiderTraps.Dequeue(DequeuedTrap);
+		
+		DequeuedTrap == Trap ? ActiveSpiderTrapsCount-- : TempQueue.Enqueue(DequeuedTrap);
+	}
+
+	while (!TempQueue.IsEmpty())
+	{
+		TempQueue.Dequeue(DequeuedTrap);
+		ActiveSpiderTraps.Enqueue(DequeuedTrap);
+	}
+
+	//UE_LOG(LogTemp, Warning, TEXT("Removed a trap, current traps: %i"), ActiveSpiderTrapsCount);
+}
+
+void ASlime_A::AddNewTrap(ASpiderWeb* NewTrap)
+{
+	if (ActiveSpiderTrapsCount == 3)
+	{
+		ASpiderWeb* OldTrap;
+		ActiveSpiderTraps.Dequeue(OldTrap);
+		OldTrap->Destroy();
+		ActiveSpiderTrapsCount--;
+	}
+	
+	ActiveSpiderTraps.Enqueue(NewTrap);
+	ActiveSpiderTrapsCount++;
+
+	//UE_LOG(LogTemp, Warning, TEXT("Added a new trap, current traps: %i"), ActiveSpiderTrapsCount);
+}
+
 void ASlime_A::ThrowAbility(const FInputActionValue& Value)
 {
 	switch (SelectedSpiderAbility)
@@ -1326,6 +1366,9 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASlime_A::setHookMode);
 		EnhancedInputComponent->BindAction(PutTrapAction, ETriggerEvent::Started, this, &ASlime_A::setTrapMode);
 		EnhancedInputComponent->BindAction(ThrowStunningAction, ETriggerEvent::Started, this, &ASlime_A::setStunningMode);
+		
+		EnhancedInputComponent->BindAction(ToggleQuestLogAction, ETriggerEvent::Started, this, &ASlime_A::ShowQuestLog);
+		EnhancedInputComponent->BindAction(ToggleQuestLogAction, ETriggerEvent::Completed, this, &ASlime_A::HideQuestLog);
 	}
 }
 

@@ -8,6 +8,7 @@
 #include "CableComponent.h"
 #include "SpiderWeb.h"
 #include "AbilitySystemInterface.h"
+#include "Containers/CircularQueue.h"
 #include "Slime_A.generated.h"
 
 class USpringArmComponent;
@@ -78,6 +79,8 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 		UInputAction* HookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* ThrowStunningAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* ToggleQuestLogAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInteractingComponent* InteractingComponent;
@@ -126,6 +129,11 @@ protected:
 	// Interact
 	IInteractInterface* CurrentInteractable = nullptr;
 
+private:
+
+	TQueue<ASpiderWeb*> ActiveSpiderTraps;
+	int8 ActiveSpiderTrapsCount = 0;
+
 public:
 	ASlime_A();
 	virtual void Tick(float DeltaTime) override;
@@ -152,6 +160,12 @@ public:
 
 	UFUNCTION()
 	void CutSpiderWeb();
+
+	UFUNCTION()
+		void AddNewTrap(ASpiderWeb* NewTrap);
+
+	UFUNCTION()
+		void RemoveActiveTrap(ASpiderWeb* Trap);
 
 	// Life Comp
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -186,7 +200,6 @@ protected:
 	void Interact(const FInputActionValue& Value);
 	void ChangeSpiderWebSize(const FInputActionValue& Value);
 	void StopJumpToPosition();
-
 	void PutTrap();
 
 	//Handlers
@@ -321,6 +334,8 @@ public:
 		bool bJumpToLocation = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool bHasTrownSpiderWeb = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+		float SpiderWebTimeToLive = 120.f; // In seconds
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		bool bInitialForceApplied = false;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
@@ -370,4 +385,13 @@ protected:
 public:
 	void SetStaminaRecoveryValue(float Value);
 	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(StaminaRecoveryBaseRate); }
+
+	// ============== Quest Log
+protected:
+
+	UFUNCTION(BlueprintImplementableEvent)
+		void ToggleQuestLogBP(bool bShowQuestLog);
+
+	void ShowQuestLog() { ToggleQuestLogBP(true); };
+	void HideQuestLog() { ToggleQuestLogBP(false); };
 };

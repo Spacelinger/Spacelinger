@@ -5,6 +5,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Slime_A.h"
 #include <Soldier/SLSoldier.h>
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ASpiderWeb::ASpiderWeb()
@@ -44,6 +45,7 @@ ASpiderWeb::ASpiderWeb()
 void ASpiderWeb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 	if (bSetPosition) {
 		FVector CurrentLocation = GetActorLocation();
 		FVector Direction = initialPosition - CurrentLocation;
@@ -191,6 +193,10 @@ void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 			CableComponent->AttachEndToSocketName = FootBoneName;
 
 			Soldier->MoveToCeiling();
+
+			SelfDestructTimerHandle.Invalidate();
+			ASlime_A* Spider = Cast<ASlime_A>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
+			Spider->RemoveActiveTrap(this);
 		}
 	}
 }
@@ -205,6 +211,18 @@ void ASpiderWeb::BeginPlay()
 		// Set the StartLocationCable's position to match the CableComponent's position
 		StartLocationCable->SetWorldLocation(CableComponent->GetComponentLocation());
 	}
+
+	UWorld* World = GetWorld();
+	if (World)
+		World->GetTimerManager().SetTimer(SelfDestructTimerHandle, this, &ASpiderWeb::SelfDestruction, TimeToLive, false);
+		// Self-destruct timer
+}
+
+void ASpiderWeb::SelfDestruction()
+{ 
+	ASlime_A* Spider = Cast<ASlime_A>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
+	Spider->RemoveActiveTrap(this);
+	this->Destroy();
 }
 
 void ASpiderWeb::setFuturePosition(FVector futurePosition, ASlime_A* spiderRef, bool attached, bool bHook) {

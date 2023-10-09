@@ -73,6 +73,14 @@ void UGA_Hook::ActionThrowHook()
 		FHitResult RayTraceHitResult;
 		GetWorld()->LineTraceSingleByChannel(RayTraceHitResult, StartPositionRayTrace, EndPositionRayTrace, ECC_Visibility);
 
+		// At this point the web has been shot, may it hit or not
+		if (!HookShotSoundFXArray.IsEmpty())
+		{
+			USoundCue* HookShotSoundFX = HookShotSoundFXArray[FMath::RandRange(int32(0), HookShotSoundFXArray.Num() - 1)];
+			float PitchModulation = FMath::RandRange(0.75f, 1.25f);
+			UGameplayStatics::SpawnSound2D(this, HookShotSoundFX, 1.0f, PitchModulation);
+		}
+
 		// If the ray trace hits a static mesh, store the actor in the global variable.
 		if (RayTraceHitResult.bBlockingHit && RayTraceHitResult.GetActor() != nullptr && RayTraceHitResult.GetActor()->IsA(AStaticMeshActor::StaticClass()))
 		{
