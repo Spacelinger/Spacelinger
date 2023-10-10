@@ -79,9 +79,11 @@ public:
 
 private:
 	// Helper functions
-	ASLSoldier* GetInstigatorSoldier() const { return Cast<ASLSoldier>(GetInstigator()); }
-
 	UPROPERTY()
 	ASlime_A *PlayerCharacterRef = nullptr;
 	ASlime_A* GetPlayerCharacter();
+
+	UPROPERTY()
+	ASLSoldier *SoldierCharacterRef = nullptr;
+	ASLSoldier* GetInstigatorSoldier();
 };
