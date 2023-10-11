@@ -24,7 +24,7 @@ protected:
 public:
 	// If we see the player and they are at this distance or closer, they will be detected instanly.
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0"))
-	float DistanceInstantDetection = 200.0f;
+	float DistanceInstantDetection = 250.0f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
 	float DetectionSpeed = 0.5f;
@@ -48,6 +48,12 @@ public:
 	FVector DetectedLocation;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
 	float MaxSightRadius = 0.0f; // Radius of the biggest cone of vision, retrieved on BeginPlay
+	
+	// Seconds it stays aiming before shooting
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	float AimTime = 2.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Internal")
+	float AimTimeRemaining = 2.0f; // Keeps track of time since it was alerted
 
 	// If the AI is stunned by the player (currently not in use, but might be considered useful if the stun implementation is changed -- else delete)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Internal")
@@ -61,8 +67,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	float ShootingAcceptanceRadius = 100.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
-	float WalkingSpeed = 180.0f;
-	float RunningSpeed = 400.0f; // Obtained in BeginPlay()
+	float WalkingSpeed = 150.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
+	float RunningSpeed = 500.0f; 
 
 	UFUNCTION(BlueprintCallable)
 	bool CanPatrol() const;

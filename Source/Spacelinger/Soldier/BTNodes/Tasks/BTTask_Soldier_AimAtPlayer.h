@@ -15,9 +15,6 @@ class SPACELINGER_API UBTTask_Soldier_AimAtPlayer : public UBTTaskNode
 
 public:
 	UPROPERTY(EditAnywhere)
-	float AimTime = 1.5f;
-
-	UPROPERTY(EditAnywhere)
 	FName PlayerSeenKey = FName("PlayerSeen");
 
 	UBTTask_Soldier_AimAtPlayer();
@@ -25,7 +22,4 @@ public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual EBTNodeResult::Type AbortTask  (UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
-private:
-	float RemainingTime;
 };

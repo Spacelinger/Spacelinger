@@ -16,10 +16,6 @@ void ASoldierAIController::BeginPlay() {
 	Super::BeginPlay();
 
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
-		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
-			RunningSpeed = InstigatorComponent->MaxWalkSpeed;
-		}
-
 		InitialTransform = InstigatorSoldier->GetTransform();
 
 		MaxSightRadius = 0.0f;
@@ -152,6 +148,7 @@ bool ASoldierAIController::CanPatrol() const {
 void ASoldierAIController::SetIsAlerted(bool NewState) {
 	bIsAlerted = NewState;
 	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f;
+	AimTimeRemaining = AimTime;
 	
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
 		InstigatorSoldier->AnimationState = NewState ? SoldierAIState::ALERTED : SoldierAIState::IDLE;
