@@ -115,72 +115,59 @@ void USLDetectionWidget::PlaySounds()
 	// Get the actor associated to the biggest value in the map
 	ASLSoldier* Actor = it->first;
 	
-	// Check if the biggest element from the SoldierAwarenessMap is bigger than .01f
-	if (it->second > .01f)
+	// Check that any soldier is aware
+	if (it != SoldierAwarenessMap.end())
 	{
-		// And make sure that only the wanted actor will trigger sounds
-		if (Actor == OwningActor && !Actor->IsDead())
+		// Check if the biggest element from the SoldierAwarenessMap is bigger than .01f
+		if (it->second > .01f)
 		{
-			AudioManager = Actor->GetAudioManager();
-			// Check if the awareness of the actor is going up
-			if (!CurrentBarFillingSound)
+			// And make sure that only the wanted actor will trigger sounds
+			if (Actor == OwningActor && !Actor->IsDead())
 			{
-				// Set the volume multiplier to increase or decrease with the awareness
-				CurrentBarFillingSound = UGameplayStatics::SpawnSound2D(this, BarFillingSound, 0.45f, 3*it->second);
-			} else
-			{
-				CurrentBarFillingSound->SetVolumeMultiplier(it->second);
-			}
-			if (it->second >= 1.f)
-			{
-				if (!CurrentDetectionSound)
+				AudioManager = Actor->GetAudioManager();
+
+				// Check if the awareness of the actor is going up
+				// and set the pitch multiplier to increase or decrease with the awareness
+				AudioManager -> UpdateBarFillingSound(it->second);
+				
+				if (it->second >= 1.0f)
 				{
-					ActorRecentlyAware = true;
-					AudioManager->PlayChaseMusic();
-					CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, 0.25f);
-					AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
-				}
-				if (CurrentBarFillingSound)
-				{
-					CurrentBarFillingSound->FadeOut(1.5f, 0.f);
+					if (!ActorRecentlyAware)
+					{
+						ActorRecentlyAware = true;
+						AudioManager->PlayChaseMusic();
+						AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
+					}
+					AudioManager -> StopBarFillingSound();
 				}
 			}
 		}
-	}
-	else
-	{
-		
-		if (CurrentBarFillingSound)
+		else
 		{
-			CurrentBarFillingSound->FadeOut(1.0f, 0.f);
-			CurrentBarFillingSound = nullptr;
-		}
-		if (CurrentDetectionSound)
-		{
-			CurrentDetectionSound = nullptr;
-		}
-		if (ActorRecentlyAware)
-		{
-			AudioManager = Actor->GetAudioManager();
-			if (Actor->IsDead())
+			if (ActorRecentlyAware)
 			{
-				AudioManager->SoldierDeathAudioReaction();
-			} else
-			{
-				AudioManager->Soldier_ResumePatrol();
-			}
-			AudioManager->StopChaseMusic();
-			ActorRecentlyAware = false;
-		}
-	}
-	if (Actor != nullptr)
-			{
-				if (Actor == OwningActor && Actor->IsDead())
+				AudioManager->StopBarFillingSound();
+			
+				if (Actor->IsDead())
 				{
-					AudioManager->StopChaseMusic();
+					AudioManager->SoldierDeathAudioReaction();
+				} else
+				{
+					AudioManager->Soldier_ResumePatrol();
 				}
+				AudioManager->StopChaseMusic();
+				ActorRecentlyAware = false;
 			}
+		}
+		if (Actor != nullptr)
+		{
+			if (Actor == OwningActor && Actor->IsDead())
+			{
+				AudioManager->StopChaseMusic();
+			}
+		}
 	}
+}
 	
 
 ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
