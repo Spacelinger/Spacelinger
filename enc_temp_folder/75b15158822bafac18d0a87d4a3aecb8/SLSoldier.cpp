@@ -97,8 +97,7 @@ void ASLSoldier::BeginPlay() {
 	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
 
 	InteractableComponent->OnInteractDelegate.AddDynamic(this, &ASLSoldier::ReceiveDamage);
-	if(UInteractWidget* Interact = Cast<UInteractWidget>(InteractWidget->GetWidget()))
-		Interact->OwningActor = this;
+	InteractPromptWidget->OwningActor = this;
 
 	if (USLDetectionWidget *DetectionInterface = Cast<USLDetectionWidget>(DetectionWidget->GetWidget())) {
 		DetectionInterface->OwningActor = this;

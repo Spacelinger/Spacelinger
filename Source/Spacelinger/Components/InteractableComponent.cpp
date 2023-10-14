@@ -8,17 +8,11 @@
 UInteractableComponent::UInteractableComponent()
 {
 	SetIsReplicatedByDefault(true);
-	
-	//InteractPromptWidget = CreateDefaultSubobject<UWidgetComponent>(FName(TEXT("Interactable UI")));
-	//InteractPromptWidget = NewObject<UWidgetComponent>(GetOwner(), UWidgetComponent::StaticClass(), FName(TEXT("Interactable UI")), RF_Transient);
 }
 
 void UInteractableComponent::OnRegister()
 {
 	Super::OnRegister();
-
-	//InteractPromptWidget->SetupAttachment(GetOwner()->GetRootComponent());
-	//InteractPromptWidget->RegisterComponent();
 }
 
 void UInteractableComponent::BeginPlay()
@@ -26,6 +20,12 @@ void UInteractableComponent::BeginPlay()
 	Super::BeginPlay();
 
 	InteractableWidgetComponents = GetOwner()->GetComponentsByTag(UPrimitiveComponent::StaticClass(), FName("Interact UI"));
+
+	for (UActorComponent* WidgetComponent : InteractableWidgetComponents)
+	{
+		Cast<UWidgetComponent>(WidgetComponent)->SetVisibility(false);
+	}
+
 	//UE_LOG(LogActor, Warning, TEXT("Linked to %i  UI components"), InteractableWidgetComponents.Num());
 }
 
