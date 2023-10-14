@@ -158,23 +158,26 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 	}
 
 	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
-	FTimerHandle TimerHandle;
-	FTimerDelegate TimerDelegate;
-	TimerDelegate.BindLambda([&]() { InteractableComponent->bCanInteract = true; });
-
 	if (!ControllerReference->bIsAlerted)
 	{
 		Die(DamageDealer);
+		return;
 	}
-	else
-	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 5.f, false);
-		InteractableComponent->bCanInteract = false;
-	}
+	
+	// It attack fails, set a cooldown to the interactable attack.
+	FTimerHandle TimerHandle;
+	FTimerDelegate TimerDelegate;
+	TimerDelegate.BindLambda([&]() { InteractableComponent->bCanInteract = true; InteractWidget->SetVisibility(true); });
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, SecondsBetweenAttacks, false);
 
-
-	// if it fails maybe explicitly set a cooldown timer for the spider to be able to attack again.
-	// maybe even deal damage, like if the soldier stomps the spider.
+	InteractableComponent->bCanInteract = false;
+	InteractWidget->SetVisibility(false);
+	
+	/*
+	* 
+	*	TO-DO: STOMP!
+	* 
+	*/
 
 }
 

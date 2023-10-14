@@ -85,6 +85,8 @@ public:
 
 // Interact stuff
 	int InteractPriority = 99;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spacelinger|Interact")
+	float SecondsBetweenAttacks = 3.0f;
 
 	void MoveToCeiling();
 	UFUNCTION()
