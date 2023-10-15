@@ -78,11 +78,14 @@ public:
 	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
-	bool IsStunned();
+	bool IsStunned() const { return bIsStunned; }
 	float GetRemainingTimeToUnstunAsPercentage();
 	void Die(AActor *Killer);
 	UFUNCTION(BlueprintImplementableEvent)
 	void SoldierHasDied(AActor *Killer);
+	UFUNCTION()
+	void OnPlayerDead(AActor *Killer);
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
 	bool bMoveToCeiling = false;

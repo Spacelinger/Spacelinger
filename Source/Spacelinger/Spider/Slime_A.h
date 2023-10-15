@@ -97,8 +97,11 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UMaterialBillboardComponent* HookTargetCrosshair = nullptr;
 
+public:
 	UFUNCTION()
-		void OnDie(AActor* Killer);
+	void OnDie(AActor* Killer);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	bool bIsDead = false;
 
 protected:
 	// GAS

@@ -1454,12 +1454,12 @@ void ASlime_A::SetStaminaRecoveryValue(float Value)
 
 // Life
 void ASlime_A::OnDie(AActor* Killer) {
+	bIsDead = true;
 	UE_LOG(LogTemp, Display, TEXT("Spider Killed!!"));
 }
 
 // Player Controller
 
 APlayerController* ASlime_A::GetPlayerController() {
-
 	return Cast<APlayerController>(Controller);
 }

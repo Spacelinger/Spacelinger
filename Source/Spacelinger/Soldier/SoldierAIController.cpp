@@ -36,7 +36,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	if (!SoldierCharacter || SoldierCharacter->bIsDead) return;
 
 	ASlime_A *PlayerCharacter = GetPlayerCharacter();
-	if (!PlayerCharacter) return;
+	if (!PlayerCharacter || PlayerCharacter->bIsDead) return;
 
 	DetectedLocation = PlayerCharacter->GetActorLocation();
 	bPlayerInSight = IsPlayerInSight();
@@ -158,16 +158,16 @@ void ASoldierAIController::SetIsAlerted(bool NewState) {
 	}
 }
 
-void ASoldierAIController::StopLogic()
-{
-	UBrainComponent* Brain = AAIController::GetBrainComponent();
-	Brain->StopLogic("Stunned");
+void ASoldierAIController::StopLogic() {
+	if (UBrainComponent* Brain = AAIController::GetBrainComponent()) {
+		Brain->StopLogic("Stunned");
+	}
 }
 
-void ASoldierAIController::ResumeLogic()
-{
-	UBrainComponent* Brain = AAIController::GetBrainComponent();
-	Brain->RestartLogic();
+void ASoldierAIController::ResumeLogic() {
+	if (UBrainComponent* Brain = AAIController::GetBrainComponent()) {
+		Brain->RestartLogic();
+	}
 }
 
 bool ASoldierAIController::IsStunned()
