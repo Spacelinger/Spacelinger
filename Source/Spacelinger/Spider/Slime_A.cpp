@@ -208,6 +208,15 @@ void ASlime_A::Tick(float DeltaTime)
 	{
 		AimHook();
 	}
+
+	FVector CameraWorldPosition = GetFollowCamera()->GetComponentLocation();
+	FVector ActorWorldPosition = GetActorLocation();
+	float CameraDistance = FVector::Distance(CameraWorldPosition, ActorWorldPosition);
+	bool bNewIsMaterialOpaque = (CameraDistance >= MaterialCameraThreshold);
+	if (bNewIsMaterialOpaque != bIsMaterialOpaque) {
+		bIsMaterialOpaque = bNewIsMaterialOpaque;
+		GetMesh()->SetMaterial(0, bIsMaterialOpaque ? OpaqueMaterial : TranslucentMaterial);
+	}
 }
 
 void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {

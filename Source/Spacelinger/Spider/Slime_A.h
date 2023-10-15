@@ -288,6 +288,14 @@ protected:
 
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface *TranslucentMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface *OpaqueMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
+	float MaterialCameraThreshold = 60.0f;
+	bool bIsMaterialOpaque = true;
+
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FMatrix BaseCameraRotation = FMatrix::Identity;
