@@ -7,6 +7,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Spider/Slime_A.h"
 #include "Soldier/SLSoldier.h"
+#include "Soldier/SoldierAIController.h"
+
 
 UBTTask_Soldier_AimAtPlayer::UBTTask_Soldier_AimAtPlayer()
 {
@@ -22,12 +24,11 @@ EBTNodeResult::Type UBTTask_Soldier_AimAtPlayer::ExecuteTask(UBehaviorTreeCompon
 		}
 	}
 
-	RemainingTime = AimTime;
 	return EBTNodeResult::InProgress;
 }
 
 void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) {
-	AAIController* MyController = OwnerComp.GetAIOwner();
+	ASoldierAIController* MyController = Cast<ASoldierAIController>(OwnerComp.GetAIOwner());
 	if (!ensure(MyController)) return;
 
 	ASLSoldier *SoldierActor = Cast<ASLSoldier>(MyController->GetInstigator());
@@ -48,14 +49,12 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	if (Angle > 35.0f) {
 		FRotator LookAtRotator = FRotationMatrix::MakeFromX(PlayerLocation - MyLocation).Rotator(); // Code from FindLookAtRotation()
 		SoldierActor->RotatorToFaceWhileAiming = LookAtRotator;
-		//FRotator NewRotation = SoldierActor->GetActorRotation();
-		//NewRotation.Yaw = LookAtRotator.Yaw;
-		//SoldierActor->SetActorRotation(NewRotation);
 	}
 
-	RemainingTime -= DeltaSeconds;
-	SoldierActor->AnimationState = (RemainingTime <= 0) ? SoldierAIState::ATTACK : SoldierAIState::AIMING;
-	if (RemainingTime <= 0) {
+	MyController->AimTimeRemaining -= DeltaSeconds;
+	SoldierActor->AnimationState = (MyController->AimTimeRemaining <= 0) ? SoldierAIState::ATTACK : SoldierAIState::AIMING;
+	if (MyController->AimTimeRemaining <= 0) {
+		MyController->AimTimeRemaining = MyController->AimTime;
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
 }

@@ -21,21 +21,19 @@ public:
 
     virtual void InitializeComponent() override;
 
-    //virtual void InitializeComponent() override;
-
     UFUNCTION(BlueprintCallable)
-        void ReceiveDamage(int Damage, AActor* DamageDelaer);
+    void ReceiveDamage(int Damage, AActor* DamageDelaer);
 
-    //void ReceiveHeal(int Heal, AActor* Healer); // Heal
+    //void ReceiveHeal(int Heal, AActor* Healer);
 
     UPROPERTY(BlueprintAssignable)
-        FOnDamageReceived OnDamageReceivedDelegate;
+    FOnDamageReceived OnDamageReceivedDelegate;
 
     // UPROPERTY(BlueprintAssignable)
-    //    FOnHealReceived OnHealReceived;
+    // FOnHealReceived OnHealReceived;
 
     UPROPERTY(BlueprintAssignable)
-        FOnDie OnDieDelegate;
+    FOnDie OnDieDelegate;
 
     int GetMaxLife() const { return MaxLife; }
     int GetCurrentLife() const { return CurrentLife; }
@@ -48,14 +46,14 @@ protected:
     void OnDestroyTimer();
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-        int CurrentLife = 100;
+    int CurrentLife = 100;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-        int MaxLife = 100;
+    int MaxLife = 100;
 
+    // Seconds to delete the actor owner after it has died. A negative time means the owner won't be destroyed.
     UPROPERTY(EditAnywhere, BlueprintReadOnly)
-        int TimeToDestroyAfterDeath = 3.0f;
+    float TimeToDestroyAfterDeath = 3.0f;
 
     FTimerHandle DestroyTimerHandle;
-
 };

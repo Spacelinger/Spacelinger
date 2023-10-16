@@ -4,13 +4,8 @@
 
 #include "Components/LifeComponent.h"
 
-ULifeComponent::ULifeComponent() {
-
-}
-
-void ULifeComponent::InitializeComponent() {
-
-}
+ULifeComponent::ULifeComponent() { }
+void ULifeComponent::InitializeComponent() { }
 
 void ULifeComponent::ReceiveDamage(int Damage, AActor* DamageDealer) {
 
@@ -24,19 +19,18 @@ void ULifeComponent::ReceiveDamage(int Damage, AActor* DamageDealer) {
 
 /*
 void ULifeComponent::ReceiveHeal(int Heal, AActor* Healer) {
-
     CurrentLife = FMath::Min(CurrentLife + Heal, MaxLife);
     OnHealReceived.Broadcast(Heal, Healer);
 }
 */
 
 void ULifeComponent::OnDie(AActor* Killer) {
-
     OnDieDelegate.Broadcast(Killer);
-    GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ULifeComponent::OnDestroyTimer, TimeToDestroyAfterDeath, false);
+    if (TimeToDestroyAfterDeath >= 0) {
+        GetWorld()->GetTimerManager().SetTimer(DestroyTimerHandle, this, &ULifeComponent::OnDestroyTimer, TimeToDestroyAfterDeath, false);
+    }
 }
 
 void ULifeComponent::OnDestroyTimer() {
-
     GetOwner()->Destroy();
 }

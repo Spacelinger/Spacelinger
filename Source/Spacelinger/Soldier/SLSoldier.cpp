@@ -9,6 +9,9 @@
 #include "Soldier/SLSoldierPath.h"
 #include "EngineUtils.h"
 #include "Audio/SpacelingerAudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Spider/Slime_A.h"
+#include "Components/LifeComponent.h"
 #include "Components/InteractableComponent.h"
 #include "UI/Interact/InteractWidget.h"
 
@@ -95,6 +98,13 @@ void ASLSoldier::BeginPlay() {
 
 	GameInstance = GetGameInstance();
 	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
+
+	if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+		if (ULifeComponent *LifeComponentRef = PlayerCharacterRef->LifeComponent) {
+			LifeComponentRef->OnDieDelegate.AddDynamic(this, &ASLSoldier::OnPlayerDead);
+		}
+	}
+	
 
 	InteractableComponent->OnInteractDelegate.AddDynamic(this, &ASLSoldier::ReceiveDamage);
 	if(UInteractWidget* Interact = Cast<UInteractWidget>(InteractWidget->GetWidget()))
@@ -185,10 +195,11 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	bIsStunned = true;
 	GetCharacterMovement()->DisableMovement();
 	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
-	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
-	ControllerReference->StopLogic();
-	ControllerReference->SetIsAlerted(true);
-	ControllerReference->DetectedLocation = ThrowLocation;
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->StopLogic();
+		ControllerReference->SetIsAlerted(true);
+		ControllerReference->DetectedLocation = ThrowLocation;
+	}
 	
 	GetWorldTimerManager().SetTimer(UnstunTimerHandle, this, &ASLSoldier::Unstun, StunDuration, false);
 }
@@ -199,8 +210,9 @@ void ASLSoldier::Unstun()
 
 	bIsStunned = false;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-	ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController());
-	ControllerReference->ResumeLogic();
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->ResumeLogic();
+	}
 }
 
 float ASLSoldier::GetRemainingTimeToUnstunAsPercentage() {
@@ -208,12 +220,6 @@ float ASLSoldier::GetRemainingTimeToUnstunAsPercentage() {
 	float Remaining = GetWorldTimerManager().GetTimerRemaining(UnstunTimerHandle);
 	return Remaining / (Elapsed+Remaining);
 }
-
-bool ASLSoldier::IsStunned()
-{
-	return bIsStunned;
-}
-
 
 void ASLSoldier::Die(AActor *Killer)
 {
@@ -237,10 +243,17 @@ void ASLSoldier::Die(AActor *Killer)
 	AudioManager->SoldierDeathAudioReaction();
 }
 
-bool ASLSoldier::IsDead()
-{
+bool ASLSoldier::IsDead() {
 	return bIsDead;	
 }
+
+void ASLSoldier::OnPlayerDead(AActor *Killer) {
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->CurrentAwareness = 0.0f;
+		ControllerReference->SetIsAlerted(false);
+	}
+}
+
 
 USpacelingerAudioComponent * ASLSoldier::GetAudioManager()
 {

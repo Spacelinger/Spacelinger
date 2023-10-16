@@ -212,6 +212,15 @@ void ASlime_A::Tick(float DeltaTime)
 	{
 		AimHook();
 	}
+
+	FVector CameraWorldPosition = GetFollowCamera()->GetComponentLocation();
+	FVector ActorWorldPosition = GetActorLocation();
+	float CameraDistance = FVector::Distance(CameraWorldPosition, ActorWorldPosition);
+	bool bNewIsMaterialOpaque = (CameraDistance >= MaterialCameraThreshold);
+	if (bNewIsMaterialOpaque != bIsMaterialOpaque) {
+		bIsMaterialOpaque = bNewIsMaterialOpaque;
+		GetMesh()->SetMaterial(0, bIsMaterialOpaque ? OpaqueMaterial : TranslucentMaterial);
+	}
 }
 
 void ASlime_A::OnCollisionEnter(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) {
@@ -1351,7 +1360,8 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 }
 
 void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
-	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
+	EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	if (EnhancedInputComponent) {
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
@@ -1460,12 +1470,21 @@ void ASlime_A::SetStaminaRecoveryValue(float Value)
 
 // Life
 void ASlime_A::OnDie(AActor* Killer) {
+	bIsDead = true;
+	if (EnhancedInputComponent) {
+		EnhancedInputComponent->ClearActionEventBindings();
+		// Re-add camera controls
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlime_A::Look);
+	}
+	if (PostProcessComponent) {
+		PostProcessComponent->Settings.bOverride_ColorSaturation = true;
+		PostProcessComponent->Settings.ColorSaturation = FVector4(0, 0, 0,0);
+	}
 	UE_LOG(LogTemp, Display, TEXT("Spider Killed!!"));
 }
 
 // Player Controller
 
 APlayerController* ASlime_A::GetPlayerController() {
-
 	return Cast<APlayerController>(Controller);
 }
