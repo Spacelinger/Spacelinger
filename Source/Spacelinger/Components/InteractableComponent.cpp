@@ -53,5 +53,6 @@ void UInteractableComponent::RemoveAsCandidate(AActor* ActorInteracting)
 void UInteractableComponent::Interact(AActor* ActorInteracting)
 {
 	//UE_LOG(LogActor, Warning, TEXT("%s reveived request interaction from %s"), *GetOwner()->GetName(), *ActorInteracting->GetName());
-	OnInteractDelegate.Broadcast(ActorInteracting);
+	if(bCanInteract)
+		OnInteractDelegate.Broadcast(ActorInteracting);
 }
