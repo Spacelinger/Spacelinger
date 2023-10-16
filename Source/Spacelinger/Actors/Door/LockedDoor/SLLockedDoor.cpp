@@ -6,6 +6,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/InventoryComponent.h"
+#include "UI/Interact/InteractWidget.h"
 
 ASLLockedDoor::ASLLockedDoor()
 {
@@ -39,6 +40,9 @@ void ASLLockedDoor::BeginPlay()
 	InteractableComponent->OnSetCandidateDelegate.AddDynamic(this, &ASLLockedDoor::SetAsCandidate);
 	InteractableComponent->OnRemoveCandidateDelegate.AddDynamic(this, &ASLLockedDoor::RemoveAsCandidate);
 	InteractableComponent->OnInteractDelegate.AddDynamic(this, &ASLLockedDoor::Interact);
+
+	if (UInteractWidget* Interact = Cast<UInteractWidget>(InteractPromptWidget->GetWidget()))
+		Interact->OwningActor = this;
 }
 
 void ASLLockedDoor::SetAsCandidate(AActor* InteractingActor)

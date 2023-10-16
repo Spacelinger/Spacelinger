@@ -28,6 +28,7 @@
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 #include "UI/Game/UIHUD.h"
 #include "Components/MaterialBillboardComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Components/ArrowComponent.h"
 
 #include <Kismet/KismetMathLibrary.h>
@@ -110,6 +111,9 @@ ASlime_A::ASlime_A()
 	HookTargetCrosshair->SetVisibility(false);
 	HookTargetCrosshair->bHiddenInGame = false;
 	HookTargetCrosshair->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	HookCrosshairWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Hook Crosshair Widget Component"));
+	HookCrosshairWidget->SetupAttachment(RootComponent);
 
 	// Child Actor Component
 
@@ -1080,6 +1084,8 @@ void ASlime_A::PutSpiderWebAbility() {
 void ASlime_A::HandleHook()
 {
 	HookTargetCrosshair->SetVisibility(false);	// todo: not ideal implementation. May be a better way
+	if (HookCrosshairWidget->GetWidget())
+		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Collapsed);
 	bIsAimingHook = false;
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.Hook.Started")), Payload);
@@ -1165,6 +1171,8 @@ void ASlime_A::ToggleAimHook()
 {
 	bIsAimingHook = true;
 	HookTargetCrosshair->SetVisibility(true);
+	if (HookCrosshairWidget->GetWidget())
+		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 }
 
 void ASlime_A::AimHook()
@@ -1182,10 +1190,15 @@ void ASlime_A::AimHook()
 	if (HitResult.ImpactPoint.Equals(FVector::Zero()))
 	{
 		HookTargetCrosshair->SetVisibility(false);
+		if (HookCrosshairWidget->GetWidget())
+			HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	else
 	{
+		HookCrosshairHitDistance = FVector::Distance(HitResult.ImpactPoint, StartPosition);
 		HookTargetCrosshair->SetVisibility(true);
+		if (HookCrosshairWidget->GetWidget())
+			HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 	}
 
 	HookTargetCrosshair->SetWorldLocation(HitResult.ImpactPoint);
@@ -1195,6 +1208,8 @@ void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 {
 	SetCrosshairVisibility(false);
 	HookTargetCrosshair->SetVisibility(false);
+	if (HookCrosshairWidget->GetWidget())
+		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Collapsed);
 	bIsAimingHook = false;
 }
 
@@ -1361,7 +1376,7 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ASlime_A::Interact);
 
-		EnhancedInputComponent->BindAction(MeleeAttackAction, ETriggerEvent::Started, this, &ASlime_A::MeleeAttack);
+		//EnhancedInputComponent->BindAction(MeleeAttackAction, ETriggerEvent::Started, this, &ASlime_A::MeleeAttack);
 
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASlime_A::setHookMode);
 		EnhancedInputComponent->BindAction(PutTrapAction, ETriggerEvent::Started, this, &ASlime_A::setTrapMode);
