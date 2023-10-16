@@ -1195,12 +1195,12 @@ void ASlime_A::AimHook()
 	}
 	else
 	{
-		HookCrosshairHitDistance = FVector::Distance(HitResult.ImpactPoint, StartPosition);
 		HookTargetCrosshair->SetVisibility(true);
 		if (HookCrosshairWidget->GetWidget())
 			HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 	}
 
+	HookCrosshairHitDistance = FVector::Distance(EndPosition, StartPosition);
 	HookTargetCrosshair->SetWorldLocation(HitResult.ImpactPoint);
 }
 

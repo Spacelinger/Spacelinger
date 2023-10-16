@@ -146,10 +146,7 @@ void ASLSoldier::MoveToCeiling() {
 	MeshComp->SetNotifyRigidBodyCollision(true);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	GetCapsuleComponent()->SetEnableGravity(false);
-
-	// Disable interact --> this is also done in Die(), but somehow it sometimes doesn't work (bug?)
-	InteractableComponent->bCanInteract = false;
-	InteractWidget->SetVisibility(false);
+	
 }
 
 void ASLSoldier::ReceiveDamage(AActor *DamageDealer)

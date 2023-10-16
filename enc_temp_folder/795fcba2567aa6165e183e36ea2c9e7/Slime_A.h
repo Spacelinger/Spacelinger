@@ -101,7 +101,7 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Hook", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* HookCrosshairWidget = nullptr;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	float HookCrosshairHitDistance = 0.0f;
+		float HookCrosshairHitDistance = 0.0f;
 
 	UFUNCTION()
 		void OnDie(AActor* Killer);
