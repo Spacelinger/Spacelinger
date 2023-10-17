@@ -1496,16 +1496,22 @@ void ASlime_A::SetStaminaRecoveryValue(float Value)
 // Life
 void ASlime_A::OnDie(AActor* Killer) {
 	bIsDead = true;
+	
+	// Remove controls and only allow moving the camera
 	if (EnhancedInputComponent) {
 		EnhancedInputComponent->ClearActionEventBindings();
-		// Re-add camera controls
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlime_A::Look);
 	}
+
+	// Grayscale Effect
 	if (PostProcessComponent) {
 		PostProcessComponent->Settings.bOverride_ColorSaturation = true;
 		PostProcessComponent->Settings.ColorSaturation = FVector4(0, 0, 0,0);
 	}
-	UE_LOG(LogTemp, Display, TEXT("Spider Killed!!"));
+
+	// Unstick from walls
+	canTrace = false;
+	StopClimbing();
 }
 
 // Player Controller
