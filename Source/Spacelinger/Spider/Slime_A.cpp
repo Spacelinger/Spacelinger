@@ -1411,11 +1411,9 @@ UPostProcessComponent* ASlime_A::GetPostProcessComponent() const
 }
 
 void ASlime_A::Interact(const FInputActionValue& Value) {
-	// We play the animation only if:
-	// 1. We are not playing the attack animation
-	// 2. The actor we're interacting is a soldier
-	// 3. There's nothing to interact with
-	bool bPlayAttackAnimation = !bIsAttacking && bFullyProceduralAnimation;
+	// We play the animation only if: We are not playing the attack animation or jumping, there's no actor
+	// to interact with or if there is it's a soldier
+	bool bPlayAttackAnimation = !bIsAttacking && !bIsInAir;
 	if (bPlayAttackAnimation) {
 		if (UInteractableComponent *CurrentComponent = InteractingComponent->GetCurrentInteractable()) {
 			AActor *CurrentActor = CurrentComponent->GetOwner();
