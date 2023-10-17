@@ -16,10 +16,6 @@ void ASoldierAIController::BeginPlay() {
 	Super::BeginPlay();
 
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
-		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
-			RunningSpeed = InstigatorComponent->MaxWalkSpeed;
-		}
-
 		InitialTransform = InstigatorSoldier->GetTransform();
 
 		MaxSightRadius = 0.0f;
@@ -35,11 +31,12 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 	if (IsStunned()) return;
-	ASLSoldier *SoldierCharacter = Cast<ASLSoldier>(GetInstigator());
+
+	ASLSoldier *SoldierCharacter = GetInstigatorSoldier();
 	if (!SoldierCharacter || SoldierCharacter->bIsDead) return;
 
 	ASlime_A *PlayerCharacter = GetPlayerCharacter();
-	if (!PlayerCharacter) return;
+	if (!PlayerCharacter || PlayerCharacter->bIsDead) return;
 
 	DetectedLocation = PlayerCharacter->GetActorLocation();
 	bPlayerInSight = IsPlayerInSight();
@@ -52,7 +49,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 			CurrentAwareness = 1.0f;
 		}
 		else {
-			float Distance = DetectedActor.Get()->GetDistanceTo(GetInstigator()); // TODO: We could get it from the IsPlayerInSight()
+			float Distance = FVector::DistXY(SoldierCharacter->GetActorLocation(), PlayerCharacter->GetActorLocation());
 			if (Distance <= DistanceInstantDetection) {
 				// Immediately detect player, arbitrary number to indicate detection
 				CurrentAwareness = 999.0f;
@@ -136,16 +133,22 @@ ASlime_A* ASoldierAIController::GetPlayerCharacter() {
 	}
 	return PlayerCharacterRef;
 }
+ASLSoldier* ASoldierAIController::GetInstigatorSoldier() {
+	if (!SoldierCharacterRef) {
+		SoldierCharacterRef = Cast<ASLSoldier>(GetInstigator());
+	}
+	return SoldierCharacterRef;
+}
 
-bool ASoldierAIController::CanPatrol() const
-{
-	ASLSoldier *InstigatorSoldier = GetInstigatorSoldier();
-	return (InstigatorSoldier && InstigatorSoldier->PatrolType != SLIdleType::Standing);
+
+bool ASoldierAIController::CanPatrol() const {
+	return (SoldierCharacterRef && SoldierCharacterRef->PatrolType != SLIdleType::Standing);
 }
 
 void ASoldierAIController::SetIsAlerted(bool NewState) {
 	bIsAlerted = NewState;
 	CurrentAwareness = bIsAlerted ? 1.0f : 0.0f;
+	AimTimeRemaining = AimTime;
 	
 	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
 		InstigatorSoldier->AnimationState = NewState ? SoldierAIState::ALERTED : SoldierAIState::IDLE;
@@ -155,16 +158,16 @@ void ASoldierAIController::SetIsAlerted(bool NewState) {
 	}
 }
 
-void ASoldierAIController::StopLogic()
-{
-	UBrainComponent* Brain = AAIController::GetBrainComponent();
-	Brain->StopLogic("Stunned");
+void ASoldierAIController::StopLogic() {
+	if (UBrainComponent* Brain = AAIController::GetBrainComponent()) {
+		Brain->StopLogic("Stunned");
+	}
 }
 
-void ASoldierAIController::ResumeLogic()
-{
-	UBrainComponent* Brain = AAIController::GetBrainComponent();
-	Brain->RestartLogic();
+void ASoldierAIController::ResumeLogic() {
+	if (UBrainComponent* Brain = AAIController::GetBrainComponent()) {
+		Brain->RestartLogic();
+	}
 }
 
 bool ASoldierAIController::IsStunned()

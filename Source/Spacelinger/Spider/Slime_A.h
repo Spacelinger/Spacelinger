@@ -28,6 +28,8 @@ class UInventoryComponent;
 class ULifeComponent;
 class UUIHUD;
 class UMaterialBillboardComponent;
+class UWidgetComponent;
+class UEnhancedInputComponent;
 
 UENUM(BlueprintType)
 enum SLSpiderAbility {
@@ -53,6 +55,8 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UEnhancedInputComponent* EnhancedInputComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -97,8 +101,16 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UMaterialBillboardComponent* HookTargetCrosshair = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Hook", meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* HookCrosshairWidget = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float HookCrosshairHitDistance = 0.0f;
+
+public:
 	UFUNCTION()
-		void OnDie(AActor* Killer);
+	void OnDie(AActor* Killer);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	bool bIsDead = false;
 
 protected:
 	// GAS
@@ -288,6 +300,14 @@ protected:
 
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface *TranslucentMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
+	UMaterialInterface *OpaqueMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
+	float MaterialCameraThreshold = 60.0f;
+	bool bIsMaterialOpaque = true;
+
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FMatrix BaseCameraRotation = FMatrix::Identity;

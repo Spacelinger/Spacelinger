@@ -9,6 +9,8 @@
 class UWidgetComponent;
 class USLDetectionWidget;
 class ASLSoldierPath;
+class UInteractableComponent;
+class UInteractWidget;
 
 UENUM()
 enum SoldierAIState {
@@ -72,17 +74,33 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
 	USpacelingerAudioComponent* AudioManager = nullptr;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Interact")
+	UInteractableComponent* InteractableComponent = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Interact")
+	UWidgetComponent* InteractWidget = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|Interact")
+	UInteractWidget* InteractPromptWidget = nullptr;
+
 // Interact stuff
 	int InteractPriority = 99;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spacelinger|Interact")
+	float SecondsBetweenAttacks = 3.0f;
+
 	void MoveToCeiling();
+	UFUNCTION()
 	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
-	bool IsStunned();
+	bool IsStunned() const { return bIsStunned; }
 	float GetRemainingTimeToUnstunAsPercentage();
 	void Die(AActor *Killer);
 	UFUNCTION(BlueprintImplementableEvent)
 	void SoldierHasDied(AActor *Killer);
+	UFUNCTION()
+	void OnPlayerDead(AActor *Killer);
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Trap")
 	bool bMoveToCeiling = false;
