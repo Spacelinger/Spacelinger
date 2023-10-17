@@ -78,13 +78,13 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MeleeAttackAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* PutTrapAction;
+	UInputAction* PutTrapAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* HookAction;
+	UInputAction* HookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ThrowStunningAction;
+	UInputAction* ThrowStunningAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ToggleQuestLogAction;
+	UInputAction* ToggleQuestLogAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInteractingComponent* InteractingComponent;
@@ -368,10 +368,15 @@ public:
 		bool bHasLanded = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
 		bool bIsAttacking;
+	// This variable is used to transition between procedural animations and handmade animations. No new abilities
+	// can be thrown while this animation is false, that way we let our animations play out from start to finish
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
+		bool bFullyProceduralAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		bool bhangingAnimation;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float StateChangeCooldown = 1.0f;

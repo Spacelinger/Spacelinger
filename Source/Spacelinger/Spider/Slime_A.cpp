@@ -23,6 +23,7 @@
 #include "Engine/StaticMeshActor.h"
 #include "Components/BoxComponent.h"
 #include "Components/InteractingComponent.h"
+#include "Components/InteractableComponent.h"
 #include "Components/InventoryComponent.h"
 #include "Components/LifeComponent.h"
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
@@ -1146,8 +1147,9 @@ void ASlime_A::AddNewTrap(ASpiderWeb* NewTrap)
 	//UE_LOG(LogTemp, Warning, TEXT("Added a new trap, current traps: %i"), ActiveSpiderTrapsCount);
 }
 
-void ASlime_A::ThrowAbility(const FInputActionValue& Value)
-{
+void ASlime_A::ThrowAbility(const FInputActionValue& Value) {
+	if (!bFullyProceduralAnimation) return;
+
 	switch (SelectedSpiderAbility)
 	{
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
@@ -1283,6 +1285,7 @@ void ASlime_A::StopMoving(const FInputActionValue& Value) {
 void ASlime_A::Move(const FInputActionValue& Value)
 {
 	if (!Controller) return;
+	if (!bFullyProceduralAnimation) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 	if (MovementVector.IsNearlyZero()) return; // No movement input, early return
@@ -1407,8 +1410,30 @@ UPostProcessComponent* ASlime_A::GetPostProcessComponent() const
 	return PostProcessComponent;
 }
 
-void ASlime_A::Interact(const FInputActionValue& Value)
-{
+void ASlime_A::Interact(const FInputActionValue& Value) {
+	// We play the animation only if:
+	// 1. We are not playing the attack animation
+	// 2. The actor we're interacting is a soldier
+	// 3. There's nothing to interact with
+	bool bPlayAttackAnimation = !bIsAttacking && bFullyProceduralAnimation;
+	if (bPlayAttackAnimation) {
+		if (UInteractableComponent *CurrentComponent = InteractingComponent->GetCurrentInteractable()) {
+			AActor *CurrentActor = CurrentComponent->GetOwner();
+			if (CurrentActor && !CurrentActor->IsA<ASLSoldier>()) {
+				bPlayAttackAnimation = false;
+			}
+		}
+	}
+	// We play the animation if we didn't find any reason not to do so
+	if (bPlayAttackAnimation) {
+		bIsAttacking = true;
+		bFullyProceduralAnimation = false;
+
+		// Clear and schedule to reset bIsAttacking just in case. It'll be resetted by an AnimNotify normally
+		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 3.0f, false);
+	}
+
+	// Finally, we just interact with whatever it's in front of us
 	InteractingComponent->TryToInteract();
 }
 
