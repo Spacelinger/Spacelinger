@@ -57,11 +57,11 @@ void UBTTask_Soldier_AimAtPlayer::TickTask(UBehaviorTreeComponent& OwnerComp, ui
 	if (MyController->AimTimeRemaining <= 0) {
 		SoldierActor->AnimationState = SoldierAIState::ATTACK;
 		// If it's very close we might stomp instead
-		if (FVector::Dist2D(MyLocation, PlayerLocation) < 130.0f) {
+		if (FVector::Dist2D(MyLocation, PlayerLocation) < 70.0f) {
 			FVector FootLocation = SoldierActor->GetMesh()->GetSocketLocation(FName("Bip001-R-Toe0"));
 			FVector PlayerFootVector = FootLocation - PlayerLocation;
 			// If it's at the same height than the foot of the soldier, we stomp
-			if (FMath::Abs(PlayerFootVector.Z) < 30.0f) {
+			if (FMath::Abs(PlayerFootVector.Z) < 20.0f) {
 				SoldierActor->AnimationState = SoldierAIState::STOMP;
 			}
 		}
