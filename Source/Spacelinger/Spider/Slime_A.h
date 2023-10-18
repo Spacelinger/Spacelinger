@@ -183,6 +183,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		ULifeComponent* LifeComponent = nullptr;
 
+	UFUNCTION(BlueprintCallable, Category = "Life Component")
+		void ReceiveDamage(int Damage, AActor *DamageDealer);
+
 	// HUD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		UUIHUD* HUD = nullptr;

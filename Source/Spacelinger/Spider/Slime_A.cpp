@@ -1516,4 +1516,11 @@ void ASlime_A::OnDie(AActor* Killer) {
 
 APlayerController* ASlime_A::GetPlayerController() {
 	return Cast<APlayerController>(Controller);
+
+}
+
+void ASlime_A::ReceiveDamage(int Damage, AActor *DamageDealer) {
+	if (LifeComponent) {
+		LifeComponent->ReceiveDamage(Damage, this);
+	}
 }

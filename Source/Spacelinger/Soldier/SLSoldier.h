@@ -15,11 +15,12 @@ class UInteractWidget;
 UENUM()
 enum SoldierAIState {
 	IDLE,
-	SUSPICIOUS,
+	SUSPICIOUS, // Unused, maybe some others are unusued too idk
 	ALERTED,
 	AIMING,
-	ATTACK,
-	STUNNED
+	STUNNED,
+	ATTACK, // Shoot
+	STOMP
 };
 
 UENUM(BlueprintType)

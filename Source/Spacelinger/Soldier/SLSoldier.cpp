@@ -181,13 +181,11 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 
 	InteractableComponent->bCanInteract = false;
 	InteractWidget->SetVisibility(false);
-	
-	/*
-	* 
-	*	TO-DO: STOMP!
-	* 
-	*/
 
+	if(DamageDealer && DamageDealer->IsA<ASlime_A>()) {
+		ControllerReference->AimTimeRemaining = ControllerReference->AimTime;
+		AnimationState = SoldierAIState::STOMP;
+	}
 }
 
 void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
