@@ -364,13 +364,15 @@ public:
 		float bSetInitialRelativeLocation;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		FVector initialRelativePosition;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "CR_Aniamtion")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
 		bool bHasLanded = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
-		bool bIsAttacking;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
+		bool bIsAttacking = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
+		bool bIsPuttingTrap = false;
 	// This variable is used to transition between procedural animations and handmade animations. No new abilities
 	// can be thrown while this animation is false, that way we let our animations play out from start to finish
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
 		bool bFullyProceduralAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
