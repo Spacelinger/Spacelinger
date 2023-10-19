@@ -78,13 +78,13 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MeleeAttackAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* PutTrapAction;
+	UInputAction* PutTrapAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* HookAction;
+	UInputAction* HookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ThrowStunningAction;
+	UInputAction* ThrowStunningAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ToggleQuestLogAction;
+	UInputAction* ToggleQuestLogAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInteractingComponent* InteractingComponent;
@@ -182,6 +182,9 @@ public:
 	// Life Comp
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 		ULifeComponent* LifeComponent = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Life Component")
+		void ReceiveDamage(int Damage, AActor *DamageDealer);
 
 	// HUD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
@@ -364,14 +367,21 @@ public:
 		float bSetInitialRelativeLocation;
 	UPROPERTY(EditDefaultsOnly, Category = "Swinging")
 		FVector initialRelativePosition;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite,  Category = "CR_Aniamtion")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
 		bool bHasLanded = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Aniamtion")
-		bool bIsAttacking;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
+		bool bIsAttacking = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
+		bool bIsPuttingTrap = false;
+	// This variable is used to transition between procedural animations and handmade animations. No new abilities
+	// can be thrown while this animation is false, that way we let our animations play out from start to finish
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "CR_Animation")
+		bool bFullyProceduralAnimation = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		float angleAlign;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Swinging")
 		bool bhangingAnimation;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Time")
 		float StateChangeCooldown = 1.0f;
