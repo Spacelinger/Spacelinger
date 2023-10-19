@@ -1274,6 +1274,7 @@ void ASlime_A::MeleeAttackTriggered()
 
 void ASlime_A::ResetAttack() {
 	bIsAttacking = false;
+	bFullyProceduralAnimation = true;
 }
 
 void ASlime_A::StopMoving(const FInputActionValue& Value) {
@@ -1428,7 +1429,7 @@ void ASlime_A::Interact(const FInputActionValue& Value) {
 		bFullyProceduralAnimation = false;
 
 		// Clear and schedule to reset bIsAttacking just in case. It'll be resetted by an AnimNotify normally
-		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 3.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 1.0f, false);
 	}
 
 	// Finally, we just interact with whatever it's in front of us
