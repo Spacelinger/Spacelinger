@@ -49,12 +49,6 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 	ActorsOnTrigger += 1;
 
 	TryDoorOpen();
-
-	/*Luis was here: this code was useful to call from elsewhere, so I moved it and called through TryDoorOpen - new method
-	if (ActorsOnTrigger == 1) {
-		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
-		DoorOpenStarted();
-	}*/
 }
 
 void ASLDoor::BoxTrigger_OnEndOverlap(
@@ -70,13 +64,6 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	ensure(ActorsOnTrigger >= 0);
 
 	TryDoorClose();
-
-	/* Luis was here: this code was useful to call from elsewhere, so I moved it and called through TryDoorClose - new method
-	if (ActorsOnTrigger == 0) {
-		DoorMesh->SetVisibility(true);
-		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickClose, .001f, true);
-		DoorCloseStarted();
-	}*/
 }
 
 void ASLDoor::DoorTickOpen() {
