@@ -96,12 +96,7 @@ void UAbilityTask_SlowTime::Activate()
 	
 	Slime->SetStaminaRecoveryValue(StaminaCostOverTime);
 
-	/*
-	USpringArmComponent* CameraBoom;
-	CameraBoom = Slime->GetCameraBoom();
-	CameraBoom->TargetArmLength = 420.0f;
-	*/
-
+	CameraBoomDefaultArmLength = Slime->GetCameraBoom()->TargetArmLength;	
 }
 
 void UAbilityTask_SlowTime::SuccessEventCallback(const FGameplayEventData* Payload)
@@ -116,7 +111,7 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 	if (!WorldSettings)
 		return;
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.0f);
+	ASlime_A* Player = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.0f));
 
 	WorldSettings->SetTimeDilation(1);
 	Player->CustomTimeDilation = 1;
@@ -126,7 +121,8 @@ void UAbilityTask_SlowTime::SuccessEventContainerCallback(FGameplayTag MatchingT
 		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
 	}
 
-	Cast<ASlime_A>(Player)->ResetStaminaRecoveryValue();
+	Player->ResetStaminaRecoveryValue();
+	Player->GetCameraBoom()->TargetArmLength = CameraBoomDefaultArmLength;
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -153,7 +149,7 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 	if (!WorldSettings)
 		return;
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	ASlime_A* Player = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.0f));
 
 	WorldSettings->SetTimeDilation(1.0f);
 	Player->CustomTimeDilation = 1.0f;
@@ -163,7 +159,8 @@ void UAbilityTask_SlowTime::FailedEventContainerCallback(FGameplayTag MatchingTa
 		PPComp->Settings = *PostProcessSettings; // This removes all applied materials, so might be overkill if other PPFX were applied
 	}
 
-	Cast<ASlime_A>(Player)->ResetStaminaRecoveryValue();
+	Player->ResetStaminaRecoveryValue();
+	Player->GetCameraBoom()->TargetArmLength = CameraBoomDefaultArmLength;
 
 	if (ShouldBroadcastAbilityTaskDelegates())
 	{
@@ -188,10 +185,10 @@ void UAbilityTask_SlowTime::SmoothSlowTime(float DeltaTime)
 
 	CurrentSlowTimeDilation -= SlowStep * DeltaTime;
 	CurrentLineStep += LineStep * DeltaTime;
-
-	USpringArmComponent* CameraBoom;
-	CameraBoom = Cast<ASlime_A>(Player)->GetCameraBoom();
-	CameraBoom->TargetArmLength = 420.0f;
+	USpringArmComponent* CurrentCameraBoom;
+	CurrentCameraBoom = Cast<ASlime_A>(Player)->GetCameraBoom();
+	if (CurrentCameraBoom->TargetArmLength < CameraBoomDefaultArmLength + CameraBoomArmLengthExtension)
+		CurrentCameraBoom->TargetArmLength += SlowStep;
 
 	if (CurrentSlowTimeDilation <= CustomTimeDilation) {
 		WorldSettings->SetTimeDilation(CustomTimeDilation);
@@ -237,6 +234,9 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 		}
 
 	}
+
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+	Cast<ASlime_A>(Player)->GetCameraBoom()->TargetArmLength = CameraBoomDefaultArmLength;
 
 	Super::OnDestroy(AbilityEnding);
 }
