@@ -1274,6 +1274,7 @@ void ASlime_A::MeleeAttackTriggered()
 
 void ASlime_A::ResetAttack() {
 	bIsAttacking = false;
+	bFullyProceduralAnimation = true;
 }
 
 void ASlime_A::StopMoving(const FInputActionValue& Value) {
@@ -1411,11 +1412,9 @@ UPostProcessComponent* ASlime_A::GetPostProcessComponent() const
 }
 
 void ASlime_A::Interact(const FInputActionValue& Value) {
-	// We play the animation only if:
-	// 1. We are not playing the attack animation
-	// 2. The actor we're interacting is a soldier
-	// 3. There's nothing to interact with
-	bool bPlayAttackAnimation = !bIsAttacking && bFullyProceduralAnimation;
+	// We play the animation only if: We are not playing the attack animation or jumping, there's no actor
+	// to interact with or if there is it's a soldier
+	bool bPlayAttackAnimation = !bIsAttacking && !bIsInAir;
 	if (bPlayAttackAnimation) {
 		if (UInteractableComponent *CurrentComponent = InteractingComponent->GetCurrentInteractable()) {
 			AActor *CurrentActor = CurrentComponent->GetOwner();
@@ -1430,7 +1429,7 @@ void ASlime_A::Interact(const FInputActionValue& Value) {
 		bFullyProceduralAnimation = false;
 
 		// Clear and schedule to reset bIsAttacking just in case. It'll be resetted by an AnimNotify normally
-		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 3.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(AttackResetTimerHandle, this, &ASlime_A::ResetAttack, 1.0f, false);
 	}
 
 	// Finally, we just interact with whatever it's in front of us
@@ -1496,20 +1495,33 @@ void ASlime_A::SetStaminaRecoveryValue(float Value)
 // Life
 void ASlime_A::OnDie(AActor* Killer) {
 	bIsDead = true;
+	
+	// Remove controls and only allow moving the camera
 	if (EnhancedInputComponent) {
 		EnhancedInputComponent->ClearActionEventBindings();
-		// Re-add camera controls
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASlime_A::Look);
 	}
+
+	// Grayscale Effect
 	if (PostProcessComponent) {
 		PostProcessComponent->Settings.bOverride_ColorSaturation = true;
 		PostProcessComponent->Settings.ColorSaturation = FVector4(0, 0, 0,0);
 	}
-	UE_LOG(LogTemp, Display, TEXT("Spider Killed!!"));
+
+	// Unstick from walls
+	canTrace = false;
+	StopClimbing();
 }
 
 // Player Controller
 
 APlayerController* ASlime_A::GetPlayerController() {
 	return Cast<APlayerController>(Controller);
+
+}
+
+void ASlime_A::ReceiveDamage(int Damage, AActor *DamageDealer) {
+	if (LifeComponent) {
+		LifeComponent->ReceiveDamage(Damage, this);
+	}
 }

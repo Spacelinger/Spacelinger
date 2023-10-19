@@ -28,6 +28,7 @@ void UGA_PutTrap::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 		SpiderWebBall->ResetTimeLine();
 		Spider->SpiderWebBallF->SetVisibility(true);
 	}
+	Spider->bIsPuttingTrap = true;
 
 	PutTrapTask->ChannelingComplete.AddDynamic(this, &UGA_PutTrap::AbilityChannelComplete);
 	PutTrapTask->ChannelingCanceled.AddDynamic(this, &UGA_PutTrap::AbilityChannelCanceled);
@@ -92,6 +93,8 @@ void UGA_PutTrap::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGam
 	{
 		Spider->SpiderWebBallF->SetVisibility(false);
 	}
+	Spider->bIsPuttingTrap = false;
+
 	GetAbilitySystemComponentFromActorInfo()->RemoveLooseGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("Ability.PutTrap.Channeling")));
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }

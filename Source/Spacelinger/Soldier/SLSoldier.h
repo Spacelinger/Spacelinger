@@ -15,11 +15,12 @@ class UInteractWidget;
 UENUM()
 enum SoldierAIState {
 	IDLE,
-	SUSPICIOUS,
+	SUSPICIOUS, // Unused, maybe some others are unusued too idk
 	ALERTED,
 	AIMING,
-	ATTACK,
-	STUNNED
+	STUNNED,
+	ATTACK, // Shoot
+	STOMP
 };
 
 UENUM(BlueprintType)
@@ -110,6 +111,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	bool bIsStunned = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	int ShootDamage = 40;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	int StompDamage = 40;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
 	TEnumAsByte<SoldierAIState> AnimationState = SoldierAIState::IDLE;
