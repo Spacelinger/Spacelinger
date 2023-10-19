@@ -27,9 +27,13 @@ class SPACELINGER_API USLDetectionWidget : public UUserWidget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	FLinearColor DefaultBackgroundColor = FLinearColor(127, 127, 127, 1);
 
-protected:
+public:
 	UPROPERTY(BlueprintReadWrite, meta=(BindWidgetOptional))
 	UCanvasPanel *RotationPanel;
+	UPROPERTY(BlueprintReadWrite, meta=(BindWidgetOptional))
+	UCanvasPanel *StaticPanel;
+
+protected:
 	std::map<ASLSoldier*, float> SoldierAwarenessMap; // [!!!!!] This should be a TEMPORARY solution since we'll need some sort of hive mind for the AI, not every widget should know about every soldier
 	std::map<ASLSoldier*, float> MostAwareSoldier;
 

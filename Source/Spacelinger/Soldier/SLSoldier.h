@@ -61,6 +61,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* DetectionWidget;
+	void UpdateWidgetSize();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UClass *OffscreenDetectionWidgetClass;
