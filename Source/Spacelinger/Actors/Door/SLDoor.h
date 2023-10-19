@@ -12,6 +12,28 @@ class USpotLightComponent;
 class USceneComponent;
 class UChildActorComponent;
 
+UENUM(BlueprintType)
+enum class SLDoorMeshSize : uint8 {
+	SMALL = 0,
+	BIG,
+	COUNT UMETA(Hidden)
+};
+
+USTRUCT()
+struct FUSLDoorSoundSettings {
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere)
+	USoundBase *Sound = nullptr;
+	UPROPERTY(EditAnywhere, meta = (UIMin = "0.0"))
+	float VolumeMultiplier = 0.15f;
+	UPROPERTY(EditAnywhere, meta = (UIMin = "0.0"))
+	float PitchMultiplier = 1.f;
+	UPROPERTY(EditAnywhere, meta = (UIMin = "0.0"))
+	float StartTime = 0.0f;
+};
+
+
 UCLASS()
 class SPACELINGER_API ASLDoor : public AActor
 {
@@ -22,12 +44,27 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent *DoorMesh;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UBoxComponent* BoxTrigger;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UChildActorComponent* DoorBlock;
+
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Sound")
+	SLDoorMeshSize DoorSize = SLDoorMeshSize::SMALL;
+	UPROPERTY(EditAnywhere, Category = "Spacelinger|Sound")
+	FUSLDoorSoundSettings SmallOpen;
+	UPROPERTY(EditAnywhere, Category = "Spacelinger|Sound")
+	FUSLDoorSoundSettings SmallClose;
+	UPROPERTY(EditAnywhere, Category = "Spacelinger|Sound")
+	FUSLDoorSoundSettings BigOpen;
+	UPROPERTY(EditAnywhere, Category = "Spacelinger|Sound")
+	FUSLDoorSoundSettings BigClose;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Sound")
+	USoundAttenuation *AttenuationSettings;
+	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Sound")
+	USoundConcurrency *ConcurrencySettings;
+	UPROPERTY()
+	UAudioComponent *SpawnedSound = nullptr;
 
 	// Boolean indicating if the door is always open to the player
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|Movement")
@@ -89,4 +126,6 @@ private:
 
 	UFUNCTION()
 	void HandleDoorBlock(bool bBlockStatus);
+
+	void PlaySoundSettings(FUSLDoorSoundSettings Settings);
 };
