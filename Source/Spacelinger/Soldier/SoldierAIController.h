@@ -79,7 +79,7 @@ public:
 	void StopLogic();
 	UFUNCTION(BlueprintCallable)
 	void ResumeLogic();
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsStunned();
 
 	void SetIsAlerted(bool NewState);
