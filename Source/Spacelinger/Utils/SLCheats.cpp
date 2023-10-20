@@ -64,13 +64,15 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatDebugRaycast(
 ), ECVF_Cheat);
 
 static FAutoConsoleCommandWithWorld FCheatGiveKey(
-	TEXT("sl.givekey"),
+	TEXT("sl.givekeys"),
 	TEXT("Gives the player a key to unlock doors"),
 	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) {
 		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
 			UInventoryComponent* InventoryComponent = Player->FindComponentByClass<UInventoryComponent>();
-			if(InventoryComponent)
-				InventoryComponent->AddItem(TEXT("DoorKey"));
+			if(InventoryComponent) {
+				InventoryComponent->AddItem(TEXT("KeyHand"));
+				InventoryComponent->AddItem(TEXT("KeyEyes"));
+			}
 		}
 	})
 );

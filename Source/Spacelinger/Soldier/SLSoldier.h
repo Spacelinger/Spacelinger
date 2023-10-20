@@ -30,6 +30,14 @@ enum class SLIdleType : uint8 {
 	PatrolGuided UMETA(ToolTip="Moves from waypoint to waypoint"),
 };
 
+
+UENUM(BlueprintType)
+enum class SLTypeKey : uint8 {
+	NONE = 0,
+	HAND,
+	EYES,
+};
+
 USTRUCT()
 struct FUSLAICone {
 	GENERATED_BODY()
@@ -139,7 +147,7 @@ public:
 	bool IsDead();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
-	bool bHasKey = false;
+	SLTypeKey OwnedKey = SLTypeKey::NONE;
 
 // AI stuff
 	UPROPERTY(EditAnywhere, Category = "Spacelinger|AI|Perception")
