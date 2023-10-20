@@ -170,8 +170,7 @@ void ASoldierAIController::ResumeLogic() {
 	}
 }
 
-bool ASoldierAIController::IsStunned()
-{
+bool ASoldierAIController::IsStunned() {
 	ASLSoldier *InstigatorSoldier = Cast<ASLSoldier>(GetInstigator());
 	if (InstigatorSoldier != nullptr)
 	{

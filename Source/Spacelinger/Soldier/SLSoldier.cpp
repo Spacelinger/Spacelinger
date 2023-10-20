@@ -74,6 +74,8 @@ void ASLSoldier::OnConstruction(const FTransform& Transform) {
 void ASLSoldier::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
+	if (bIsStunned) AnimationState = SoldierAIState::STUNNED;
+
 	if (AnimationState == SoldierAIState::AIMING) {
 		FRotator SoldierRotation = GetActorRotation();
 		FVector SrcVector = SoldierRotation         .Vector();
@@ -181,17 +183,17 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 
 	InteractableComponent->bCanInteract = false;
 	InteractWidget->SetVisibility(false);
-	
-	/*
-	* 
-	*	TO-DO: STOMP!
-	* 
-	*/
 
+	if(DamageDealer && DamageDealer->IsA<ASlime_A>()) {
+		ControllerReference->AimTimeRemaining = ControllerReference->AimTime;
+		AnimationState = SoldierAIState::STOMP;
+	}
 }
 
 void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 {
+	AnimationState = SoldierAIState::STUNNED;
+
 	bIsStunned = true;
 	GetCharacterMovement()->DisableMovement();
 	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
@@ -207,6 +209,8 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 void ASLSoldier::Unstun() 
 {
 	if (bIsDead) return;
+
+	AnimationState = SoldierAIState::ALERTED;
 
 	bIsStunned = false;
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
