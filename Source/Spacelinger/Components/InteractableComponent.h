@@ -13,7 +13,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInteract, AActor*, InteractingAct
 
 class UWidgetComponent;
 
-UCLASS()
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class SPACELINGER_API UInteractableComponent : public UActorComponent, public IInteractInterface
 {
 	GENERATED_BODY()
@@ -23,9 +23,11 @@ public:
 	UInteractableComponent();
 
 	virtual void BeginPlay() override;
-
+	UFUNCTION(BlueprintCallable)
 	virtual void SetAsCandidate(AActor* ActorInteracting) override;
+	UFUNCTION(BlueprintCallable)
 	virtual void RemoveAsCandidate(AActor* ActorInteracting) override;
+	UFUNCTION(BlueprintCallable)
 	virtual void Interact(AActor* ActorInteracting) override;
 	virtual int GetInteractPriority() const override { return Priority; }
 	virtual bool CanInteract() const override { return bCanInteract; }
@@ -34,7 +36,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (UIMin = "1", UIMax = "99"))
 	int Priority = 50;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bCanInteract = true;
 
 	UPROPERTY(BlueprintAssignable)

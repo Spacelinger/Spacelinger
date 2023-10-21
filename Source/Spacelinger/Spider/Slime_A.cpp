@@ -1463,7 +1463,23 @@ void ASlime_A::ThrowStunningWeb()
 		CutSpiderWeb();
 	}
 
-	bHasTrownSpiderWeb = true;
+	if (!bHasTrownSpiderWeb) {
+		// Dispara inmediatamente la primera vez
+		SpawnProjectile();
+
+		// Configura el temporizador para el período de enfriamiento
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
+
+		bHasTrownSpiderWeb = true;
+	}
+}
+
+void ASlime_A::ResetThrow()
+{
+	bHasTrownSpiderWeb = false;
+}
+void ASlime_A::SpawnProjectile()
+{
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
@@ -1481,11 +1497,12 @@ void ASlime_A::ThrowStunningWeb()
 		// Set projectile velocity
 		if (Projectile->ProjectileMovementComponent != nullptr) {
 			Projectile->ProjectileMovementComponent->InitialSpeed = 2000.0f;
-			Projectile->ProjectileMovementComponent->MaxSpeed =  2000.0f;
+			Projectile->ProjectileMovementComponent->MaxSpeed = 2000.0f;
 			Projectile->ProjectileMovementComponent->Velocity = LookDirection * 1000.0f;
 		}
 	}
 }
+
 	
 void ASlime_A::SetStaminaRecoveryValue(float Value)
 {
