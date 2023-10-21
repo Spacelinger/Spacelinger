@@ -7,6 +7,8 @@
 #include "Soldier\SLSoldier.h"
 #include "SoldierAIController.generated.h"
 
+#define SL_ECC_SoldierAI ECC_GameTraceChannel1
+
 class ASlime_A;
 
 UCLASS()

@@ -80,6 +80,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 	}
 }
 
+#pragma optimize("", off)
 bool ASoldierAIController::IsPlayerInSight() {
 	ASlime_A *PlayerCharacter = GetPlayerCharacter();
 	if (!PlayerCharacter) return false;
@@ -120,12 +121,16 @@ bool ASoldierAIController::IsPlayerInSight() {
 		FHitResult HitResult;
 		FCollisionQueryParams TraceParams;
 		TraceParams.AddIgnoredActor(this);
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, ECC_Camera, TraceParams);
+		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, SL_ECC_SoldierAI, TraceParams);
+		AActor *HitActor = HitResult.GetActor();
+		UPrimitiveComponent *HitComponent = HitResult.GetComponent();
+
 		if (bHit && HitResult.GetActor() == PlayerCharacter) return true;
 	}
 
 	return false;
 }
+#pragma optimize("", on)
 
 ASlime_A* ASoldierAIController::GetPlayerCharacter() {
 	if (!PlayerCharacterRef) {
