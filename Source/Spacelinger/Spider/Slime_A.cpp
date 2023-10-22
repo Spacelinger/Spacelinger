@@ -36,6 +36,7 @@
 #include <Soldier/SLSoldier.h>
 
 #include "Actors/SpiderProjectile.h"
+#include "GAS/Abilities/GA_Hook.h"
 
 
 #include "Blueprint/UserWidget.h"
@@ -1191,7 +1192,7 @@ void ASlime_A::AimHook()
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
-	FVector EndPosition = StartPosition + (LookDirection * HookLineTraceDistance);
+	FVector EndPosition = StartPosition + (LookDirection * MaxHookLineTraceDistance);
 
 	FHitResult HitResult;
 	FCollisionQueryParams CollisionQueryParams;
@@ -1464,10 +1465,10 @@ void ASlime_A::ThrowStunningWeb()
 	}
 
 	if (!bHasTrownSpiderWeb) {
-		// Dispara inmediatamente la primera vez
+		// Shoot inmediately at first time
 		SpawnProjectile();
 
-		// Configura el temporizador para el período de enfriamiento
+		// Cooldown configuration
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
 
 		bHasTrownSpiderWeb = true;

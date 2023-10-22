@@ -398,7 +398,10 @@ public:
 		bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hook")
-		float HookLineTraceDistance = 1000.0f;
+		float MaxHookLineTraceDistance = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hook")
+		float MinHookLineTraceDistance = 50.0f;
 	
 	AActor* previousActorCollision;
 

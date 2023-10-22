@@ -55,57 +55,50 @@ void UGA_Hook::ActionThrowHook()
 		if (Spider->spiderWebReference != nullptr) {
 			Spider->CutSpiderWeb();
 		}
+		
 		Spider->bHasTrownSpiderWeb = true;
 		FVector2D ScreenLocation = GetViewportCenter(Spider);
 		FVector LookDirection = GetLookDirection(ScreenLocation, Spider);
 		FVector StartPosition = Spider->GetMesh()->GetSocketLocation("Mouth");
 		//float LineTraceDistance = 1000.0f;
-		FVector EndPosition = StartPosition + (LookDirection * Spider->HookLineTraceDistance);
-
+		FVector EndPosition = StartPosition + (LookDirection * Spider->MaxHookLineTraceDistance);
+		
 		FHitResult HitResult;
 		GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_Visibility);
+		
+		float DistanceHook = FVector::Distance(HitResult.ImpactPoint,StartPosition);
 
-		// Perform ray trace in the direction of the negative Actor Up Vector.
-		FVector StartPositionRayTrace = Spider->GetActorLocation(); // Start at the actor's location.
-		FVector EndPositionRayTrace = StartPositionRayTrace - (Spider->GetActorUpVector() * Spider->HookLineTraceDistance); // Move in the direction of the negative Actor Up Vector.
-
-		// Perform the ray trace.
-		FHitResult RayTraceHitResult;
-		GetWorld()->LineTraceSingleByChannel(RayTraceHitResult, StartPositionRayTrace, EndPositionRayTrace, ECC_Visibility);
-
-		// At this point the web has been shot, may it hit or not
-		if (!HookShotSoundFXArray.IsEmpty())
-		{
-			USoundCue* HookShotSoundFX = HookShotSoundFXArray[FMath::RandRange(int32(0), HookShotSoundFXArray.Num() - 1)];
-			float PitchModulation = FMath::RandRange(0.75f, 1.25f);
-			UGameplayStatics::SpawnSound2D(this, HookShotSoundFX, 1.0f, PitchModulation);
+		if (DistanceHook <= Spider->MinHookLineTraceDistance) {
+			Spider->CutSpiderWeb();
 		}
+		else {
+			if (HitResult.bBlockingHit)
+			{
+				//SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true, true);
 
-		// If the ray trace hits a static mesh, store the actor in the global variable.
-		if (RayTraceHitResult.bBlockingHit && RayTraceHitResult.GetActor() != nullptr && RayTraceHitResult.GetActor()->IsA(AStaticMeshActor::StaticClass()))
-		{
-			Spider->previousActorCollision = RayTraceHitResult.GetActor();
-		}
+				Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
+				Spider->spiderWebReference->CableComponent->bAttachEnd = true;
+				Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
+				Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
+				Spider->spiderWebReference->setFuturePosition(HitResult.Location, Spider, true, true);
+			}
+			else
+			{
+				//SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false, true);
 
-		if (HitResult.bBlockingHit)
-		{
-			//SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true, true);
-
-			Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
-			Spider->spiderWebReference->CableComponent->bAttachEnd = true;
-			Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
-			Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
-			Spider->spiderWebReference->setFuturePosition(HitResult.Location, Spider, true, true);
-		}
-		else
-		{
-			//SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false, true);
-
-			Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
-			Spider->spiderWebReference->CableComponent->bAttachEnd = true;
-			Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
-			Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
-			Spider->spiderWebReference->setFuturePosition(EndPosition, Spider, false, true);
+				Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
+				Spider->spiderWebReference->CableComponent->bAttachEnd = true;
+				Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
+				Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
+				Spider->spiderWebReference->setFuturePosition(EndPosition, Spider, false, true);
+			}
+			// At this point the web has been shot, may it hit or not
+			if (!HookShotSoundFXArray.IsEmpty())
+			{
+				USoundCue* HookShotSoundFX = HookShotSoundFXArray[FMath::RandRange(int32(0), HookShotSoundFXArray.Num() - 1)];
+				float PitchModulation = FMath::RandRange(0.75f, 1.25f);
+				UGameplayStatics::SpawnSound2D(this, HookShotSoundFX, 1.0f, PitchModulation);
+			}
 		}
 	}
 
