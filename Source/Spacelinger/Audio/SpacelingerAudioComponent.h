@@ -69,7 +69,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float DetectionSoundVolumeMultiplier = 0.3f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
-	float ChaseMusicVolumeMultiplier = 0.10f;
+	float ChaseMusicVolumeMultiplier = 0.05f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float BackgroundMusicVolumeMultiplier = 1.0f;
 
@@ -133,10 +133,9 @@ protected:
 private:
 	friend class FSubsystemCollectionBase;
 	FSubsystemCollectionBase* InternalOwningSubsystem;
-
-	bool IsSubsystemInitialized = false;
-
+	
 	int SoldierDeathCounter = 0;
+	bool LaserPuzzleAnnouncerHasPlayed = false;
 	bool IsResumingPatrol = false;
 	bool IsAnySoldierAlerted = false;
 	bool IsSoldierVoiceCuePlaying = false;

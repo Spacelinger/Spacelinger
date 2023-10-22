@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Actors/TogglableVisualElement.h"
+#include "Audio/SpacelingerAudioComponent.h"
 #include "SLLaserPuzzle.generated.h"
 
 class UStaticMeshComponent;
@@ -95,6 +96,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger")
 	TArray<ASLLockedDoor*> AssociatedDoors;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
+	UGameInstance *GameInstance;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
+	USpacelingerAudioComponent* AudioManager = nullptr;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ASpiderWeb *LastAttachedWeb;
 	UFUNCTION()
@@ -116,5 +122,6 @@ private:
 
 	void SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLParticleParameter> Parameters, float Magnitude = 1.0f, bool RefreshParticleSytem = true);
 	void UpdateAssociatedVisualElements();
+	void PlayFinalAudio();
 
 };
