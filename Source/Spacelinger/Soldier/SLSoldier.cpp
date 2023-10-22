@@ -1,4 +1,4 @@
-#include "SLSoldier.h"
+#include "Soldier/SLSoldier.h"
 
 #include "SoldierAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -237,7 +237,7 @@ void ASLSoldier::Die(AActor *Killer)
 	OffscreenDetectionWidget->RemoveFromParent();
 
 	InteractableComponent->bCanInteract = false;
-	InteractWidget->GetWidget()->RemoveFromViewport();
+	InteractWidget->GetWidget()->RemoveFromParent();
 	InteractWidget->Deactivate();
 
 	GetController()->UnPossess();

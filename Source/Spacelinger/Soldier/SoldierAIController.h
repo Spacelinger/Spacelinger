@@ -22,6 +22,7 @@ protected:
 	virtual void BeginPlay();
 	virtual void Tick(float DeltaTime);
 	bool IsPlayerInSight();
+	bool IsPlayerInSightRaycast(FVector SoldierPosition, FVector PlayerPosition);
 	
 public:
 	// If we see the player and they are at this distance or closer, they will be detected instanly.
@@ -66,8 +67,6 @@ public:
 	FTransform InitialTransform;
 
 	// AI Alerted
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
-	float ShootingAcceptanceRadius = 100.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))
 	float WalkingSpeed = 150.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadwrite, Category = "Spacelinger|AI", meta = (UIMin = "0.0", UIMax = "2.0"))

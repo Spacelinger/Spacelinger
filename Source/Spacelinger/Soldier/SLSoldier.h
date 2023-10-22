@@ -155,6 +155,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
 	bool bDrawDebugAI = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	float ShootingAcceptanceRadius = 1600.0f;
+
 	void DrawDebugCones();
 
 	FTimerHandle DrawDebugTimerHandle;
