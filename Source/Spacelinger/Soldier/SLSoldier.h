@@ -95,6 +95,8 @@ public:
 	void Stun(float StunDuration, FVector ThrowLocation);
 	void Unstun();
 	bool IsStunned() const { return bIsStunned; }
+	UFUNCTION(BlueprintImplementableEvent)
+	void SoldierBeginStun(float StunDuration);
 	float GetRemainingTimeToUnstunAsPercentage();
 	void Die(AActor *Killer);
 	UFUNCTION(BlueprintImplementableEvent)
