@@ -292,7 +292,7 @@ private:
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
-	const float StunningWebStunDuration = 6.0f;
+	const float StunningWebStunDuration = 10.0f;
 	bool bIsAimingHook = false;
 	FTimerHandle AttackResetTimerHandle;
 
