@@ -129,7 +129,11 @@ void USpacelingerAudioComponent::StopBackgroundMusic()
 
 void USpacelingerAudioComponent::PlayLaserPuzzleAnnouncer()
 {
-	UGameplayStatics::SpawnSound2D(this, DoomedAnnouncerCue, 0.10f);
+	if (!LaserPuzzleAnnouncerHasPlayed)
+	{
+		LaserPuzzleAnnouncerHasPlayed = true;
+		UGameplayStatics::SpawnSound2D(this, DoomedAnnouncerCue, 0.10f);
+	}
 }
 
 void USpacelingerAudioComponent::UpdateBarFillingSound(float awareness)

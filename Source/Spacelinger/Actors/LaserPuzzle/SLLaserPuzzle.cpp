@@ -6,6 +6,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "Spider/SpiderWeb.h"
 #include "Actors/Door/LockedDoor/SLLockedDoor.h"
+#include "Audio/SpacelingerAudioComponent.h"
 #include "Components/BoxComponent.h"
 #include "Engine/TriggerSphere.h"
 
@@ -117,10 +118,18 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		SphereEnd->Destroy();
 
 		if (bActiveBeamTop && bActiveBeamBot) {
+			PlayFinalAudio();
 			for(ASLLockedDoor *Door : AssociatedDoors) {
 				if (Door) Door->OpenDoor();
 				PuzzleSolved();
 			}
 		}
 	}
+}
+
+void ASLLaserPuzzle::PlayFinalAudio()
+{
+	GameInstance = GetGameInstance();
+	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
+	AudioManager->PlayLaserPuzzleAnnouncer();
 }
