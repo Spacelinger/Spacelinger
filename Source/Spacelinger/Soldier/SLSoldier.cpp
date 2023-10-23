@@ -197,6 +197,7 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 
 void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 {
+	SoldierBeginStun(StunDuration);
 	AnimationState = SoldierAIState::STUNNED;
 
 	bIsStunned = true;

@@ -78,6 +78,9 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float SlowTimeEffectLineDensity = 0.35f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+	float CameraBoomArmLengthExtension = 200.0f;
+
 	void SetSpeedLinesMaterial(UMaterialInstance* SpeedLinesMaterial);
 	
 private:
@@ -94,4 +97,5 @@ private:
 	UMaterialInstanceDynamic* DynamicSpeedLinesMaterial = nullptr;
 	UPostProcessComponent* PPComp = nullptr;
 	FWeightedBlendable WeightedBlendable;	// May be unnecessary
+	float CameraBoomDefaultArmLength = 200.0f;
 };
