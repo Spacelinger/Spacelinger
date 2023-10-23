@@ -36,6 +36,7 @@
 #include <Soldier/SLSoldier.h>
 
 #include "Actors/SpiderProjectile.h"
+#include "GAS/Abilities/GA_Hook.h"
 
 
 #include "Blueprint/UserWidget.h"
@@ -1191,7 +1192,7 @@ void ASlime_A::AimHook()
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
-	FVector EndPosition = StartPosition + (LookDirection * HookLineTraceDistance);
+	FVector EndPosition = StartPosition + (LookDirection * MaxHookLineTraceDistance);
 
 	FHitResult HitResult;
 	FCollisionQueryParams CollisionQueryParams;
@@ -1463,7 +1464,23 @@ void ASlime_A::ThrowStunningWeb()
 		CutSpiderWeb();
 	}
 
-	bHasTrownSpiderWeb = true;
+	if (!bHasTrownSpiderWeb) {
+		// Shoot inmediately at first time
+		SpawnProjectile();
+
+		// Cooldown configuration
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
+
+		bHasTrownSpiderWeb = true;
+	}
+}
+
+void ASlime_A::ResetThrow()
+{
+	bHasTrownSpiderWeb = false;
+}
+void ASlime_A::SpawnProjectile()
+{
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
@@ -1481,7 +1498,7 @@ void ASlime_A::ThrowStunningWeb()
 		// Set projectile velocity
 		if (Projectile->ProjectileMovementComponent != nullptr) {
 			Projectile->ProjectileMovementComponent->InitialSpeed = 2000.0f;
-			Projectile->ProjectileMovementComponent->MaxSpeed =  2000.0f;
+			Projectile->ProjectileMovementComponent->MaxSpeed = 2000.0f;
 			Projectile->ProjectileMovementComponent->Velocity = LookDirection * 1000.0f;
 		}
 	}
