@@ -1104,6 +1104,7 @@ void ASlime_A::HandleHook()
 
 void ASlime_A::PutTrap()
 {
+	if (!bIsClimbing || !IsCeiling(previousNormal)) return;
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
 }

@@ -30,6 +30,14 @@ enum class SLIdleType : uint8 {
 	PatrolGuided UMETA(ToolTip="Moves from waypoint to waypoint"),
 };
 
+
+UENUM(BlueprintType)
+enum class SLTypeKey : uint8 {
+	NONE = 0,
+	HAND,
+	EYES,
+};
+
 USTRUCT()
 struct FUSLAICone {
 	GENERATED_BODY()
@@ -61,6 +69,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* DetectionWidget;
+	void UpdateWidgetSize();
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|UI", meta = (AllowPrivateAccess = "true"))
 	UClass *OffscreenDetectionWidgetClass;
@@ -138,13 +147,16 @@ public:
 	bool IsDead();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
-	bool bHasKey = false;
+	SLTypeKey OwnedKey = SLTypeKey::NONE;
 
 // AI stuff
 	UPROPERTY(EditAnywhere, Category = "Spacelinger|AI|Perception")
 	TArray<FUSLAICone> ConesOfVision;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI|Perception")
 	bool bDrawDebugAI = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger|AI")
+	float ShootingAcceptanceRadius = 1600.0f;
 
 	void DrawDebugCones();
 

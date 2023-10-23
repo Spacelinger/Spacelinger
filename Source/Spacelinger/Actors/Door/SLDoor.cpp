@@ -8,6 +8,7 @@
 #include "Components/SceneComponent.h"
 #include "Soldier/SLSoldier.h"
 #include "Actors/DoorBlock.h"
+#include "Sound/SoundBase.h"
 
 ASLDoor::ASLDoor() {
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -48,12 +49,6 @@ void ASLDoor::BoxTrigger_OnBeginOverlap(
 	ActorsOnTrigger += 1;
 
 	TryDoorOpen();
-
-	/*Luis was here: this code was useful to call from elsewhere, so I moved it and called through TryDoorOpen - new method
-	if (ActorsOnTrigger == 1) {
-		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
-		DoorOpenStarted();
-	}*/
 }
 
 void ASLDoor::BoxTrigger_OnEndOverlap(
@@ -69,13 +64,6 @@ void ASLDoor::BoxTrigger_OnEndOverlap(
 	ensure(ActorsOnTrigger >= 0);
 
 	TryDoorClose();
-
-	/* Luis was here: this code was useful to call from elsewhere, so I moved it and called through TryDoorClose - new method
-	if (ActorsOnTrigger == 0) {
-		DoorMesh->SetVisibility(true);
-		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickClose, .001f, true);
-		DoorCloseStarted();
-	}*/
 }
 
 void ASLDoor::DoorTickOpen() {
@@ -132,6 +120,7 @@ void ASLDoor::TryDoorOpen() {
 
 	if (ActorsOnTrigger >= 1) {
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickOpen, .001f, true);
+		PlaySoundSettings((DoorSize == SLDoorMeshSize::SMALL) ? SmallOpen : BigOpen);
 		DoorOpenStarted();
 	}
 }
@@ -142,6 +131,7 @@ void ASLDoor::TryDoorClose() {
 	if (ActorsOnTrigger == 0) {
 		DoorMesh->SetVisibility(true);
 		GetWorldTimerManager().SetTimer(DoorTickHandle, this, &ASLDoor::DoorTickClose, .001f, true);
+		PlaySoundSettings((DoorSize == SLDoorMeshSize::SMALL) ? SmallClose : BigClose);
 		DoorCloseStarted();
 	}
 }
@@ -157,4 +147,15 @@ void ASLDoor::HandleDoorBlock(bool bBlockStatus){
 		TryDoorClose();
 		DoorUnblocked();
 	}
+}
+
+void ASLDoor::PlaySoundSettings(FUSLDoorSoundSettings Settings) {
+	if (!Settings.Sound) return;
+
+	if (SpawnedSound) SpawnedSound->Stop();
+
+	const bool bAutoDestroy = true;
+	SpawnedSound = UGameplayStatics::SpawnSoundAtLocation(GetWorld(), Settings.Sound, GetActorLocation(), FRotator::ZeroRotator,
+		Settings.VolumeMultiplier, Settings.PitchMultiplier, Settings.StartTime,
+		AttenuationSettings, ConcurrencySettings, bAutoDestroy);
 }
