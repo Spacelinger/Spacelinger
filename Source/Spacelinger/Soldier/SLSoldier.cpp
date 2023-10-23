@@ -86,7 +86,7 @@ void ASLSoldier::Tick(float DeltaTime) {
 
 		float DotProduct = FVector::DotProduct(SrcVector, DstVector);
 		bHasRotatedLastFrameWhileAiming = (DotProduct < .99f);
-		if (bHasRotatedLastFrameWhileAiming ) {
+		if (bHasRotatedLastFrameWhileAiming) {
 			FRotator InterpRotator = FMath::RInterpTo(SoldierRotation, RotatorToFaceWhileAiming, DeltaTime, RotationSpeedWhileAiming);
 			SoldierRotation.Yaw = InterpRotator.Yaw;
 			SetActorRotation(SoldierRotation);

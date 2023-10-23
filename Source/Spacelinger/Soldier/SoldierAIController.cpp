@@ -133,7 +133,8 @@ bool ASoldierAIController::IsPlayerInSightRaycast(FVector SoldierPosition, FVect
 	FCollisionQueryParams TraceParams;
 	TraceParams.AddIgnoredActor(this);
 	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, SL_ECC_SoldierAI, TraceParams);
-	return (bHit && HitResult.GetActor() == PlayerCharacter);
+	AActor *HitActor = HitResult.GetActor();
+	return (bHit && HitActor == PlayerCharacter);
 }
 
 
