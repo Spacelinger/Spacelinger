@@ -1303,7 +1303,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 
 	if (isHanging)
 	{
-		FVector HangingForce = MovementDirection * 15000.0f;
+		FVector HangingForce = MovementDirection * 5000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
 	else
