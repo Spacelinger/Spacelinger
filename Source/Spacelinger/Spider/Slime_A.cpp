@@ -846,14 +846,14 @@ void ASlime_A::CutSpiderWeb()
 		}
 
 		// Draw debug line to visualize the raycast in the editor (optional)
-		if (bHit)
+		/*if (bHit)
 		{
 			DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 5.0f, 0, 1.0f);
 		}
 		else
 		{
 			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.0f, 0, 1.0f);
-		}
+		}*/
 	}
 	attached = false;
 	attachedAtCeiling = false;
@@ -1303,7 +1303,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 
 	if (isHanging)
 	{
-		FVector HangingForce = MovementDirection * 15000.0f;
+		FVector HangingForce = MovementDirection * 5000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
 	else
