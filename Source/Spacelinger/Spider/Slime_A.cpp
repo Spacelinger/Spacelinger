@@ -601,6 +601,10 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	FRotator Target_Rotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 	SetActorRotation(Target_Rotation);
 
+	// If we are close we kill the momentum
+	if (FVector::Distance(TargetLocation, CurrentLocation) < 40.0f) {
+		StopJumpToPosition();
+	}
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
