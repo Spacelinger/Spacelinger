@@ -123,5 +123,6 @@ private:
 	void SetBeamVisuals(UParticleSystemComponent *Beam, TArray<FSLParticleParameter> Parameters, float Magnitude = 1.0f, bool RefreshParticleSytem = true);
 	void UpdateAssociatedVisualElements();
 	void PlayFinalAudio();
+	void PlayElectricitySFX(FVector Location, FRotator Rotation);
 
 };

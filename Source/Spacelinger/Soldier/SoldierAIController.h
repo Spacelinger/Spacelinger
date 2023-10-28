@@ -81,6 +81,8 @@ public:
 	void ResumeLogic();
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	bool IsStunned();
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool IsAlerted();
 
 	void SetIsAlerted(bool NewState);
 

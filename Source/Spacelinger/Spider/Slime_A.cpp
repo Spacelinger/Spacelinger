@@ -1452,7 +1452,9 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value)
 // Stunning Web Ability
 void ASlime_A::AimStunningWeb()
 {
-	SetCrosshairVisibility(true);
+	HookTargetCrosshair->SetVisibility(true);
+	if (HookCrosshairWidget->GetWidget())
+		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 }
 
 #include "DrawDebugHelpers.h"

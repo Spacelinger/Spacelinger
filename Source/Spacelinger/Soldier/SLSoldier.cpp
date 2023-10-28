@@ -211,8 +211,10 @@ void ASLSoldier::Unstun()
 	if (bIsDead) return;
 
 	AnimationState = SoldierAIState::ALERTED;
-
+	
 	bIsStunned = false;
+	AudioManager = GetAudioManager();
+	AudioManager -> Soldier_ResetStunnedState();
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
 		ControllerReference->ResumeLogic();
@@ -244,7 +246,7 @@ void ASLSoldier::Die(AActor *Killer)
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
 	SoldierHasDied(Killer);
-	AudioManager->SoldierDeathAudioReaction();
+	AudioManager->SoldierDeathAudioReaction(GetActorLocation(), GetActorRotation());
 }
 
 bool ASLSoldier::IsDead() {

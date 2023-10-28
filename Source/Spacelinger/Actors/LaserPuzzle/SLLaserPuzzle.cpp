@@ -100,6 +100,7 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		 || (TriggerLeftBot->IsOverlappingActor(SphereEnd)   && TriggerRightBot->IsOverlappingActor(SphereStart))
 		) {
 			bActiveBeamBot = true;
+			PlayElectricitySFX(TriggerLeftBot->GetComponentLocation(), TriggerLeftBot->GetComponentRotation());
 			BotBeamActivated();
 			SetBeamVisuals(BeamBot, SolvedParticleParameters);
 			UpdateAssociatedVisualElements();
@@ -109,6 +110,7 @@ void ASLLaserPuzzle::WebEndConnection(ASpiderWeb *Web) {
 		 || (TriggerLeftTop->IsOverlappingActor(SphereEnd)   && TriggerRightTop->IsOverlappingActor(SphereStart))
 		) {
 			bActiveBeamTop = true;
+			PlayElectricitySFX(TriggerRightTop->GetComponentLocation(), TriggerRightTop->GetComponentRotation());
 			TopBeamActivated();
 			SetBeamVisuals(BeamTop, SolvedParticleParameters);
 			UpdateAssociatedVisualElements();
@@ -132,4 +134,11 @@ void ASLLaserPuzzle::PlayFinalAudio()
 	GameInstance = GetGameInstance();
 	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
 	AudioManager->PlayLaserPuzzleAnnouncer();
+}
+
+void ASLLaserPuzzle::PlayElectricitySFX(FVector Location, FRotator Rotation)
+{
+	GameInstance = GetGameInstance();
+	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
+	AudioManager->PlayElectricitySFX(Location, Rotation);
 }

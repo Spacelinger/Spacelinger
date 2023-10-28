@@ -178,3 +178,7 @@ bool ASoldierAIController::IsStunned() {
 	}
 	return bIsStunned;
 }
+
+bool ASoldierAIController::IsAlerted() {
+	return bIsAlerted;
+}

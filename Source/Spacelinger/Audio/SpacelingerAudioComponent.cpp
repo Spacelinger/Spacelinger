@@ -26,7 +26,7 @@ void USpacelingerAudioComponent::BeginPlay(UWorld* world)
 }
 
 
-void USpacelingerAudioComponent::SoldierDeathAudioReaction()
+void USpacelingerAudioComponent::SoldierDeathAudioReaction(FVector Location, FRotator Rotation)
 {
 	StopAllSoundsExceptDeathReaction();
 	
@@ -36,7 +36,7 @@ void USpacelingerAudioComponent::SoldierDeathAudioReaction()
 	
 	if (SoldierDeathCounter == 1)
 	{
-		UGameplayStatics::SpawnSound2D(this, FirstKillSFX, FirstKillSFXVolumeMultiplier);
+		UGameplayStatics::SpawnSoundAtLocation(this, FirstKillSFX, Location, Rotation, FirstKillSFXVolumeMultiplier);
 	}
 }
 
@@ -52,6 +52,12 @@ void USpacelingerAudioComponent::StopAllSoundsExceptDeathReaction()
 	if (CurrentSoldierResumePatrolSFX)
 	{
 		CurrentSoldierResumePatrolSFX->Stop();
+	}
+	
+	if (CurrentSoldierStunnedSFX)
+	{
+		CurrentSoldierStunnedSFX->Stop();
+		CurrentSoldierStrugglingSFX->Stop();
 	}
 }
 
@@ -77,6 +83,24 @@ void USpacelingerAudioComponent::Soldier_VoiceCue(FVector Location, FRotator Rot
 	}
 }
 
+void USpacelingerAudioComponent::Soldier_Stunned()
+{
+	if (this != nullptr)
+	{
+		if (!CurrentSoldierStunnedSFX)
+		{
+			IsSoldierVoiceCuePlaying = false;
+			CurrentSoldierStunnedSFX = UGameplayStatics::SpawnSound2D(this, SoldierStunnedSFX, SoldierStunnedSFXVolumeMultiplier);
+			CurrentSoldierStrugglingSFX = UGameplayStatics::SpawnSound2D(this, SoldierStrugglingSFX, SoldierStunnedSFXVolumeMultiplier);
+		}
+	}
+}
+
+void USpacelingerAudioComponent::Soldier_ResetStunnedState()
+{
+	CurrentSoldierStunnedSFX = nullptr; 
+}
+
 void USpacelingerAudioComponent::PlayDetectionSound()
 {
 	CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, DetectionSoundVolumeMultiplier);
@@ -90,7 +114,7 @@ void USpacelingerAudioComponent::PlayChaseMusic()
 		StopBackgroundMusic();
 		IsAnySoldierAlerted = true;
 		PlayDetectionSound();
-		CurrentChaseMusic = UGameplayStatics::SpawnSound2D(this, ChaseMusic, 0.5f);
+		CurrentChaseMusic = UGameplayStatics::SpawnSound2D(this, ChaseMusic, ChaseMusicVolumeMultiplier);
 	}
 }
 
@@ -132,7 +156,7 @@ void USpacelingerAudioComponent::PlayLaserPuzzleAnnouncer()
 	if (!LaserPuzzleAnnouncerHasPlayed)
 	{
 		LaserPuzzleAnnouncerHasPlayed = true;
-		UGameplayStatics::SpawnSound2D(this, DoomedAnnouncerCue, 0.10f);
+		UGameplayStatics::SpawnSound2D(this, DoomedAnnouncerCue, LaserPuzzleAnnouncerVolumeMultiplier);
 	}
 }
 
@@ -140,6 +164,7 @@ void USpacelingerAudioComponent::UpdateBarFillingSound(float awareness)
 {
 	if (awareness < 1.0f)
 	{
+		awareness += 0.1f;
 		if (!CurrentBarFillingSound)
 		{
 			CurrentBarFillingSound = UGameplayStatics::SpawnSound2D(this, BarFillingSound, BarFillingSoundVolumeMultiplier*awareness, BarFillingSoundPitchMultiplier*awareness);
@@ -162,6 +187,12 @@ void USpacelingerAudioComponent::StopBarFillingSound()
 		CurrentBarFillingSound = nullptr;
 	}
 }
+
+void USpacelingerAudioComponent::PlayElectricitySFX(FVector Location, FRotator Rotation)
+{
+	UGameplayStatics::SpawnSoundAtLocation(this, ElectricitySFX, Location, Rotation, ElectricitySFXVolumeMultiplier, ElectricitySFXPitchMultiplier);
+}
+
 
 
 
