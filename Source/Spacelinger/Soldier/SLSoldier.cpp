@@ -1,4 +1,4 @@
-#include "SLSoldier.h"
+#include "Soldier/SLSoldier.h"
 
 #include "SoldierAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -14,6 +14,7 @@
 #include "Components/LifeComponent.h"
 #include "Components/InteractableComponent.h"
 #include "UI/Interact/InteractWidget.h"
+#include "Components/CanvasPanel.h"
 
 ASLSoldier::ASLSoldier() {
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -85,11 +86,15 @@ void ASLSoldier::Tick(float DeltaTime) {
 
 		float DotProduct = FVector::DotProduct(SrcVector, DstVector);
 		bHasRotatedLastFrameWhileAiming = (DotProduct < .99f);
-		if (bHasRotatedLastFrameWhileAiming ) {
+		if (bHasRotatedLastFrameWhileAiming) {
 			FRotator InterpRotator = FMath::RInterpTo(SoldierRotation, RotatorToFaceWhileAiming, DeltaTime, RotationSpeedWhileAiming);
 			SoldierRotation.Yaw = InterpRotator.Yaw;
 			SetActorRotation(SoldierRotation);
 		}
+	}
+
+	if (ASoldierAIController *ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		if (ControllerReference->CurrentAwareness > 0) UpdateWidgetSize();
 	}
 
 	if (bDrawDebugAI) DrawDebugCones();
@@ -192,6 +197,7 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 
 void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 {
+	SoldierBeginStun(StunDuration);
 	AnimationState = SoldierAIState::STUNNED;
 
 	bIsStunned = true;
@@ -234,7 +240,7 @@ void ASLSoldier::Die(AActor *Killer)
 	OffscreenDetectionWidget->RemoveFromParent();
 
 	InteractableComponent->bCanInteract = false;
-	InteractWidget->GetWidget()->RemoveFromViewport();
+	InteractWidget->GetWidget()->RemoveFromParent();
 	InteractWidget->Deactivate();
 
 	GetController()->UnPossess();
@@ -317,5 +323,22 @@ void ASLSoldier::DrawDebugCones() {
 			DrawDebugLine(GetWorld(), PointT, PointB, Color, PL, LT, DP, Thickness);
 		}
 	}
+}
 
+void ASLSoldier::UpdateWidgetSize() {
+	ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0));
+	if (!PlayerCharacterRef) return;
+	USLDetectionWidget *DetectionInterface = Cast<USLDetectionWidget>(DetectionWidget->GetWidget());
+	if (!DetectionInterface) return;
+	UCanvasPanel *StaticPanel = DetectionInterface->StaticPanel;
+	if (!StaticPanel) return;
+
+	FVector PlayerLocation = PlayerCharacterRef->GetActorLocation();
+	FVector MyLocation = GetActorLocation();
+	float Distance = FVector::Dist(PlayerLocation, MyLocation);
+
+	TRange<float> InputRange  = TRange<float>(1600.f, 400.f);
+	TRange<float> OutputRange = TRange<float>(0.5f,   1.2f);
+	float Result = FMath::GetMappedRangeValueClamped<float>(InputRange, OutputRange, Distance);
+	StaticPanel->SetRenderScale(FVector2D(Result, Result));
 }

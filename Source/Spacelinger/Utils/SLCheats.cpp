@@ -63,14 +63,22 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatDebugRaycast(
 	}
 ), ECVF_Cheat);
 
-static FAutoConsoleCommandWithWorld FCheatGiveKey(
+static FAutoConsoleCommandWithWorldAndArgs FCheatGiveKey(
 	TEXT("sl.givekey"),
-	TEXT("Gives the player a key to unlock doors"),
-	FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World) {
+	TEXT("Gives the player a 'hand' or 'eyes' to unlock doors. It gives both keys if not specified"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
 		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
 			UInventoryComponent* InventoryComponent = Player->FindComponentByClass<UInventoryComponent>();
-			if(InventoryComponent)
-				InventoryComponent->AddItem(TEXT("DoorKey"));
+			if(InventoryComponent) {
+				bool bGiveHand = true;
+				bool bGiveEyes = true;
+				if (Args.Num() > 0) {
+					bGiveHand = Args[0].Contains(FString(TEXT("hand")));
+					bGiveEyes = Args[0].Contains(FString(TEXT("eye")));
+				}
+				if (bGiveHand) InventoryComponent->AddItem(TEXT("KeyHand"));
+				if (bGiveEyes) InventoryComponent->AddItem(TEXT("KeyEyes"));
+			}
 		}
 	})
 );

@@ -203,6 +203,8 @@ public:
 	UPROPERTY(EditAnywhere)
 		UChildActorComponent* SpiderWebBallF;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spacelinger|Stun")
+		float SecondsBetweenStuns = 3.0f;
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);
@@ -227,6 +229,8 @@ protected:
 	void AimHook();
 	void ToggleAimHook();
 	void ThrowStunningWeb();
+	void SpawnProjectile();
+	void ResetThrow();
 	void AimStunningWeb();
 
 	//Mode
@@ -243,6 +247,8 @@ protected:
 	FVector ReturnCenterScreenWorld();
 
 	void PutSpiderWebAbility();
+
+	FTimerHandle TimerHandle;
 
 	// Helpers
 	void PerformClimbingBehaviour(FVector ActorLocation);
@@ -286,7 +292,7 @@ private:
 	float DefaultMaxStepHeight;
 	TArray<FVector> DiagonalDirections;
 	TArray<FVector> InitialDiagonalDirections;
-	const float StunningWebStunDuration = 10.0f;
+	const float StunningWebStunDuration = 6.0f;
 	bool bIsAimingHook = false;
 	FTimerHandle AttackResetTimerHandle;
 
@@ -392,7 +398,10 @@ public:
 		bool bIsInAir;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hook")
-		float HookLineTraceDistance = 1000.0f;
+		float MaxHookLineTraceDistance = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Hook")
+		float MinHookLineTraceDistance = 50.0f;
 	
 	AActor* previousActorCollision;
 

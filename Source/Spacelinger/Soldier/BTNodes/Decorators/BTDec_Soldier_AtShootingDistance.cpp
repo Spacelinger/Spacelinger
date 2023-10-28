@@ -1,6 +1,7 @@
 // NOTE: No longer used, but leaving it here so we can use it as a template
 #include "BTDec_Soldier_AtShootingDistance.h"
 #include "Soldier/SoldierAIController.h"
+#include "Soldier/SLSoldier.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
 UBTDec_Soldier_AtShootingDistance::UBTDec_Soldier_AtShootingDistance() {
@@ -28,9 +29,9 @@ bool UBTDec_Soldier_AtShootingDistance::CalculateRawConditionValue(UBehaviorTree
 
 	ASoldierAIController *AIController = Cast<ASoldierAIController>(OwnerComp.GetAIOwner());
 	if (!AIController) return false;
-	AActor *AIActor = AIController->GetInstigator();
+	ASLSoldier *AIActor = Cast<ASLSoldier>(AIController->GetInstigator());
 	if (!AIActor) return false;
 
 	double Distance = FVector::Dist(BBPlayer->GetActorLocation(), AIActor->GetActorLocation());
-	return Distance <= AIController->ShootingAcceptanceRadius;
+	return Distance <= AIActor->ShootingAcceptanceRadius;
 }

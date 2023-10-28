@@ -14,6 +14,10 @@ ASpiderProjectile::ASpiderProjectile()
     SphereCollider = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollider"));
     RootComponent = SphereCollider;
     SphereCollider->InitSphereRadius(10.0f * 0.6f); // Reduced by 40%
+    SphereCollider->SetCollisionProfileName(TEXT("NoCollision"));
+    SphereCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
 
     // Set up the projectile movement component
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
@@ -27,6 +31,9 @@ ASpiderProjectile::ASpiderProjectile()
     // Set up the sphere mesh
     SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereMesh"));
     SphereMesh->SetupAttachment(RootComponent);
+    SphereMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SphereMesh->SetCollisionProfileName(TEXT("NoCollision"));
+
 
     // Load the sphere mesh from the Starter Content
     static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("/Game/StarterContent/Props/MaterialSphere"));
@@ -55,6 +62,10 @@ ASpiderProjectile::ASpiderProjectile()
 void ASpiderProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+    SphereCollider->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+    SphereCollider->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+    SphereCollider->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 }
 
 void ASpiderProjectile::Tick(float DeltaTime)
@@ -70,7 +81,8 @@ void ASpiderProjectile::OnSphereColliderHit(UPrimitiveComponent* HitComponent, A
 	if (ASLSoldier* Soldier = Cast<ASLSoldier>(OtherActor)) {
 		Soldier->Stun(10.0f, this->GetActorLocation());
 	}
-    Spider->bHasTrownSpiderWeb = false;
+    if(Spider)
+        Spider->bHasTrownSpiderWeb = false;
 	Destroy();
 
 

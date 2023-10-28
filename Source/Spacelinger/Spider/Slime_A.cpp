@@ -36,6 +36,7 @@
 #include <Soldier/SLSoldier.h>
 
 #include "Actors/SpiderProjectile.h"
+#include "GAS/Abilities/GA_Hook.h"
 
 
 #include "Blueprint/UserWidget.h"
@@ -128,9 +129,7 @@ ASlime_A::ASlime_A()
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
 }
 
-void ASlime_A::BeginPlay()
-{
-
+void ASlime_A::BeginPlay() {
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
@@ -147,6 +146,7 @@ void ASlime_A::BeginPlay()
 		}
 	}
 	InputRotator = GetActorRotation();
+	InputRotator.Pitch = -20.f;
 	UpdateCameraRotation();
 
 	// Init climbing stuff
@@ -600,6 +600,10 @@ void ASlime_A::HandleJumpToLocationBehaviour()
 	FRotator Target_Rotation = FRotationMatrix::MakeFromX(Direction).Rotator();
 	SetActorRotation(Target_Rotation);
 
+	// If we are close we kill the momentum
+	if (FVector::Distance(TargetLocation, CurrentLocation) < 40.0f) {
+		StopJumpToPosition();
+	}
 }
 
 void ASlime_A::Landed(const FHitResult& Hit)
@@ -845,14 +849,14 @@ void ASlime_A::CutSpiderWeb()
 		}
 
 		// Draw debug line to visualize the raycast in the editor (optional)
-		if (bHit)
+		/*if (bHit)
 		{
 			DrawDebugLine(GetWorld(), StartLocation, HitResult.Location, FColor::Green, false, 5.0f, 0, 1.0f);
 		}
 		else
 		{
 			DrawDebugLine(GetWorld(), StartLocation, EndLocation, FColor::Red, false, 5.0f, 0, 1.0f);
-		}
+		}*/
 	}
 	attached = false;
 	attachedAtCeiling = false;
@@ -1103,6 +1107,7 @@ void ASlime_A::HandleHook()
 
 void ASlime_A::PutTrap()
 {
+	if (!bIsClimbing || !IsCeiling(previousNormal)) return;
 	FGameplayEventData Payload;
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.PutTrap.Started")), Payload);
 }
@@ -1191,7 +1196,7 @@ void ASlime_A::AimHook()
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
-	FVector EndPosition = StartPosition + (LookDirection * HookLineTraceDistance);
+	FVector EndPosition = StartPosition + (LookDirection * MaxHookLineTraceDistance);
 
 	FHitResult HitResult;
 	FCollisionQueryParams CollisionQueryParams;
@@ -1301,7 +1306,7 @@ void ASlime_A::Move(const FInputActionValue& Value)
 
 	if (isHanging)
 	{
-		FVector HangingForce = MovementDirection * 15000.0f;
+		FVector HangingForce = MovementDirection * 5000.0f;
 		GetCapsuleComponent()->AddForce(HangingForce);
 	}
 	else
@@ -1465,7 +1470,23 @@ void ASlime_A::ThrowStunningWeb()
 		CutSpiderWeb();
 	}
 
-	bHasTrownSpiderWeb = true;
+	if (!bHasTrownSpiderWeb) {
+		// Shoot inmediately at first time
+		SpawnProjectile();
+
+		// Cooldown configuration
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
+
+		bHasTrownSpiderWeb = true;
+	}
+}
+
+void ASlime_A::ResetThrow()
+{
+	bHasTrownSpiderWeb = false;
+}
+void ASlime_A::SpawnProjectile()
+{
 	FVector2D ScreenLocation = GetViewportCenter();
 	FVector LookDirection = GetLookDirection(ScreenLocation);
 	FVector StartPosition = GetMesh()->GetSocketLocation("Mouth");
@@ -1483,7 +1504,7 @@ void ASlime_A::ThrowStunningWeb()
 		// Set projectile velocity
 		if (Projectile->ProjectileMovementComponent != nullptr) {
 			Projectile->ProjectileMovementComponent->InitialSpeed = 2000.0f;
-			Projectile->ProjectileMovementComponent->MaxSpeed =  2000.0f;
+			Projectile->ProjectileMovementComponent->MaxSpeed = 2000.0f;
 			Projectile->ProjectileMovementComponent->Velocity = LookDirection * 1000.0f;
 		}
 	}

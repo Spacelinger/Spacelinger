@@ -154,10 +154,6 @@ void ASpiderWeb::SetTrap()
 {
 	EndPoint->Activate();
 	EndPoint->SetRelativeLocation(CableComponent->EndLocation);
-
-	
-
-	
 }
 
 void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

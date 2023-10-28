@@ -88,6 +88,10 @@ bool ASoldierAIController::IsPlayerInSight() {
 
 	FVector SoldierPosition = SoldierCharacter->GetActorLocation();
 	FVector PlayerPosition  = PlayerCharacter ->GetActorLocation();
+
+	// If the Soldier is alerted we don't care about the cones
+	if (bIsAlerted) return IsPlayerInSightRaycast(SoldierPosition, PlayerPosition);
+
 	FVector SoldierPositionNoZ = FVector (SoldierPosition.X, SoldierPosition.Y, 0);
 	FVector  PlayerPositionNoZ = FVector ( PlayerPosition.X,  PlayerPosition.Y, 0);
 	FVector SoldierToPlayer = PlayerPositionNoZ - SoldierPositionNoZ;
@@ -116,16 +120,23 @@ bool ASoldierAIController::IsPlayerInSight() {
 		float CosPeripherialVision = FMath::Cos(FMath::DegreesToRadians(Cone.PeripherialVision/2));
 		if (DotResult <= CosPeripherialVision) continue;
 
-		// Raycast to check if we are looking at the player
-		FHitResult HitResult;
-		FCollisionQueryParams TraceParams;
-		TraceParams.AddIgnoredActor(this);
-		bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, ECC_Camera, TraceParams);
-		if (bHit && HitResult.GetActor() == PlayerCharacter) return true;
+		// At this point we know the player is inside the cone, so we raycast to check if it can be seen and return
+		return IsPlayerInSightRaycast(SoldierPosition, PlayerPosition);
 	}
 
 	return false;
 }
+
+bool ASoldierAIController::IsPlayerInSightRaycast(FVector SoldierPosition, FVector PlayerPosition) {
+	ASlime_A *PlayerCharacter = GetPlayerCharacter();
+	FHitResult HitResult;
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+	bool bHit = GetWorld()->LineTraceSingleByChannel(HitResult, SoldierPosition, PlayerPosition, SL_ECC_SoldierAI, TraceParams);
+	AActor *HitActor = HitResult.GetActor();
+	return (bHit && HitActor == PlayerCharacter);
+}
+
 
 ASlime_A* ASoldierAIController::GetPlayerCharacter() {
 	if (!PlayerCharacterRef) {
