@@ -129,9 +129,7 @@ ASlime_A::ASlime_A()
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
 }
 
-void ASlime_A::BeginPlay()
-{
-
+void ASlime_A::BeginPlay() {
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
@@ -148,6 +146,7 @@ void ASlime_A::BeginPlay()
 		}
 	}
 	InputRotator = GetActorRotation();
+	InputRotator.Pitch = -20.f;
 	UpdateCameraRotation();
 
 	// Init climbing stuff
