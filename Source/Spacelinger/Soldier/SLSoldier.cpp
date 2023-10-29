@@ -170,6 +170,9 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 	if (bIsStunned)
 	{
 		Die(DamageDealer);
+		if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+			PlayerCharacterRef->LifeComponent->ReceiveHeal(30, this);
+		}
 		return;
 	}
 
@@ -177,6 +180,9 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 	if (!ControllerReference->bIsAlerted)
 	{
 		Die(DamageDealer);
+		if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+			PlayerCharacterRef->LifeComponent->ReceiveHeal(30, this);
+		}
 		return;
 	}
 	
