@@ -206,6 +206,7 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
 		ControllerReference->StopLogic();
 		ControllerReference->SetIsAlerted(true);
+		ControllerReference->AlertAssignedSoldiers();
 		ControllerReference->DetectedLocation = ThrowLocation;
 	}
 	
@@ -231,9 +232,13 @@ float ASLSoldier::GetRemainingTimeToUnstunAsPercentage() {
 	return Remaining / (Elapsed+Remaining);
 }
 
-void ASLSoldier::Die(AActor *Killer)
-{
+void ASLSoldier::Die(AActor *Killer) {
+	if (bIsDead) return;
 	bIsDead = true;
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->AlertAssignedSoldiers();
+	}
+
 	DetectionWidget->Deactivate();
 	OffscreenDetectionWidget->RemoveFromParent();
 
