@@ -1021,19 +1021,27 @@ void ASlime_A::HandleThrownSpiderWeb() {
 
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHook)
 {
-	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	FTransform CableTransform;
+	CableTransform.SetLocation(Location);
+	spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 	spiderWebReference->CableComponent->bAttachEnd = true;
 	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
 	spiderWebReference->setFuturePosition(HitLocation, this, bAttached, bIsHook);
+	spiderWebReference->SpiderWebType = EWebType::SpiderWeb;
+	spiderWebReference->FinishSpawning(CableTransform);
 }
 
 void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
 {
-	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	FTransform CableTransform;
+	CableTransform.SetLocation(Location);
+	spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 	spiderWebReference->CableComponent->bAttachEnd = true;
 	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
+	spiderWebReference->SpiderWebType = EWebType::StunWeb;
+	spiderWebReference->FinishSpawning(CableTransform);
 }
 
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {

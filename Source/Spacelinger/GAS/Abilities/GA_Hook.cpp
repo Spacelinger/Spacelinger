@@ -68,6 +68,9 @@ void UGA_Hook::ActionThrowHook()
 		
 		float DistanceHook = FVector::Distance(HitResult.ImpactPoint,StartPosition);
 
+		FTransform CableTransform;
+		CableTransform.SetLocation(StartPosition);
+
 		if (DistanceHook <= Spider->MinHookLineTraceDistance) {
 			Spider->CutSpiderWeb();
 		}
@@ -76,17 +79,21 @@ void UGA_Hook::ActionThrowHook()
 			{
 				//SpawnAndAttachSpiderWeb(StartPosition, HitResult.Location, true, true);
 
-				Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
+				//Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
+				Spider->spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 				Spider->spiderWebReference->CableComponent->bAttachEnd = true;
+				Spider->spiderWebReference->SpiderWebType = EWebType::HookWeb;
 				Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 				Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
 				Spider->spiderWebReference->setFuturePosition(HitResult.Location, Spider, true, true);
+				Spider->spiderWebReference->FinishSpawning(CableTransform);
 			}
 			else
 			{
 				//SpawnAndAttachSpiderWeb(StartPosition, EndPosition, false, true);
 
-				Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
+				//Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), StartPosition, FRotator::ZeroRotator);
+				Spider->spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 				Spider->spiderWebReference->CableComponent->bAttachEnd = true;
 				Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 				Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
