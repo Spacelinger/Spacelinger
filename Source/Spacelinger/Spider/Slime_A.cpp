@@ -137,9 +137,10 @@ void ASlime_A::BeginPlay() {
 	{
 		// HUD
 		HUD = CreateWidget<UUIHUD>(PlayerController, HUDClass);
-		if (HUD) {
-			HUD->AddToViewport();
-		}
+		// We'll add it after the cutscene
+		//if (HUD) {
+		//	HUD->AddToViewport();
+		//}
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
