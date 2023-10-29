@@ -188,10 +188,11 @@ void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 			CableComponent->AttachEndTo.OverrideComponent = Soldier->GetMesh();
 			CableComponent->AttachEndToSocketName = FootBoneName;
 
-			Soldier->MoveToCeiling();
+			ASlime_A* Spider = Cast<ASlime_A>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
+			
+			Soldier->MoveToCeiling(Spider);
 
 			SelfDestructTimerHandle.Invalidate();
-			ASlime_A* Spider = Cast<ASlime_A>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
 			Spider->RemoveActiveTrap(this);
 		}
 	}

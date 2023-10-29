@@ -146,8 +146,8 @@ void ASLSoldier::BeginPlay() {
 	}
 }
 
-void ASLSoldier::MoveToCeiling() {
-	Die(nullptr);
+void ASLSoldier::MoveToCeiling(AActor *Killer) {
+	Die(Killer);
 
 	/* Disable all collision on capsule */
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));

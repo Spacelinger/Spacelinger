@@ -98,7 +98,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spacelinger|Interact")
 	float SecondsBetweenAttacks = 3.0f;
 
-	void MoveToCeiling();
+	void MoveToCeiling(AActor *Killer);
 	UFUNCTION()
 	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);
