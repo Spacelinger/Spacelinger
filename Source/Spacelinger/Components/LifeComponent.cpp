@@ -17,12 +17,10 @@ void ULifeComponent::ReceiveDamage(int Damage, AActor* DamageDealer) {
     }
 }
 
-/*
 void ULifeComponent::ReceiveHeal(int Heal, AActor* Healer) {
     CurrentLife = FMath::Min(CurrentLife + Heal, MaxLife);
-    OnHealReceived.Broadcast(Heal, Healer);
+    OnHealReceivedDelegate.Broadcast(Heal, Healer);
 }
-*/
 
 void ULifeComponent::OnDie(AActor* Killer) {
     OnDieDelegate.Broadcast(Killer);

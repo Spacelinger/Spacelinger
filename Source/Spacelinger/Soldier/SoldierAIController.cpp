@@ -64,6 +64,7 @@ void ASoldierAIController::Tick(float DeltaTime) {
 
 			if (CurrentAwareness >= 1.0f) {
 				SetIsAlerted(true);
+				AlertAssignedSoldiers();
 			}
 		}
 	}
@@ -165,6 +166,16 @@ void ASoldierAIController::SetIsAlerted(bool NewState) {
 		InstigatorSoldier->AnimationState = NewState ? SoldierAIState::ALERTED : SoldierAIState::IDLE;
 		if (UCharacterMovementComponent *InstigatorComponent = InstigatorSoldier->GetCharacterMovement()) {
 			InstigatorComponent->MaxWalkSpeed = bIsAlerted ? RunningSpeed : WalkingSpeed;
+		}
+	}
+}
+
+void ASoldierAIController::AlertAssignedSoldiers() {
+	if (ASLSoldier *InstigatorSoldier = GetInstigatorSoldier()) {
+		for (ASLSoldier *SoldierActor : InstigatorSoldier->SoldiersToAlert) {
+			if (ASoldierAIController *SoldierController = Cast<ASoldierAIController>(SoldierActor->Controller)) {
+				SoldierController->SetIsAlerted(true);
+			}
 		}
 	}
 }
