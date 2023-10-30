@@ -130,7 +130,7 @@ protected:
 	float MaxStamina = 100.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	float StaminaRecoveryBaseRate = 2.5f;
+	float StaminaRecoveryBaseRate = 5.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	USpiderTrapsAttributeSet* SpiderTrapsAttributeSet = nullptr;

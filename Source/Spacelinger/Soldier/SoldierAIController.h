@@ -84,6 +84,7 @@ public:
 	bool IsStunned();
 
 	void SetIsAlerted(bool NewState);
+	void AlertAssignedSoldiers();
 
 private:
 	// Helper functions

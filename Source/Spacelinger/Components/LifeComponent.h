@@ -7,7 +7,7 @@
 #include "LifeComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDamageReceived, int, Damage, AActor*, DamageDealer);
-// DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealReceived, int, Heal, AActor*, Healer);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealReceived, int, Heal, AActor*, Healer);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDie, AActor*, Killer);
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
@@ -24,13 +24,14 @@ public:
     UFUNCTION(BlueprintCallable)
     void ReceiveDamage(int Damage, AActor* DamageDelaer);
 
-    //void ReceiveHeal(int Heal, AActor* Healer);
+    UFUNCTION(BlueprintCallable)
+    void ReceiveHeal(int Heal, AActor* Healer);
 
     UPROPERTY(BlueprintAssignable)
     FOnDamageReceived OnDamageReceivedDelegate;
 
-    // UPROPERTY(BlueprintAssignable)
-    // FOnHealReceived OnHealReceived;
+    UPROPERTY(BlueprintAssignable)
+    FOnHealReceived OnHealReceivedDelegate;
 
     UPROPERTY(BlueprintAssignable)
     FOnDie OnDieDelegate;

@@ -62,6 +62,10 @@ ASpiderProjectile::ASpiderProjectile()
 void ASpiderProjectile::BeginPlay()
 {
 	Super::BeginPlay();
+
+    SphereCollider->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
+    SphereCollider->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+    SphereCollider->SetCollisionResponseToChannel(ECC_GameTraceChannel1, ECR_Ignore);
 }
 
 void ASpiderProjectile::Tick(float DeltaTime)

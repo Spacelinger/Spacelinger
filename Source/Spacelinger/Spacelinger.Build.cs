@@ -22,7 +22,8 @@ public class Spacelinger : ModuleRules
             "MCVGASFramework",
 			"GameplayTags",
 			"GameplayTasks",
-			"GameplayAbilities"
+			"GameplayAbilities",
+			"Niagara"
         });
 		PublicIncludePaths.Add("Spacelinger");
 

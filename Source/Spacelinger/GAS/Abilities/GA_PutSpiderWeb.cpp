@@ -47,11 +47,16 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 		if (bHit)
 		{
 			FVector cablePosition = Hit.Location;
-			Spider->spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), cablePosition, FRotator::ZeroRotator);
+			FTransform CableTransform;
+			CableTransform.SetLocation(cablePosition);
+			Spider->spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 			Spider->spiderWebReference->CableComponent->EndLocation = spiderPoint - Spider->spiderWebReference->CableComponent->GetComponentLocation();
 			Spider->spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
+			Spider->spiderWebReference->SpiderWebType = EWebType::SpiderWeb;
+			Spider->spiderWebReference->FinishSpawning(CableTransform);
 			Spider->attached = true;
 			Spider->attachedAtCeiling = IsCeiling(Spider->previousNormal);
+			
 
 			if (ASLLaserPuzzle *LaserPuzzle = Cast<ASLLaserPuzzle>(Hit.GetActor())) {
 				LaserPuzzle->LastAttachedWeb = Spider->spiderWebReference;
