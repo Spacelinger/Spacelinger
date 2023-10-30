@@ -29,11 +29,13 @@ void UGA_PutTrap::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const
 		Spider->SpiderWebBallF->SetVisibility(true);
 	}
 	Spider->bIsPuttingTrap = true;
-
+	
 	PutTrapTask->ChannelingComplete.AddDynamic(this, &UGA_PutTrap::AbilityChannelComplete);
 	PutTrapTask->ChannelingCanceled.AddDynamic(this, &UGA_PutTrap::AbilityChannelCanceled);
 	PutTrapTask->ReadyForActivation();
 
+	Spider->GetAudioManager()->Spider_PutTrap();
+	
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 }
 
@@ -61,7 +63,6 @@ void UGA_PutTrap::ActionPutTrap()
 		else
 			spiderWebTrap->CableComponent->EndLocation = spiderWebTrap->CableComponent->GetComponentLocation() - (spiderPoint + FVector::UpVector * 3000.0f);
 		spiderWebTrap->SetTrap();
-		
 		Spider->AddNewTrap(spiderWebTrap);
 	}
 
@@ -80,6 +81,8 @@ void UGA_PutTrap::AbilityChannelComplete()
 void UGA_PutTrap::AbilityChannelCanceled()
 {
 	// TODO: Channeling task
+	ASlime_A* Spider = Cast<ASlime_A>(CurrentActorInfo->OwnerActor);
+	Spider->AudioManager->Spider_CancelPutTrap();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 

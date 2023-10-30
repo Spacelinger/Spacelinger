@@ -126,18 +126,10 @@ void USLDetectionWidget::PlaySounds()
 			{
 				AudioManager = Actor->GetAudioManager();
 				ASoldierAIController* ActorController = GetAIController(Actor);
-				// Check if the awareness of the actor is going up
-				// and set the pitch multiplier to increase or decrease with the awareness
-				// if (!ActorController -> IsAlerted())
-				// {
-				AudioManager -> UpdateBarFillingSound(it->second);
-				// }
 				
-				if (ActorController -> IsStunned())
+				if (ActorController -> IsStunned() || !IsActorAware(OwningActor))
 				{
-					// We trigger the Voice Cue here instead of in the ASLSoldier class because we need to make
-					// sure that the default flow is interrupted if the soldier is stunned
-					AudioManager -> Soldier_Stunned();
+					// AudioManager -> StopBarFillingSound();
 				}
 				else
 				if (it->second >= 1.0f)
@@ -148,7 +140,15 @@ void USLDetectionWidget::PlaySounds()
 						AudioManager->PlayChaseMusic();
 						AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
 					}
-					AudioManager -> StopBarFillingSound();
+					// AudioManager -> StopBarFillingSound();
+				} else
+				{
+					// Check if the awareness of the actor is going up
+					// and set the pitch multiplier to increase or decrease with the awareness
+					// if (!ActorController -> IsAlerted())
+					// {
+					// AudioManager -> UpdateBarFillingSound(it->second);
+					// }
 				}
 			}
 		}
@@ -156,7 +156,7 @@ void USLDetectionWidget::PlaySounds()
 		{
 			if (ActorRecentlyAware)
 			{
-				AudioManager->StopBarFillingSound();
+				// AudioManager->StopBarFillingSound();
 			
 				if (!Actor->IsDead())
 				{
@@ -170,6 +170,7 @@ void USLDetectionWidget::PlaySounds()
 		{
 			if (Actor == OwningActor && Actor->IsDead())
 			{
+				// AudioManager->StopBarFillingSound();
 				AudioManager->StopChaseMusic();
 			}
 		}

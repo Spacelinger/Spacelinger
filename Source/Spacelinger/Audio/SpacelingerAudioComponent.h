@@ -29,7 +29,7 @@ public:
 	UFUNCTION()
 	void BeginPlay(UWorld* world);
 	UFUNCTION()
-	void SoldierDeathAudioReaction(FVector Location, FRotator Rotation);
+	void Soldier_DeathAudioReaction(FVector Location, FRotator Rotation);
 	UFUNCTION()
 	void Soldier_ResumePatrol();
 	UFUNCTION()
@@ -40,6 +40,8 @@ public:
 	void Soldier_Stunned();
 	UFUNCTION()
 	void Soldier_ResetStunnedState();
+	UFUNCTION()
+	void Spider_StunningWeb();
 	UFUNCTION()
 	void PlayChaseMusic();
 	UFUNCTION()
@@ -58,6 +60,14 @@ public:
 	void PlayDetectionSound();
 	UFUNCTION()
 	void PlayElectricitySFX(FVector Location, FRotator Rotation);
+	UFUNCTION()
+	void Spider_SpiderWebStart();
+	UFUNCTION()
+	void Spider_SpiderWebEnd();
+	UFUNCTION()
+	void Spider_PutTrap();
+	UFUNCTION()
+	void Spider_CancelPutTrap();
 
 	// Individual multipliers
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -114,6 +124,9 @@ public:
 	USoundCue * SoldierStrugglingSFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * StunningWebSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * ChaseMusic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -133,6 +146,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * ElectricitySFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderWebStartSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderWebEndSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderPutTrapSFX;
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -158,6 +180,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentDetectionSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentPutTrapSound;
 
 private:
 	friend class FSubsystemCollectionBase;

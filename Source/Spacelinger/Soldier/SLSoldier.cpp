@@ -201,6 +201,8 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	AnimationState = SoldierAIState::STUNNED;
 
 	bIsStunned = true;
+	AudioManager = GetAudioManager();
+	AudioManager -> Soldier_Stunned();
 	GetCharacterMovement()->DisableMovement();
 	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
 	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
@@ -252,7 +254,7 @@ void ASLSoldier::Die(AActor *Killer)
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
 	SoldierHasDied(Killer);
-	AudioManager->SoldierDeathAudioReaction(GetActorLocation(), GetActorRotation());
+	AudioManager->Soldier_DeathAudioReaction(GetActorLocation(), GetActorRotation());
 }
 
 bool ASLSoldier::IsDead() {

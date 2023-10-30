@@ -3,7 +3,6 @@
 
 #include "Audio/SpacelingerAudioComponent.h"
 
-
 bool USpacelingerAudioComponent::ShouldCreateSubsystem(UObject* Outer) const
 {
 	return true;
@@ -26,7 +25,7 @@ void USpacelingerAudioComponent::BeginPlay(UWorld* world)
 }
 
 
-void USpacelingerAudioComponent::SoldierDeathAudioReaction(FVector Location, FRotator Rotation)
+void USpacelingerAudioComponent::Soldier_DeathAudioReaction(FVector Location, FRotator Rotation)
 {
 	StopAllSoundsExceptDeathReaction();
 	
@@ -60,6 +59,35 @@ void USpacelingerAudioComponent::StopAllSoundsExceptDeathReaction()
 		CurrentSoldierStrugglingSFX->Stop();
 	}
 }
+
+void USpacelingerAudioComponent::Spider_StunningWeb()
+{
+	UGameplayStatics::SpawnSound2D(this, StunningWebSFX);
+}
+
+void USpacelingerAudioComponent::Spider_SpiderWebStart()
+{
+	UGameplayStatics::SpawnSound2D(this, SpiderWebStartSFX);
+}
+
+void USpacelingerAudioComponent::Spider_SpiderWebEnd()
+{
+	UGameplayStatics::SpawnSound2D(this, SpiderWebEndSFX);
+}
+
+void USpacelingerAudioComponent::Spider_PutTrap()
+{
+	CurrentPutTrapSound = UGameplayStatics::SpawnSound2D(this, SpiderPutTrapSFX);
+}
+
+void USpacelingerAudioComponent::Spider_CancelPutTrap()
+{
+	if (CurrentPutTrapSound != nullptr)
+	{
+		CurrentPutTrapSound->Stop();
+	}
+}
+
 
 void USpacelingerAudioComponent::Soldier_ResumePatrol()
 {

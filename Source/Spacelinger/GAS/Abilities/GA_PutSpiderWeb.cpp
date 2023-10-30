@@ -51,6 +51,7 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 			Spider->spiderWebReference->CableComponent->EndLocation = spiderPoint - Spider->spiderWebReference->CableComponent->GetComponentLocation();
 			Spider->spiderWebReference->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
 			Spider->attached = true;
+			Spider->GetAudioManager()->Spider_SpiderWebStart();
 			Spider->attachedAtCeiling = IsCeiling(Spider->previousNormal);
 
 			if (ASLLaserPuzzle *LaserPuzzle = Cast<ASLLaserPuzzle>(Hit.GetActor())) {
@@ -59,10 +60,11 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 		}
 		else {
 			
-			if (Spider->spiderWebReference != nullptr) {
-				Spider->CutSpiderWeb();
+    		if (Spider->spiderWebReference != nullptr) {
+			Spider->CutSpiderWeb();
 			}
 			Spider->bHasTrownSpiderWeb = true;
+			Spider->GetAudioManager()->Spider_SpiderWebEnd();
 			FVector2D ScreenLocation = Spider->GetViewportCenter();
 			FVector LookDirection = Spider->GetLookDirection(ScreenLocation);
 			FVector StartPosition = Spider->GetMesh()->GetSocketLocation("Mouth");
