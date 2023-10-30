@@ -146,8 +146,8 @@ void ASLSoldier::BeginPlay() {
 	}
 }
 
-void ASLSoldier::MoveToCeiling() {
-	Die(nullptr);
+void ASLSoldier::MoveToCeiling(AActor *Killer) {
+	Die(Killer);
 
 	/* Disable all collision on capsule */
 	GetMesh()->SetCollisionProfileName(TEXT("Ragdoll"));
@@ -170,6 +170,9 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 	if (bIsStunned)
 	{
 		Die(DamageDealer);
+		if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+			PlayerCharacterRef->LifeComponent->ReceiveHeal(30, this);
+		}
 		return;
 	}
 
@@ -177,6 +180,9 @@ void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 	if (!ControllerReference->bIsAlerted)
 	{
 		Die(DamageDealer);
+		if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+			PlayerCharacterRef->LifeComponent->ReceiveHeal(30, this);
+		}
 		return;
 	}
 	
@@ -206,6 +212,7 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
 		ControllerReference->StopLogic();
 		ControllerReference->SetIsAlerted(true);
+		ControllerReference->AlertAssignedSoldiers();
 		ControllerReference->DetectedLocation = ThrowLocation;
 	}
 	
@@ -231,9 +238,13 @@ float ASLSoldier::GetRemainingTimeToUnstunAsPercentage() {
 	return Remaining / (Elapsed+Remaining);
 }
 
-void ASLSoldier::Die(AActor *Killer)
-{
+void ASLSoldier::Die(AActor *Killer) {
+	if (bIsDead) return;
 	bIsDead = true;
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->AlertAssignedSoldiers();
+	}
+
 	DetectionWidget->Deactivate();
 	OffscreenDetectionWidget->RemoveFromParent();
 

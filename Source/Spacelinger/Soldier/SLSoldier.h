@@ -79,6 +79,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
 	ASLSoldierPath *PathActor;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|AI|Patrol")
+	TArray<ASLSoldier*> SoldiersToAlert;
+
 	FTimerHandle UnstunTimerHandle;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
@@ -98,7 +101,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spacelinger|Interact")
 	float SecondsBetweenAttacks = 3.0f;
 
-	void MoveToCeiling();
+	void MoveToCeiling(AActor *Killer);
 	UFUNCTION()
 	void ReceiveDamage(AActor *DamageDealer);
 	void Stun(float StunDuration, FVector ThrowLocation);

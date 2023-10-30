@@ -129,9 +129,7 @@ ASlime_A::ASlime_A()
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ASlime_A::OnCollisionEnter);
 }
 
-void ASlime_A::BeginPlay()
-{
-
+void ASlime_A::BeginPlay() {
 	Super::BeginPlay();
 
 	//Add Input Mapping Context
@@ -139,15 +137,17 @@ void ASlime_A::BeginPlay()
 	{
 		// HUD
 		HUD = CreateWidget<UUIHUD>(PlayerController, HUDClass);
-		if (HUD) {
-			HUD->AddToViewport();
-		}
+		// We'll add it after the cutscene
+		//if (HUD) {
+		//	HUD->AddToViewport();
+		//}
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
 	InputRotator = GetActorRotation();
+	InputRotator.Pitch = -20.f;
 	UpdateCameraRotation();
 
 	// Init climbing stuff
@@ -1025,19 +1025,27 @@ void ASlime_A::HandleThrownSpiderWeb() {
 
 void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bool bAttached, bool bIsHook)
 {
-	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	FTransform CableTransform;
+	CableTransform.SetLocation(Location);
+	spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 	spiderWebReference->CableComponent->bAttachEnd = true;
 	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
 	spiderWebReference->setFuturePosition(HitLocation, this, bAttached, bIsHook);
+	spiderWebReference->SpiderWebType = EWebType::SpiderWeb;
+	spiderWebReference->FinishSpawning(CableTransform);
 }
 
 void ASlime_A::SpawnStunningWeb(FVector Location, FVector HitLocation)
 {
-	spiderWebReference = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), Location, FRotator::ZeroRotator);
+	FTransform CableTransform;
+	CableTransform.SetLocation(Location);
+	spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 	spiderWebReference->CableComponent->bAttachEnd = true;
 	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 	spiderWebReference->CableComponent->SetAttachEndToComponent(GetMesh(), "Mouth");
+	spiderWebReference->SpiderWebType = EWebType::StunWeb;
+	spiderWebReference->FinishSpawning(CableTransform);
 }
 
 FVector ASlime_A::getVectorInConstraintCoordinates(FVector input, float Speed, float DeltaTime) {

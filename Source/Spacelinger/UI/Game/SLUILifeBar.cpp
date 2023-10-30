@@ -13,8 +13,8 @@ void UUILifeBar::NativeOnInitialized() {
         LifeBar->GetDynamicMaterial()->SetScalarParameterValue(FName ("Percent"), 1.0f);
     }
     if (ULifeComponent* LifeComponent = GetLifeComponent()) {
-
         LifeComponent->OnDamageReceivedDelegate.AddUniqueDynamic(this, &UUILifeBar::OnReceiveDamage);
+        LifeComponent->OnHealReceivedDelegate  .AddUniqueDynamic(this, &UUILifeBar::OnReceiveDamage);
     }
 }
 

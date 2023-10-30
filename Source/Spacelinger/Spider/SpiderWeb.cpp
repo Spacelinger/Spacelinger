@@ -39,13 +39,12 @@ ASpiderWeb::ASpiderWeb()
 	EndPoint->AttachToComponent(CableComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	EndPoint->OnComponentBeginOverlap.AddDynamic(this, &ASpiderWeb::OnEndPointCollision);
 	EndPoint->Deactivate();
-
 }
 
 void ASpiderWeb::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
 	if (bSetPosition) {
 		FVector CurrentLocation = GetActorLocation();
 		FVector Direction = initialPosition - CurrentLocation;
@@ -188,10 +187,11 @@ void ASpiderWeb::OnEndPointCollision(UPrimitiveComponent* HitComponent, AActor* 
 			CableComponent->AttachEndTo.OverrideComponent = Soldier->GetMesh();
 			CableComponent->AttachEndToSocketName = FootBoneName;
 
-			Soldier->MoveToCeiling();
+			ASlime_A* Spider = Cast<ASlime_A>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
+			
+			Soldier->MoveToCeiling(Spider);
 
 			SelfDestructTimerHandle.Invalidate();
-			ASlime_A* Spider = Cast<ASlime_A>(UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn());
 			Spider->RemoveActiveTrap(this);
 		}
 	}
@@ -206,6 +206,15 @@ void ASpiderWeb::BeginPlay()
 	{
 		// Set the StartLocationCable's position to match the CableComponent's position
 		StartLocationCable->SetWorldLocation(CableComponent->GetComponentLocation());
+	}
+
+	switch (SpiderWebType)
+	{
+	case EWebType::SpiderWeb: TimeToLive = 30.0f;	break;
+	case EWebType::HookWeb: TimeToLive = 3.0f;		break;
+	case EWebType::StunWeb: TimeToLive = 1.0f;		break;
+	case EWebType::TrapWeb: TimeToLive = 30.0f;		break;
+	default: break;
 	}
 
 	UWorld* World = GetWorld();

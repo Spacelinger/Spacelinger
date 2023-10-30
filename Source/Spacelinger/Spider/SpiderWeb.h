@@ -14,6 +14,15 @@
 class ASlime_A;
 class ASLSoldier;
 
+UENUM()
+enum EWebType
+{
+	SpiderWeb = 0	UMETA(DisplayName = "Spider Web"),
+	HookWeb			UMETA(DisplayName = "Hook"),
+	StunWeb			UMETA(DisplayName = "Stun"),
+	TrapWeb			UMETA(DisplayName = "Trap"),
+};
+
 UCLASS(config = Game)
 class SPACELINGER_API ASpiderWeb : public AActor
 {
@@ -66,7 +75,10 @@ public:
 		bool bTrapFinished = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 		bool bIsHook;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
+	TEnumAsByte<EWebType> SpiderWebType;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpiderWeb")
 	ASLSoldier* Soldier;
 

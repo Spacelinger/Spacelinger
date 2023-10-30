@@ -54,8 +54,12 @@ void UGA_PutTrap::ActionPutTrap()
 	if (bHit)
 	{
 		FVector cablePosition = Hit.Location;
-		ASpiderWeb* spiderWebTrap = GetWorld()->SpawnActor<ASpiderWeb>(ASpiderWeb::StaticClass(), cablePosition, FRotator::ZeroRotator);
+		FTransform cableTransform;
+		cableTransform.SetLocation(cablePosition);
+		ASpiderWeb* spiderWebTrap = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), cableTransform);
 		spiderWebTrap->CableComponent->bAttachEnd = true; // Attach the end of the cable to the spider web
+		spiderWebTrap->SpiderWebType = EWebType::TrapWeb;
+		spiderWebTrap->FinishSpawning(cableTransform);
 		if (bHit2)
 			spiderWebTrap->CableComponent->EndLocation = -(spiderWebTrap->CableComponent->GetComponentLocation() - Hit2.Location);
 		else
