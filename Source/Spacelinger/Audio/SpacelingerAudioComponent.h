@@ -29,13 +29,19 @@ public:
 	UFUNCTION()
 	void BeginPlay(UWorld* world);
 	UFUNCTION()
-	void SoldierDeathAudioReaction();
+	void Soldier_DeathAudioReaction(FVector Location, FRotator Rotation);
 	UFUNCTION()
 	void Soldier_ResumePatrol();
 	UFUNCTION()
 	void PlayBackgroundMusic();
 	UFUNCTION()
 	void StopBackgroundMusic();
+	UFUNCTION()
+	void Soldier_Stunned();
+	UFUNCTION()
+	void Soldier_ResetStunnedState();
+	UFUNCTION()
+	void Spider_StunningWeb();
 	UFUNCTION()
 	void PlayChaseMusic();
 	UFUNCTION()
@@ -52,12 +58,24 @@ public:
 	void StopBarFillingSound();
 	UFUNCTION()
 	void PlayDetectionSound();
+	UFUNCTION()
+	void PlayElectricitySFX(FVector Location, FRotator Rotation);
+	UFUNCTION()
+	void Spider_SpiderWebStart();
+	UFUNCTION()
+	void Spider_SpiderWebEnd();
+	UFUNCTION()
+	void Spider_PutTrap();
+	UFUNCTION()
+	void Spider_CancelPutTrap();
 
 	// Individual multipliers
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float FirstKillSFXVolumeMultiplier = 0.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float SoldierVoiceCueVolumeMultiplier = 0.4f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	float SoldierStunnedSFXVolumeMultiplier = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float SoldierDeathSFXVolumeMultiplier = 0.5f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -72,6 +90,12 @@ public:
 	float ChaseMusicVolumeMultiplier = 0.05f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float BackgroundMusicVolumeMultiplier = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	float LaserPuzzleAnnouncerVolumeMultiplier = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	float ElectricitySFXVolumeMultiplier = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	float ElectricitySFXPitchMultiplier = 1.0f;
 
 	// Global Multipliers
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -94,6 +118,15 @@ public:
 	USoundCue * SoldierDeathSFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SoldierStunnedSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SoldierStrugglingSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * StunningWebSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * ChaseMusic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -111,12 +144,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * DetectionSound;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * ElectricitySFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderWebStartSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderWebEndSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderPutTrapSFX;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentBackgroundMusic;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentSoldierResumePatrolSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentSoldierStunnedSFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentSoldierStrugglingSFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentChaseMusic;
@@ -129,6 +180,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentDetectionSound;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	UAudioComponent * CurrentPutTrapSound;
 
 private:
 	friend class FSubsystemCollectionBase;

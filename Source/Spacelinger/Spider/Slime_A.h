@@ -9,6 +9,7 @@
 #include "SpiderWeb.h"
 #include "AbilitySystemInterface.h"
 #include "Containers/CircularQueue.h"
+#include "Audio/SpacelingerAudioComponent.h"
 #include "Slime_A.generated.h"
 
 class USpringArmComponent;
@@ -185,6 +186,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Life Component")
 		void ReceiveDamage(int Damage, AActor *DamageDealer);
+
+	// Audio
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
+	UGameInstance *GameInstance;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger|Audio", meta = (AllowPrivateAccess = "true"))
+	USpacelingerAudioComponent* AudioManager = nullptr;
+
+	UFUNCTION()
+	USpacelingerAudioComponent * GetAudioManager();
 
 	// HUD
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)

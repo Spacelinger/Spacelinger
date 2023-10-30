@@ -125,11 +125,13 @@ void USLDetectionWidget::PlaySounds()
 			if (Actor == OwningActor && !Actor->IsDead())
 			{
 				AudioManager = Actor->GetAudioManager();
-
-				// Check if the awareness of the actor is going up
-				// and set the pitch multiplier to increase or decrease with the awareness
-				AudioManager -> UpdateBarFillingSound(it->second);
+				ASoldierAIController* ActorController = GetAIController(Actor);
 				
+				if (ActorController -> IsStunned() || !IsActorAware(OwningActor))
+				{
+					// AudioManager -> StopBarFillingSound();
+				}
+				else
 				if (it->second >= 1.0f)
 				{
 					if (!ActorRecentlyAware)
@@ -138,7 +140,15 @@ void USLDetectionWidget::PlaySounds()
 						AudioManager->PlayChaseMusic();
 						AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
 					}
-					AudioManager -> StopBarFillingSound();
+					// AudioManager -> StopBarFillingSound();
+				} else
+				{
+					// Check if the awareness of the actor is going up
+					// and set the pitch multiplier to increase or decrease with the awareness
+					// if (!ActorController -> IsAlerted())
+					// {
+					// AudioManager -> UpdateBarFillingSound(it->second);
+					// }
 				}
 			}
 		}
@@ -146,12 +156,9 @@ void USLDetectionWidget::PlaySounds()
 		{
 			if (ActorRecentlyAware)
 			{
-				AudioManager->StopBarFillingSound();
+				// AudioManager->StopBarFillingSound();
 			
-				if (Actor->IsDead())
-				{
-					AudioManager->SoldierDeathAudioReaction();
-				} else
+				if (!Actor->IsDead())
 				{
 					AudioManager->Soldier_ResumePatrol();
 				}
@@ -163,6 +170,7 @@ void USLDetectionWidget::PlaySounds()
 		{
 			if (Actor == OwningActor && Actor->IsDead())
 			{
+				// AudioManager->StopBarFillingSound();
 				AudioManager->StopChaseMusic();
 			}
 		}

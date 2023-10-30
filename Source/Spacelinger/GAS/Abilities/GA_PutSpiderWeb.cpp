@@ -55,6 +55,7 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 			Spider->spiderWebReference->SpiderWebType = EWebType::SpiderWeb;
 			Spider->spiderWebReference->FinishSpawning(CableTransform);
 			Spider->attached = true;
+			Spider->GetAudioManager()->Spider_SpiderWebStart();
 			Spider->attachedAtCeiling = IsCeiling(Spider->previousNormal);
 			
 
@@ -64,10 +65,11 @@ void UGA_PutSpiderWeb::ActionPutSpiderWeb()
 		}
 		else {
 			
-			if (Spider->spiderWebReference != nullptr) {
-				Spider->CutSpiderWeb();
+    		if (Spider->spiderWebReference != nullptr) {
+			Spider->CutSpiderWeb();
 			}
 			Spider->bHasTrownSpiderWeb = true;
+			Spider->GetAudioManager()->Spider_SpiderWebEnd();
 			FVector2D ScreenLocation = Spider->GetViewportCenter();
 			FVector LookDirection = Spider->GetLookDirection(ScreenLocation);
 			FVector StartPosition = Spider->GetMesh()->GetSocketLocation("Mouth");

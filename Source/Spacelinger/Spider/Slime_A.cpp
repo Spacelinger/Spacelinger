@@ -188,6 +188,10 @@ void ASlime_A::BeginPlay() {
 	// Life Component
 
 	LifeComponent->OnDieDelegate.AddDynamic(this, &ASlime_A::OnDie);
+
+	// Audio
+	GameInstance = GetGameInstance();
+	AudioManager = GameInstance->GetSubsystem<USpacelingerAudioComponent>();
 }
 
 void ASlime_A::Tick(float DeltaTime)
@@ -763,6 +767,9 @@ void ASlime_A::ThrowSpiderWeb(bool bisHook)
 		if (spiderWebReference != nullptr) {
 			CutSpiderWeb();
 		}
+
+		AudioManager -> Spider_SpiderWebStart();
+		
 		bHasTrownSpiderWeb = true;
 		FVector2D ScreenLocation = GetViewportCenter();
 		FVector LookDirection = GetLookDirection(ScreenLocation);
@@ -983,6 +990,8 @@ float ASlime_A::GetVerticalAngleToCenterScreen()
 
 void ASlime_A::HandleThrownSpiderWeb() {
 	if (spiderWebReference != nullptr) {
+		AudioManager -> Spider_SpiderWebStart();
+		
 		FVector CharacterPosition = GetActorLocation();
 		FVector TargetPosition = spiderWebReference->ConstraintComp->GetComponentLocation();
 
@@ -1027,6 +1036,8 @@ void ASlime_A::SpawnAndAttachSpiderWeb(FVector Location, FVector HitLocation, bo
 {
 	FTransform CableTransform;
 	CableTransform.SetLocation(Location);
+	AudioManager -> Spider_SpiderWebEnd();
+	
 	spiderWebReference = GetWorld()->SpawnActorDeferred<ASpiderWeb>(ASpiderWeb::StaticClass(), CableTransform);
 	spiderWebReference->CableComponent->bAttachEnd = true;
 	spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
@@ -1163,7 +1174,7 @@ void ASlime_A::AddNewTrap(ASpiderWeb* NewTrap)
 
 void ASlime_A::ThrowAbility(const FInputActionValue& Value) {
 	if (!bFullyProceduralAnimation) return;
-
+	
 	switch (SelectedSpiderAbility)
 	{
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
@@ -1466,7 +1477,9 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value)
 // Stunning Web Ability
 void ASlime_A::AimStunningWeb()
 {
-	SetCrosshairVisibility(true);
+	HookTargetCrosshair->SetVisibility(true);
+	if (HookCrosshairWidget->GetWidget())
+		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 }
 
 #include "DrawDebugHelpers.h"
@@ -1480,6 +1493,7 @@ void ASlime_A::ThrowStunningWeb()
 	if (!bHasTrownSpiderWeb) {
 		// Shoot inmediately at first time
 		SpawnProjectile();
+		AudioManager->Spider_StunningWeb();
 
 		// Cooldown configuration
 		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
@@ -1554,4 +1568,13 @@ void ASlime_A::ReceiveDamage(int Damage, AActor *DamageDealer) {
 	if (LifeComponent) {
 		LifeComponent->ReceiveDamage(Damage, this);
 	}
+}
+
+USpacelingerAudioComponent * ASlime_A::GetAudioManager()
+{
+	if (AudioManager)
+	{
+		return AudioManager;
+	}
+	return nullptr;
 }
