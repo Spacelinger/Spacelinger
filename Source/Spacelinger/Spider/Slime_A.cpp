@@ -28,7 +28,6 @@
 #include "Components/LifeComponent.h"
 #include "Actors/LaserPuzzle/SLLaserPuzzle.h"
 #include "UI/Game/UIHUD.h"
-#include "Components/MaterialBillboardComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/ArrowComponent.h"
 
@@ -108,12 +107,6 @@ ASlime_A::ASlime_A()
 	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
 
 	// Hook target crosshair
-	HookTargetCrosshair = CreateDefaultSubobject<UMaterialBillboardComponent>(TEXT("Hook Target Crosshair"));
-	HookTargetCrosshair->SetupAttachment(RootComponent);
-	HookTargetCrosshair->SetVisibility(false);
-	HookTargetCrosshair->bHiddenInGame = false;
-	HookTargetCrosshair->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
 	HookCrosshairWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Hook Crosshair Widget Component"));
 	HookCrosshairWidget->SetupAttachment(RootComponent);
 
@@ -1117,7 +1110,6 @@ void ASlime_A::PutSpiderWebAbility() {
 
 void ASlime_A::HandleHook()
 {
-	HookTargetCrosshair->SetVisibility(false);	// todo: not ideal implementation. May be a better way
 	if (HookCrosshairWidget->GetWidget())
 		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Collapsed);
 	bIsAimingHook = false;
@@ -1152,8 +1144,6 @@ void ASlime_A::RemoveActiveTrap(ASpiderWeb* Trap)
 		TempQueue.Dequeue(DequeuedTrap);
 		ActiveSpiderTraps.Enqueue(DequeuedTrap);
 	}
-
-	//UE_LOG(LogTemp, Warning, TEXT("Removed a trap, current traps: %i"), ActiveSpiderTrapsCount);
 }
 
 void ASlime_A::AddNewTrap(ASpiderWeb* NewTrap)
@@ -1168,8 +1158,6 @@ void ASlime_A::AddNewTrap(ASpiderWeb* NewTrap)
 	
 	ActiveSpiderTraps.Enqueue(NewTrap);
 	ActiveSpiderTrapsCount++;
-
-	//UE_LOG(LogTemp, Warning, TEXT("Added a new trap, current traps: %i"), ActiveSpiderTrapsCount);
 }
 
 void ASlime_A::ThrowAbility(const FInputActionValue& Value) {
@@ -1178,7 +1166,6 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value) {
 	switch (SelectedSpiderAbility)
 	{
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
-	//case SLSpiderAbility::Hook: ThrowSpiderWeb(true); break; // Implemented in GAS
 	case SLSpiderAbility::Hook: HandleHook(); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
 	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
@@ -1206,7 +1193,6 @@ void ASlime_A::AimAbility(const FInputActionValue& value)
 void ASlime_A::ToggleAimHook()
 {
 	bIsAimingHook = true;
-	HookTargetCrosshair->SetVisibility(true);
 	if (HookCrosshairWidget->GetWidget())
 		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 }
@@ -1225,25 +1211,20 @@ void ASlime_A::AimHook()
 
 	if (HitResult.ImpactPoint.Equals(FVector::Zero()))
 	{
-		HookTargetCrosshair->SetVisibility(false);
 		if (HookCrosshairWidget->GetWidget())
 			HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Collapsed);
 	}
 	else
 	{
 		HookCrosshairHitDistance = FVector::Distance(HitResult.ImpactPoint, StartPosition);
-		HookTargetCrosshair->SetVisibility(true);
 		if (HookCrosshairWidget->GetWidget())
 			HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
 	}
-
-	HookTargetCrosshair->SetWorldLocation(HitResult.ImpactPoint);
 }
 
 void ASlime_A::StopAimingAbility(const FInputActionValue& value)
 {
 	SetCrosshairVisibility(false);
-	HookTargetCrosshair->SetVisibility(false);
 	if (HookCrosshairWidget->GetWidget())
 		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Collapsed);
 	bIsAimingHook = false;
@@ -1477,9 +1458,7 @@ void ASlime_A::SlowTimeEnd(const FInputActionValue& Value)
 // Stunning Web Ability
 void ASlime_A::AimStunningWeb()
 {
-	HookTargetCrosshair->SetVisibility(true);
-	if (HookCrosshairWidget->GetWidget())
-		HookCrosshairWidget->GetWidget()->SetVisibility(ESlateVisibility::Visible);
+	SetCrosshairVisibility(true);
 }
 
 #include "DrawDebugHelpers.h"

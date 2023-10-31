@@ -28,7 +28,6 @@ class UBoxComponent;
 class UInventoryComponent;
 class ULifeComponent;
 class UUIHUD;
-class UMaterialBillboardComponent;
 class UWidgetComponent;
 class UEnhancedInputComponent;
 
@@ -99,11 +98,9 @@ class ASlime_A : public ACharacter, public IAbilitySystemInterface
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	UInventoryComponent* InventoryComponent = nullptr;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UMaterialBillboardComponent* HookTargetCrosshair = nullptr;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Hook", meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* HookCrosshairWidget = nullptr;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	float HookCrosshairHitDistance = 0.0f;
 
