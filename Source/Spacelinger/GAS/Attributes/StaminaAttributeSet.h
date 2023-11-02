@@ -30,7 +30,7 @@ public:
 	FActiveGameplayEffectHandle StaminaRecoveryEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-		float StaminaRecoveryBaseRate = 5.0f;
+		float StaminaRecoveryRatePerSecond = 2.0f;
 
 public:
 

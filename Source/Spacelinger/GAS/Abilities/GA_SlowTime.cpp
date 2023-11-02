@@ -61,12 +61,8 @@ bool UGA_SlowTime::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 
 	const bool bSuperCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	
-	if (bSuperCanActivate == false) {
-		return false;
-	}
+	if (CheckCost(Handle, ActorInfo) == false)
+		Cast<ASlime_A>(CurrentActorInfo->OwnerActor)->WarningNotEnoughStamina();
 
-	/* Additional checks pre-ability-commit are done here. Remove whole method if not necessary*/
-	bool bResult = true;
-
-	return bResult;
+	return bSuperCanActivate;
 }

@@ -128,7 +128,7 @@ protected:
 	float MaxStamina = 100.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
-	float StaminaRecoveryBaseRate = 5.0f;
+	float StaminaRecoveryRatePerSecond = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
 	USpiderTrapsAttributeSet* SpiderTrapsAttributeSet = nullptr;
@@ -167,6 +167,9 @@ public:
 	// Hide the crosshair when it doesn't need to be shown
 	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category="HUD")
 	void SetCrosshairVisibility(bool bVisible);
+
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "GAS")
+	void WarningNotEnoughStamina();
 
 	UFUNCTION()
 	void CutSpiderWeb();
@@ -213,6 +216,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Spacelinger|Stun")
 		float SecondsBetweenStuns = 3.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadonly, Category = "Spacelinger|Stun")
+		bool bCanThrowStun = true;
+
+	UPROPERTY(BlueprintReadonly)
+	FTimerHandle StunWebTimerHandle;
+
 protected:
 	// Input callbacks
 	void Move(const FInputActionValue& Value);
@@ -240,6 +250,7 @@ protected:
 	void SpawnProjectile();
 	void ResetThrow();
 	void AimStunningWeb();
+	void ThrowStunWeb();
 
 	//Mode
 	void setHookMode();
@@ -255,8 +266,6 @@ protected:
 	FVector ReturnCenterScreenWorld();
 
 	void PutSpiderWebAbility();
-
-	FTimerHandle TimerHandle;
 
 	// Helpers
 	void PerformClimbingBehaviour(FVector ActorLocation);
@@ -431,7 +440,7 @@ protected:
 
 public:
 	void SetStaminaRecoveryValue(float Value);
-	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(StaminaRecoveryBaseRate); }
+	void ResetStaminaRecoveryValue() { SetStaminaRecoveryValue(StaminaRecoveryRatePerSecond); }
 
 	// ============== Quest Log
 protected:

@@ -109,13 +109,12 @@ void UGA_PutTrap::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGam
 bool UGA_PutTrap::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
 	const bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
-	if (bCanActivate == false)
-	{
-		// Here we return false, because the current stamina or available spider traps from the cost is less than the ability's cost
-		return false;
-	}
 
-	// Check if owning player has enough Spider traps. Return false if not
+	// Any additional checks performed here
+	if (CheckCost(Handle, ActorInfo) == false)
+		Cast<ASlime_A>(CurrentActorInfo->OwnerActor)->WarningNotEnoughStamina();
 
-	return true;		// Go on if so
+	// Maybe TODO: Check if owning player has enough Spider traps. Return false if not
+
+	return bCanActivate;		// Go on if so
 }

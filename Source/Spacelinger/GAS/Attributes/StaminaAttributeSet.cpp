@@ -8,12 +8,9 @@
 
 void UStaminaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) {
 	Super::PreAttributeChange(Attribute, NewValue);
-
 	if (Attribute == GetStaminaAttribute()) {
 		NewValue = FMath::Clamp<float>(NewValue, 0.0f, GetMaxStamina());
 	}
-	
-
 }
 
 void UStaminaAttributeSet::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const {
@@ -44,7 +41,7 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 			{
 				if (!GetOwningAbilitySystemComponent()->HasMatchingGameplayTag(FGameplayTag::RequestGameplayTag(TEXT("ActiveAbility.SlowTime"))))
 				{
-					SetStaminaRecoveryValue(StaminaRecoveryBaseRate);
+					SetStaminaRecoveryValue(StaminaRecoveryRatePerSecond);
 				}
 			}
 		}
@@ -54,7 +51,8 @@ void UStaminaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffec
 
 void UStaminaAttributeSet::SetStaminaRecoveryValue(float Value)
 {
+	float FinalValue = Value * 0.01f; // Hard coded to match the effect period rate. Couldn't find a way to retrieve the value. TODO
 	GetOwningAbilitySystemComponent()->
-		UpdateActiveGameplayEffectSetByCallerMagnitude(StaminaRecoveryEffect, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.RecoveryValue")), Value);
+		UpdateActiveGameplayEffectSetByCallerMagnitude(StaminaRecoveryEffect, FGameplayTag::RequestGameplayTag(TEXT("Attribute.Stamina.RecoveryValue")), FinalValue);
 }
 

@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilityTask_DoorBlock.h"
 #include "Actors/DoorBlock.h"
+#include <Spider/Slime_A.h>
 
 UGA_DoorBlock::UGA_DoorBlock()
 {
@@ -62,6 +63,7 @@ bool UGA_DoorBlock::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 	const bool bCanActivate = Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 	if (bCanActivate == false)
 	{
+		Cast<ASlime_A>(CurrentActorInfo->OwnerActor)->WarningNotEnoughStamina();
 		DoorToBlock->DoorBlockFail();	// Return as the current stamina cost is less than the ability's cost
 		return false;
 	}

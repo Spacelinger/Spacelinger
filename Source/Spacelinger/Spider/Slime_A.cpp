@@ -104,7 +104,7 @@ ASlime_A::ASlime_A()
 	HealthAttributeSet = CreateDefaultSubobject<UHealthAttributeSet>(TEXT("Health Attribute Set"));
 	StaminaAttributeSet = CreateDefaultSubobject<UStaminaAttributeSet>(TEXT("Stamina Attribute Set"));
 	SpiderTrapsAttributeSet = CreateDefaultSubobject<USpiderTrapsAttributeSet>(TEXT("Spider Traps Attribute Set"));
-	StaminaAttributeSet->StaminaRecoveryBaseRate = StaminaRecoveryBaseRate;
+	StaminaAttributeSet->StaminaRecoveryRatePerSecond = StaminaRecoveryRatePerSecond;
 
 	// Hook target crosshair
 	HookCrosshairWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Hook Crosshair Widget Component"));
@@ -172,6 +172,7 @@ void ASlime_A::BeginPlay() {
 		
 		FGameplayEffectSpecHandle specHandle = asc->MakeOutgoingSpec(UGE_StaminaRecovery::StaticClass(), 1, asc->MakeEffectContext());
 		specHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag("Attribute.Stamina.RecoveryValue"), .0f);	// Not really needed
+		specHandle.Data->Period = 0.01f;
 		if (ensureMsgf(StaminaAttributeSet, TEXT("Missing Stamina Attribute Set component for %s"), *GetOwner()->GetName())) {
 			StaminaAttributeSet->StaminaRecoveryEffect = asc->ApplyGameplayEffectSpecToSelf(*specHandle.Data.Get());
 		}
@@ -1168,7 +1169,8 @@ void ASlime_A::ThrowAbility(const FInputActionValue& Value) {
 	case SLSpiderAbility::PutSpiderWeb: PutSpiderWebAbility(); break;
 	case SLSpiderAbility::Hook: HandleHook(); break;
 	case SLSpiderAbility::PutTrap: PutTrap(); break;
-	case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;
+	//case SLSpiderAbility::ThrowStunningWeb: ThrowStunningWeb(); break;	migrated to GAS
+	case SLSpiderAbility::ThrowStunningWeb: ThrowStunWeb(); break;
 
 	default:
 		break;
@@ -1461,6 +1463,12 @@ void ASlime_A::AimStunningWeb()
 	SetCrosshairVisibility(true);
 }
 
+void ASlime_A::ThrowStunWeb()
+{
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.StunWeb.Started")), Payload);
+}
+
 #include "DrawDebugHelpers.h"
 
 void ASlime_A::ThrowStunningWeb()
@@ -1475,7 +1483,7 @@ void ASlime_A::ThrowStunningWeb()
 		AudioManager->Spider_StunningWeb();
 
 		// Cooldown configuration
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
+		GetWorld()->GetTimerManager().SetTimer(StunWebTimerHandle, this, &ASlime_A::ResetThrow, SecondsBetweenStuns, false);
 
 		bHasTrownSpiderWeb = true;
 	}

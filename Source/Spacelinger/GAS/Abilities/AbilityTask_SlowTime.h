@@ -67,7 +67,7 @@ class SPACELINGER_API UAbilityTask_SlowTime : public UAbilityTask
 	FDelegateHandle FailedHandle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-	float StaminaCostOverTime = -5.f;
+	float StaminaCostOverTime = -20.f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 	float CustomTimeDilation = 0.4f;
