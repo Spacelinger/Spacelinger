@@ -19,6 +19,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite, meta = (Bindwidget))
 	UProgressBar* StaminaBar = nullptr;
 
+	UPROPERTY(BlueprintReadWrite, meta = (Bindwidget))
+	UProgressBar* StaminaSecondBar = nullptr;
+
 	UFUNCTION(BlueprintImplementableEvent)
 	void BP_OnStaminaChanged();
 
@@ -29,4 +32,10 @@ private:
 	void OnStaminaChanged(const FOnAttributeChangeData& Data);
 
 	UMCV_AbilitySystemComponent* GetASC();
+
+	FTimerHandle ResetVisibilityTimerHandle;
+
+	void TickUpdateStaminaSecondBar();
+
+	FTimerHandle UpdateStaminaSecondBarHandle;
 };
