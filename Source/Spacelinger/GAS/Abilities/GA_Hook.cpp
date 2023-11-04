@@ -98,6 +98,8 @@ void UGA_Hook::ActionThrowHook()
 				Spider->spiderWebReference->CableComponent->EndLocation = FVector(0, 0, 0);
 				Spider->spiderWebReference->CableComponent->SetAttachEndToComponent(Spider->GetMesh(), "Mouth");
 				Spider->spiderWebReference->setFuturePosition(EndPosition, Spider, false, true);
+				Spider->spiderWebReference->FinishSpawning(CableTransform);
+
 			}
 			// At this point the web has been shot, may it hit or not
 			if (!HookShotSoundFXArray.IsEmpty())

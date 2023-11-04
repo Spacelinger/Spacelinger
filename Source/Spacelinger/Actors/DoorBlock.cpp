@@ -96,16 +96,16 @@ void ADoorBlock::DoorBlockSuccess()
 
 	//MaterialDissolveStartingValue = MaterialDissolveCurrentValue;		Currently not used
 
-	UWorld* World = GetWorld();
-	World->GetTimerManager().SetTimer(DissolveMaterialTimerHandle, this, &ADoorBlock::DissolveBlock, .001f, true, TimeToUnblock);
+	if (UWorld* World = GetWorld())
+		World->GetTimerManager().SetTimer(DissolveMaterialTimerHandle, this, &ADoorBlock::DissolveBlock, .001f, true, TimeToUnblock);
 }
 
 void ADoorBlock::DoorBlockFail()
 {
 	//MaterialDissolveStartingValue = MaterialDissolveCurrentValue;		Currently not used
 
-	UWorld* World = GetWorld();
-	World->GetTimerManager().SetTimer(DissolveMaterialTimerHandle, this, &ADoorBlock::DissolveBlock, .001f, true);
+	if(UWorld* World = GetWorld())
+		World->GetTimerManager().SetTimer(DissolveMaterialTimerHandle, this, &ADoorBlock::DissolveBlock, .001f, true);
 }
 
 void ADoorBlock::Reset()
