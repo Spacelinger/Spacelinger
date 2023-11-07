@@ -27,6 +27,6 @@ protected:
 private:
 
 	UFUNCTION()
-	void OnReceiveDamage(int Damage, AActor* DamageDealer);
+	void OnReceiveDamage(int Damage, AActor* DamageDelaer);
 	ULifeComponent* GetLifeComponent();
 };
