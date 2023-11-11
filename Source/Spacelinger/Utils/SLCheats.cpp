@@ -2,6 +2,7 @@
 #include "Engine/Console.h"
 #include "Spider/Slime_A.h"
 #include "Components/InventoryComponent.h"
+#include "Components/LifeComponent.h"
 
 namespace CheatUtils {
 	ASlime_A* GetPlayerCharacter(UWorld* World) {
@@ -53,9 +54,9 @@ void RegisterConsoleCheatsNames() {
 static FAutoConsoleCommandWithWorldAndArgs FCheatDebugRaycast(
 	TEXT("sl.toggleraycasts"), TEXT("Toggle the raycasts being thrown"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
-		if (ASlime_A *PlayerCharacter = CheatUtils::GetPlayerCharacter(World)) {
-			PlayerCharacter->bDrawDebugLines = (Args.Num() > 0) ? Args[0].ToBool() : !PlayerCharacter->bDrawDebugLines;
-			UE_LOG(LogTemp, Display, TEXT("FCheatDebugRaycast: Raycasts have been turned %s."), PlayerCharacter->bDrawDebugLines ? TEXT("on") : TEXT("off"));
+		if (ASlime_A *Player= CheatUtils::GetPlayerCharacter(World)) {
+			Player->bDrawDebugLines = (Args.Num() > 0) ? Args[0].ToBool() : !Player->bDrawDebugLines;
+			UE_LOG(LogTemp, Display, TEXT("FCheatDebugRaycast: Raycasts have been turned %s."), Player->bDrawDebugLines ? TEXT("on") : TEXT("off"));
 		}
 		else {
 			UE_LOG(LogTemp, Warning, TEXT("FCheatDebugRaycast: PlayerCharacter couldn't be found."));
@@ -79,6 +80,37 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatGiveKey(
 				if (bGiveHand) InventoryComponent->AddItem(TEXT("KeyHand"));
 				if (bGiveEyes) InventoryComponent->AddItem(TEXT("KeyEyes"));
 			}
+		}
+	})
+);
+
+static FAutoConsoleCommandWithWorldAndArgs FCheatHeal(
+	TEXT("sl.heal"),
+	TEXT("Heals the player the % indicated. If not specified it'll heal to full"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
+		if (ASlime_A *Player = CheatUtils::GetPlayerCharacter(World)) {
+			int AmountToHeal = (Args.Num() > 0) ? FCString::Atoi(*Args[0]) : 100;
+			Player->LifeComponent->ReceiveHeal(AmountToHeal, Player);
+		}
+	})
+);
+
+static FAutoConsoleCommandWithWorldAndArgs FCheatImmortal(
+	TEXT("sl.god"),
+	TEXT("Toggles god mode so the player can't be hurt. Specify 'true' or 'false' to set a value"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
+		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
+			Player->bDebugImmortal = (Args.Num() > 0) ? Args[0].ToBool() : !Player->bDebugImmortal;
+		}
+	})
+);
+
+static FAutoConsoleCommandWithWorldAndArgs FCheatAlwaysKill(
+	TEXT("sl.alwayskill"),
+	TEXT("Toggles the always kill bool to always kill soldiers using E. Specify 'true' or 'false' to set a value"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
+		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
+			Player->bDebugAlwaysKill = (Args.Num() > 0) ? Args[0].ToBool() : !Player->bDebugAlwaysKill;
 		}
 	})
 );

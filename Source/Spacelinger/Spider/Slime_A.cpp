@@ -1555,6 +1555,8 @@ APlayerController* ASlime_A::GetPlayerController() {
 }
 
 void ASlime_A::ReceiveDamage(int Damage, AActor *DamageDealer) {
+	if (bDebugImmortal) return;
+
 	if (LifeComponent) {
 		LifeComponent->ReceiveDamage(Damage, this);
 	}

@@ -320,8 +320,13 @@ private:
 	APlayerController* GetPlayerController();
 
 public:
+	// Debug properties
 	UPROPERTY(Config)
 	bool bDrawDebugLines = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Cheats")
+	bool bDebugImmortal = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Cheats")
+	bool bDebugAlwaysKill = false;
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -455,4 +460,7 @@ protected:
 
 	void ShowQuestLog() { ToggleQuestLogBP(true); };
 	void HideQuestLog() { ToggleQuestLogBP(false); };
+
+public:
+
 };
