@@ -1363,8 +1363,8 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 	if (Controller == nullptr) { return; }
 
 	FVector2D LookAxisVector = Value.Get<FVector2D>();
-	InputRotator.Yaw   += LookAxisVector.X;
-	InputRotator.Pitch -= LookAxisVector.Y;
+	InputRotator.Yaw   += LookAxisVector.X * MouseInvertDirection * MouseSensitivity;
+	InputRotator.Pitch -= LookAxisVector.Y * MouseInvertDirection * MouseSensitivity;
 	if (InputRotator.Pitch >  MaxCameraPitch) { InputRotator.Pitch =  MaxCameraPitch; }
 	if (InputRotator.Pitch < -MinCameraPitch) { InputRotator.Pitch = -MinCameraPitch; }
 

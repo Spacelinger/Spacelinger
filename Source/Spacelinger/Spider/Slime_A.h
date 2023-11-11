@@ -339,6 +339,10 @@ public:
 	FMatrix BaseCameraRotation = FMatrix::Identity;
 	FRotator InputRotator = FRotator::ZeroRotator;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SL_Options)
+	int MouseInvertDirection = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SL_Options)
+	float MouseSensitivity = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
 	float MaxCameraPitch = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
