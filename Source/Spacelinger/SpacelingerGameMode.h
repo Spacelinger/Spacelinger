@@ -13,6 +13,15 @@ class ASpacelingerGameMode : public AGameModeBase
 
 public:
 	ASpacelingerGameMode();
+
+	AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+
+	virtual void RestartPlayer(AController* NewPlayer) override;
+
+	void SetNewPlayerStart(FString PlayerStartTag);
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	FString CurrentPlayerStartTag = TEXT("GarbagePit");
 };
 
 
