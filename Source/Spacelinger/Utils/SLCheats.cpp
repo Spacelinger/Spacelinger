@@ -2,6 +2,7 @@
 #include "Engine/Console.h"
 #include "Spider/Slime_A.h"
 #include "Components/InventoryComponent.h"
+#include <Components/QuestLogComponent.h>
 
 namespace CheatUtils {
 	ASlime_A* GetPlayerCharacter(UWorld* World) {
@@ -47,6 +48,12 @@ void RegisterConsoleCheatsNames() {
 			Cmd.Desc = FString::Printf(TEXT("Gives the player a key to unlock doors"));
 			Commands.Add(Cmd);
 		}
+		{
+			FAutoCompleteCommand Cmd;
+			Cmd.Command = FString::Printf(TEXT("sl.spawnpoint"));
+			Cmd.Desc = FString::Printf(TEXT("Select a different point to spawn the player"));
+			Commands.Add(Cmd);
+		}
 	});
 }
 
@@ -78,6 +85,28 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatGiveKey(
 				}
 				if (bGiveHand) InventoryComponent->AddItem(TEXT("KeyHand"));
 				if (bGiveEyes) InventoryComponent->AddItem(TEXT("KeyEyes"));
+			}
+		}
+	})
+);
+
+static FAutoConsoleCommandWithWorldAndArgs FCheatSpawnPoint(
+	TEXT("sl.spawnpoint"),
+	TEXT("Select a specific spawn point to start the game from. If not specified starts at regular spawn"),
+	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
+		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
+			UQuestLogComponent* QuestLogComponent = Player->FindComponentByClass<UQuestLogComponent>();
+			if (QuestLogComponent) {
+				if (Args.Num() > 0) {
+					if(Args[0].Contains(FString(TEXT("hangar"))))
+						QuestLogComponent->SetQuestOnSpawnPoint(ESpawnPoint::Hangar);
+
+					if (Args[0].Contains(FString(TEXT("level0"))))
+						QuestLogComponent->SetQuestOnSpawnPoint(ESpawnPoint::Level0);
+
+					if (Args[0].Contains(FString(TEXT("garbagepit"))))
+						QuestLogComponent->SetQuestOnSpawnPoint(ESpawnPoint::GarbagePit);
+				}
 			}
 		}
 	})
