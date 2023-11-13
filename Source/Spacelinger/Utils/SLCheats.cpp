@@ -92,7 +92,7 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatGiveKey(
 
 static FAutoConsoleCommandWithWorldAndArgs FCheatSpawnPoint(
 	TEXT("sl.spawnpoint"),
-	TEXT("Select a specific spawn point to start the game from. If not specified starts at regular spawn"),
+	TEXT("Select a specific spawn point [hangar/level0/garbagepit] to start the game from. If not specified starts at regular spawn"),
 	FConsoleCommandWithWorldAndArgsDelegate::CreateLambda([](const TArray<FString>& Args, UWorld* World) {
 		if (ASlime_A* Player = CheatUtils::GetPlayerCharacter(World)) {
 			UQuestLogComponent* QuestLogComponent = Player->FindComponentByClass<UQuestLogComponent>();
@@ -106,6 +106,9 @@ static FAutoConsoleCommandWithWorldAndArgs FCheatSpawnPoint(
 
 					if (Args[0].Contains(FString(TEXT("garbagepit"))))
 						QuestLogComponent->SetQuestOnSpawnPoint(ESpawnPoint::GarbagePit);
+				}
+				else {
+					QuestLogComponent->SetQuestOnSpawnPoint(ESpawnPoint::GarbagePit);
 				}
 			}
 		}
