@@ -21,7 +21,10 @@ void USpacelingerAudioComponent::Deinitialize()
 
 void USpacelingerAudioComponent::BeginPlay(UWorld* world)
 {
-	PlayBackgroundMusic();
+	if (IsInGameThread())
+	{
+		PlayBackgroundMusic();
+	}
 }
 
 
