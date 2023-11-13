@@ -167,6 +167,14 @@ void ASLSoldier::MoveToCeiling(AActor *Killer) {
 
 void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 {
+	if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+		if (PlayerCharacterRef->bDebugAlwaysKill) {
+			Die(DamageDealer);
+			PlayerCharacterRef->LifeComponent->ReceiveHeal(30, this);
+			return;
+		}
+	}
+
 	if (bIsStunned)
 	{
 		Die(DamageDealer);

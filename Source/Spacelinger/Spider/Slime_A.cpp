@@ -1373,6 +1373,9 @@ void ASlime_A::Look(const FInputActionValue& Value) {
 
 void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) {
 	EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+}
+
+void ASlime_A::BindAllPlayerInputEvents() {
 	if (EnhancedInputComponent) {
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -1403,7 +1406,7 @@ void ASlime_A::SetupPlayerInputComponent(class UInputComponent* PlayerInputCompo
 		EnhancedInputComponent->BindAction(HookAction, ETriggerEvent::Started, this, &ASlime_A::setHookMode);
 		EnhancedInputComponent->BindAction(PutTrapAction, ETriggerEvent::Started, this, &ASlime_A::setTrapMode);
 		EnhancedInputComponent->BindAction(ThrowStunningAction, ETriggerEvent::Started, this, &ASlime_A::setStunningMode);
-		
+
 		EnhancedInputComponent->BindAction(ToggleQuestLogAction, ETriggerEvent::Started, this, &ASlime_A::ShowQuestLog);
 		EnhancedInputComponent->BindAction(ToggleQuestLogAction, ETriggerEvent::Completed, this, &ASlime_A::HideQuestLog);
 	}
@@ -1552,6 +1555,8 @@ APlayerController* ASlime_A::GetPlayerController() {
 }
 
 void ASlime_A::ReceiveDamage(int Damage, AActor *DamageDealer) {
+	if (bDebugImmortal) return;
+
 	if (LifeComponent) {
 		LifeComponent->ReceiveDamage(Damage, this);
 	}
