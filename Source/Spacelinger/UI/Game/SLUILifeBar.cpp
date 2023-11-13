@@ -27,12 +27,13 @@ void UUILifeBar::OnReceiveDamage(int Damage, AActor* DamageDealer) {
     LifeBar->GetDynamicMaterial()->SetScalarParameterValue(FName("Percent"), NewPercent);
 
     // Defines orange color
+    FLinearColor Green  = FLinearColor(0.0f, 0.510417f, 0.110608f);
     FLinearColor Orange = FLinearColor(1.0f, 0.5f, 0.0f);
 
     // Changes the color of the material based on the value of NewPercent
     if (NewPercent <= 1 && NewPercent >= 0.6)
     {
-        LifeBar->GetDynamicMaterial()->SetVectorParameterValue(FName("Base Color"), FLinearColor::Green);
+        LifeBar->GetDynamicMaterial()->SetVectorParameterValue(FName("Base Color"), Green);
     }
     else if (NewPercent < 0.6 && NewPercent >= 0.3)
     {
