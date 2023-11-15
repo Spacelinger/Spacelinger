@@ -234,6 +234,26 @@ void USpacelingerAudioComponent::SpiderKilledReaction()
 	}
 }
 
+void USpacelingerAudioComponent::PlayFirstIntuitionSFX()
+{
+	if (!SoldierFirstIntuitionHasPlayed)
+	{
+		SoldierFirstIntuitionHasPlayed = true;
+		SpiderKilledReactionHasPlayed = true;
+		UGameplayStatics::SpawnSound2D(this, SoldierFirstIntuitionSFX, SoldierFirstIntuitionMultiplier);
+	}
+}
+
+void USpacelingerAudioComponent::ResetFirstIntuition()
+{
+	if (this != nullptr)
+	{
+		SoldierFirstIntuitionHasPlayed = false;
+	}
+}
+
+
+
 
 
 

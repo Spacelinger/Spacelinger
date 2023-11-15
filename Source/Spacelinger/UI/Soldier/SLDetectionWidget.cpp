@@ -174,6 +174,10 @@ void USLDetectionWidget::PlaySounds()
 
 					AudioManager->StopChaseMusic();
 					ActorRecentlyAware = false;
+				} else
+				{
+					AudioManager->StopChaseMusic();
+					ActorRecentlyAware = false;
 				}
 			}
 			if (Actor != nullptr)
