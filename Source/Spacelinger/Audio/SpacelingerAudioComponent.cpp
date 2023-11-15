@@ -224,6 +224,15 @@ void USpacelingerAudioComponent::PlayElectricitySFX(FVector Location, FRotator R
 	UGameplayStatics::SpawnSoundAtLocation(this, ElectricitySFX, Location, Rotation, ElectricitySFXVolumeMultiplier, ElectricitySFXPitchMultiplier);
 }
 
+void USpacelingerAudioComponent::SpiderKilledReaction()
+{
+	if (!SpiderKilledReactionHasPlayed)
+	{
+		SpiderKilledReactionHasPlayed = true;
+		UGameplayStatics::SpawnSound2D(this, SoldierSpiderKilledReaction, SoldierSpiderKilledReactionMultiplier);
+		UGameplayStatics::SpawnSound2D(this, SpiderDeathReaction, SpiderDeathReactionMultiplier);
+	}
+}
 
 
 

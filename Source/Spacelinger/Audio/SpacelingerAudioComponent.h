@@ -68,6 +68,8 @@ public:
 	void Spider_PutTrap();
 	UFUNCTION()
 	void Spider_CancelPutTrap();
+	UFUNCTION()
+	void SpiderKilledReaction();
 
 	// Individual multipliers
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -96,6 +98,10 @@ public:
 	float ElectricitySFXVolumeMultiplier = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	float ElectricitySFXPitchMultiplier = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	float SoldierSpiderKilledReactionMultiplier = 1.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	float SpiderDeathReactionMultiplier = 1.0f;
 
 	// Global Multipliers
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
@@ -156,6 +162,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	USoundCue * SpiderPutTrapSFX;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SoldierSpiderKilledReaction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
+	USoundCue * SpiderDeathReaction;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	UAudioComponent * CurrentBackgroundMusic;
@@ -193,5 +205,6 @@ private:
 	bool IsResumingPatrol = false;
 	bool IsAnySoldierAlerted = false;
 	bool IsSoldierVoiceCuePlaying = false;
+	bool SpiderKilledReactionHasPlayed = false;
 	
 };

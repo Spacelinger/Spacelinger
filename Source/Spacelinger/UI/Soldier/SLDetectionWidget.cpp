@@ -160,7 +160,24 @@ void USLDetectionWidget::PlaySounds()
 			
 				if (!Actor->IsDead())
 				{
-					AudioManager->Soldier_ResumePatrol();
+					UWorld* World = GetWorld();
+					APlayerController *PlayerController = World->GetFirstPlayerController();
+					if (PlayerController)
+					{
+						ASlime_A *PlayerCharacter = Cast<ASlime_A>(PlayerController->GetPawn());
+						if (PlayerCharacter -> bIsDead)
+						{
+							// If the spider is dead, play the associated cues
+							AudioManager->SpiderKilledReaction();
+						} else
+						{
+							AudioManager->Soldier_ResumePatrol();
+						}
+					}
+					else
+					{
+						AudioManager->Soldier_ResumePatrol();
+					}
 				}
 				AudioManager->StopChaseMusic();
 				ActorRecentlyAware = false;
