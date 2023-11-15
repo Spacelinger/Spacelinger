@@ -125,13 +125,13 @@ void USLDetectionWidget::PlaySounds()
 			if (Actor == OwningActor && !Actor->IsDead())
 			{
 				AudioManager = Actor->GetAudioManager();
-				ASoldierAIController* ActorController = GetAIController(Actor);
+				//ASoldierAIController* ActorController = GetAIController(Actor);
 				
-				if (ActorController -> IsStunned() || !IsActorAware(OwningActor))
-				{
-					// AudioManager -> StopBarFillingSound();
-				}
-				else
+				//if ((ActorController && ActorController->IsStunned()) || !IsActorAware(OwningActor))
+				//{
+				// AudioManager -> StopBarFillingSound();
+				//}
+				//else
 				if (it->second >= 1.0f)
 				{
 					if (!ActorRecentlyAware)
@@ -157,14 +157,11 @@ void USLDetectionWidget::PlaySounds()
 			if (ActorRecentlyAware)
 			{
 				// AudioManager->StopBarFillingSound();
-			
 				if (!Actor->IsDead())
 				{
-					UWorld* World = GetWorld();
-					APlayerController *PlayerController = World->GetFirstPlayerController();
-					if (PlayerController)
+					ASlime_A *PlayerCharacter = GetPlayerCharacter();
+					if (PlayerCharacter)
 					{
-						ASlime_A *PlayerCharacter = Cast<ASlime_A>(PlayerController->GetPawn());
 						if (PlayerCharacter -> bIsDead)
 						{
 							// If the spider is dead, play the associated cues
@@ -174,21 +171,18 @@ void USLDetectionWidget::PlaySounds()
 							AudioManager->Soldier_ResumePatrol();
 						}
 					}
-					else
-					{
-						AudioManager->Soldier_ResumePatrol();
-					}
+
+					AudioManager->StopChaseMusic();
+					ActorRecentlyAware = false;
 				}
-				AudioManager->StopChaseMusic();
-				ActorRecentlyAware = false;
 			}
-		}
-		if (Actor != nullptr)
-		{
-			if (Actor == OwningActor && Actor->IsDead())
+			if (Actor != nullptr)
 			{
-				// AudioManager->StopBarFillingSound();
-				AudioManager->StopChaseMusic();
+				if (Actor == OwningActor && Actor->IsDead())
+				{
+					// AudioManager->StopBarFillingSound();
+					AudioManager->StopChaseMusic();
+				}
 			}
 		}
 	}
@@ -201,4 +195,14 @@ ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
 		return Cast<ASoldierAIController>(AsPawn->GetController());
 	}
 	return nullptr;
+}
+
+ASlime_A* USLDetectionWidget::GetPlayerCharacter() const {
+	UWorld* World = GetWorld();
+	if (!World) return nullptr;
+
+	APlayerController *PlayerController = World->GetFirstPlayerController();
+	if (!PlayerController) return nullptr;
+
+	return Cast<ASlime_A>(PlayerController->GetPawn());
 }

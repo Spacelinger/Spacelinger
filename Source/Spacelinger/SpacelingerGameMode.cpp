@@ -4,11 +4,9 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
 
-ASpacelingerGameMode::ASpacelingerGameMode() 
-{
+ASpacelingerGameMode::ASpacelingerGameMode() {}
 
-}
-
+ 
 AActor* ASpacelingerGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
 	AActor* PlayerStart = FindPlayerStart(GetWorld()->GetFirstPlayerController(), CurrentPlayerStartTag);

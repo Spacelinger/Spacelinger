@@ -73,6 +73,8 @@ private:
 	ASoldierAIController* GetAIController(AActor *Actor) const;
 	bool ActorRecentlyAware = false;
 
+	class ASlime_A* GetPlayerCharacter() const;
+
 protected:
 	//void NativeOnInitialized() override;
 };
