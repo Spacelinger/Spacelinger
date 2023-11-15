@@ -125,13 +125,13 @@ void USLDetectionWidget::PlaySounds()
 			if (Actor == OwningActor && !Actor->IsDead())
 			{
 				AudioManager = Actor->GetAudioManager();
-				ASoldierAIController* ActorController = GetAIController(Actor);
+				//ASoldierAIController* ActorController = GetAIController(Actor);
 				
-				if (ActorController -> IsStunned() || !IsActorAware(OwningActor))
-				{
+				//if ((ActorController && ActorController->IsStunned()) || !IsActorAware(OwningActor))
+				//{
 					// AudioManager -> StopBarFillingSound();
-				}
-				else
+				//}
+				//else
 				if (it->second >= 1.0f)
 				{
 					if (!ActorRecentlyAware)
@@ -157,10 +157,13 @@ void USLDetectionWidget::PlaySounds()
 			if (ActorRecentlyAware)
 			{
 				// AudioManager->StopBarFillingSound();
-			
+
 				if (!Actor->IsDead())
 				{
-					AudioManager->Soldier_ResumePatrol();
+					ASlime_A *PlayerCharacter = GetPlayerCharacter();
+					if (PlayerCharacter && !PlayerCharacter->bIsDead) {
+						AudioManager->Soldier_ResumePatrol();
+					}
 				}
 				AudioManager->StopChaseMusic();
 				ActorRecentlyAware = false;
@@ -184,4 +187,14 @@ ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
 		return Cast<ASoldierAIController>(AsPawn->GetController());
 	}
 	return nullptr;
+}
+
+ASlime_A* USLDetectionWidget::GetPlayerCharacter() const {
+	UWorld* World = GetWorld();
+	if (!World) return nullptr;
+
+	APlayerController *PlayerController = World->GetFirstPlayerController();
+	if (!PlayerController) return nullptr;
+
+	return Cast<ASlime_A>(PlayerController->GetPawn());
 }
