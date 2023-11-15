@@ -218,11 +218,9 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	AudioManager = GetAudioManager();
 	AudioManager -> Soldier_Stunned();
 	GetCharacterMovement()->DisableMovement();
-	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
+	
 	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
 		ControllerReference->StopLogic();
-		ControllerReference->SetIsAlerted(true);
-		ControllerReference->AlertAssignedSoldiers();
 		ControllerReference->DetectedLocation = ThrowLocation;
 	}
 	
@@ -233,6 +231,11 @@ void ASLSoldier::Unstun()
 {
 	if (bIsDead) return;
 
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->SetIsAlerted(true);
+		ControllerReference->AlertAssignedSoldiers();
+	}
+	
 	AnimationState = SoldierAIState::ALERTED;
 	
 	bIsStunned = false;
