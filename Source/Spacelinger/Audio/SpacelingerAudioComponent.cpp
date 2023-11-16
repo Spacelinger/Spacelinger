@@ -239,7 +239,6 @@ void USpacelingerAudioComponent::PlayFirstIntuitionSFX()
 	if (!SoldierFirstIntuitionHasPlayed)
 	{
 		SoldierFirstIntuitionHasPlayed = true;
-		SpiderKilledReactionHasPlayed = true;
 		UGameplayStatics::SpawnSound2D(this, SoldierFirstIntuitionSFX, SoldierFirstIntuitionMultiplier);
 	}
 }
