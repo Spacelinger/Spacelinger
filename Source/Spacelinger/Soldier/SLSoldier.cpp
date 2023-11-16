@@ -167,6 +167,14 @@ void ASLSoldier::MoveToCeiling(AActor *Killer) {
 
 void ASLSoldier::ReceiveDamage(AActor *DamageDealer)
 {
+	if (ASlime_A *PlayerCharacterRef = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(),0))) {
+		if (PlayerCharacterRef->bDebugAlwaysKill) {
+			Die(DamageDealer);
+			PlayerCharacterRef->LifeComponent->ReceiveHeal(30, this);
+			return;
+		}
+	}
+
 	if (bIsStunned)
 	{
 		Die(DamageDealer);
@@ -210,11 +218,9 @@ void ASLSoldier::Stun(float StunDuration, FVector ThrowLocation)
 	AudioManager = GetAudioManager();
 	AudioManager -> Soldier_Stunned();
 	GetCharacterMovement()->DisableMovement();
-	// Get the controller of the character (SoldierAIController) --- CHANGE THIS!!!
+	
 	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
 		ControllerReference->StopLogic();
-		ControllerReference->SetIsAlerted(true);
-		ControllerReference->AlertAssignedSoldiers();
 		ControllerReference->DetectedLocation = ThrowLocation;
 	}
 	
@@ -225,6 +231,11 @@ void ASLSoldier::Unstun()
 {
 	if (bIsDead) return;
 
+	if (ASoldierAIController* ControllerReference = Cast<ASoldierAIController>(GetController())) {
+		ControllerReference->SetIsAlerted(true);
+		ControllerReference->AlertAssignedSoldiers();
+	}
+	
 	AnimationState = SoldierAIState::ALERTED;
 	
 	bIsStunned = false;
@@ -265,6 +276,7 @@ void ASLSoldier::Die(AActor *Killer) {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
 	SoldierHasDied(Killer);
+	AudioManager->StopChaseMusic();
 	AudioManager->Soldier_DeathAudioReaction(GetActorLocation(), GetActorRotation());
 }
 

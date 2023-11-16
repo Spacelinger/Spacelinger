@@ -125,19 +125,19 @@ void USLDetectionWidget::PlaySounds()
 			if (Actor == OwningActor && !Actor->IsDead())
 			{
 				AudioManager = Actor->GetAudioManager();
-				ASoldierAIController* ActorController = GetAIController(Actor);
+				//ASoldierAIController* ActorController = GetAIController(Actor);
 				
-				if (ActorController -> IsStunned() || !IsActorAware(OwningActor))
-				{
-					// AudioManager -> StopBarFillingSound();
-				}
-				else
+				//if ((ActorController && ActorController->IsStunned()) || !IsActorAware(OwningActor))
+				//{
+				// AudioManager -> StopBarFillingSound();
+				//}
+				//else
 				if (it->second >= 1.0f)
 				{
+					AudioManager->PlayChaseMusic();
 					if (!ActorRecentlyAware)
 					{
 						ActorRecentlyAware = true;
-						AudioManager->PlayChaseMusic();
 						AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
 					}
 					// AudioManager -> StopBarFillingSound();
@@ -157,21 +157,36 @@ void USLDetectionWidget::PlaySounds()
 			if (ActorRecentlyAware)
 			{
 				// AudioManager->StopBarFillingSound();
-			
 				if (!Actor->IsDead())
 				{
-					AudioManager->Soldier_ResumePatrol();
+					ASlime_A *PlayerCharacter = GetPlayerCharacter();
+					if (PlayerCharacter)
+					{
+						if (PlayerCharacter -> bIsDead)
+						{
+							// If the spider is dead, play the associated cues
+							AudioManager->SpiderKilledReaction();
+						} else
+						{
+							AudioManager->Soldier_ResumePatrol();
+						}
+					}
+
+					AudioManager->StopChaseMusic();
+					ActorRecentlyAware = false;
+				} else
+				{
+					AudioManager->StopChaseMusic();
+					ActorRecentlyAware = false;
 				}
-				AudioManager->StopChaseMusic();
-				ActorRecentlyAware = false;
 			}
-		}
-		if (Actor != nullptr)
-		{
-			if (Actor == OwningActor && Actor->IsDead())
+			if (Actor != nullptr)
 			{
-				// AudioManager->StopBarFillingSound();
-				AudioManager->StopChaseMusic();
+				if (Actor == OwningActor && Actor->IsDead())
+				{
+					// AudioManager->StopBarFillingSound();
+					AudioManager->StopChaseMusic();
+				}
 			}
 		}
 	}
@@ -184,4 +199,14 @@ ASoldierAIController* USLDetectionWidget::GetAIController(AActor *Actor) const {
 		return Cast<ASoldierAIController>(AsPawn->GetController());
 	}
 	return nullptr;
+}
+
+ASlime_A* USLDetectionWidget::GetPlayerCharacter() const {
+	UWorld* World = GetWorld();
+	if (!World) return nullptr;
+
+	APlayerController *PlayerController = World->GetFirstPlayerController();
+	if (!PlayerController) return nullptr;
+
+	return Cast<ASlime_A>(PlayerController->GetPawn());
 }

@@ -110,6 +110,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))
 	bool bIsDead = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Spacelinger")
+	bool bIsCutscenePlaying = true;
+
 protected:
 	// GAS
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "GAS")
@@ -317,13 +320,20 @@ private:
 	APlayerController* GetPlayerController();
 
 public:
+	// Debug properties
 	UPROPERTY(Config)
 	bool bDrawDebugLines = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Cheats")
+	bool bDebugImmortal = false;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Cheats")
+	bool bDebugAlwaysKill = false;
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void BindAllPlayerInputEvents();
+	
 	virtual void BeginPlay() override;
-
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger|Camera", meta = (AllowPrivateAccess = "true"))
@@ -339,6 +349,10 @@ public:
 	FMatrix BaseCameraRotation = FMatrix::Identity;
 	FRotator InputRotator = FRotator::ZeroRotator;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SL_Options)
+	int MouseInvertDirection = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = SL_Options)
+	float MouseSensitivity = 1.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
 	float MaxCameraPitch = 10.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = SL_Options, meta = (AllowPrivateAccess = "true", UIMin = "0.0", UIMax = "90.0"))
@@ -450,4 +464,7 @@ protected:
 
 	void ShowQuestLog() { ToggleQuestLogBP(true); };
 	void HideQuestLog() { ToggleQuestLogBP(false); };
+
+public:
+
 };

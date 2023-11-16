@@ -21,7 +21,10 @@ void USpacelingerAudioComponent::Deinitialize()
 
 void USpacelingerAudioComponent::BeginPlay(UWorld* world)
 {
-	PlayBackgroundMusic();
+	if (IsInGameThread())
+	{
+		// PlayBackgroundMusic();
+	}
 }
 
 
@@ -220,6 +223,35 @@ void USpacelingerAudioComponent::PlayElectricitySFX(FVector Location, FRotator R
 {
 	UGameplayStatics::SpawnSoundAtLocation(this, ElectricitySFX, Location, Rotation, ElectricitySFXVolumeMultiplier, ElectricitySFXPitchMultiplier);
 }
+
+void USpacelingerAudioComponent::SpiderKilledReaction()
+{
+	if (!SpiderKilledReactionHasPlayed)
+	{
+		SpiderKilledReactionHasPlayed = true;
+		UGameplayStatics::SpawnSound2D(this, SoldierSpiderKilledReaction, SoldierSpiderKilledReactionMultiplier);
+		UGameplayStatics::SpawnSound2D(this, SpiderDeathReaction, SpiderDeathReactionMultiplier);
+	}
+}
+
+void USpacelingerAudioComponent::PlayFirstIntuitionSFX()
+{
+	if (!SoldierFirstIntuitionHasPlayed)
+	{
+		SoldierFirstIntuitionHasPlayed = true;
+		SpiderKilledReactionHasPlayed = true;
+		UGameplayStatics::SpawnSound2D(this, SoldierFirstIntuitionSFX, SoldierFirstIntuitionMultiplier);
+	}
+}
+
+void USpacelingerAudioComponent::ResetFirstIntuition()
+{
+	if (this != nullptr)
+	{
+		SoldierFirstIntuitionHasPlayed = false;
+	}
+}
+
 
 
 

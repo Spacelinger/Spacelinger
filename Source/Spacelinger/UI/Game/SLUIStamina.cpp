@@ -22,7 +22,6 @@ void UUIStamina::NativeOnInitialized() {
         // Bind to Stamina GAS Attribute value change delegate
         ASC->GetGameplayAttributeValueChangeDelegate(UStaminaAttributeSet::GetStaminaAttribute()).AddUObject(this, &UUIStamina::OnStaminaChanged);
     }
-
 }
 
 void UUIStamina::OnStaminaChanged(const FOnAttributeChangeData& Data)
@@ -34,7 +33,7 @@ void UUIStamina::OnStaminaChanged(const FOnAttributeChangeData& Data)
         StaminaBar->SetPercent(NewPercent);
         BP_OnStaminaChanged();
         SetVisibility(ESlateVisibility::Visible);
-        GetWorld()->GetTimerManager().SetTimer(ResetVisibilityTimerHandle, FTimerDelegate::CreateLambda([&] { SetVisibility(ESlateVisibility::Hidden); }), 1.5f, false);
+        GetWorld()->GetTimerManager().SetTimer(ResetVisibilityTimerHandle, FTimerDelegate::CreateLambda([&] { SetVisibility(ESlateVisibility::Hidden); }), 1.5f, false);// Posible problema de nullabilidad
 
         if (Data.NewValue < Data.OldValue)
         {

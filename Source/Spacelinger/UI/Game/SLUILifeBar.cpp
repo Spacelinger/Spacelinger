@@ -18,13 +18,32 @@ void UUILifeBar::NativeOnInitialized() {
     }
 }
 
-void UUILifeBar::OnReceiveDamage(int Damage, AActor* DamageDelaer) {
+void UUILifeBar::OnReceiveDamage(int Damage, AActor* DamageDealer) {
 
     ULifeComponent* LifeComponent = GetLifeComponent();
     if (!LifeComponent)
         return;
     const float NewPercent = (1.0 / LifeComponent->GetMaxLife()) * LifeComponent->GetCurrentLife();
     LifeBar->GetDynamicMaterial()->SetScalarParameterValue(FName("Percent"), NewPercent);
+
+    // Defines orange color
+    FLinearColor Green  = FLinearColor(0.0f, 0.510417f, 0.110608f);
+    FLinearColor Orange = FLinearColor(1.0f, 0.5f, 0.0f);
+
+    // Changes the color of the material based on the value of NewPercent
+    if (NewPercent <= 1 && NewPercent >= 0.6)
+    {
+        LifeBar->GetDynamicMaterial()->SetVectorParameterValue(FName("Base Color"), Green);
+    }
+    else if (NewPercent < 0.6 && NewPercent >= 0.3)
+    {
+        LifeBar->GetDynamicMaterial()->SetVectorParameterValue(FName("Base Color"), Orange);
+    }
+    else
+    {
+        LifeBar->GetDynamicMaterial()->SetVectorParameterValue(FName("Base Color"), FLinearColor::Red);
+    }
+
     BP_OnReceiveDamage();
 }
 
