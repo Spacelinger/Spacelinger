@@ -28,6 +28,7 @@ protected:
 	void NativeOnInitialized() override;
 
 private:
+	void ResetVisibility();
 
 	void OnStaminaChanged(const FOnAttributeChangeData& Data);
 

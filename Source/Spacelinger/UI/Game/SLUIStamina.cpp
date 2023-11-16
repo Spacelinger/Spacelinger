@@ -24,6 +24,11 @@ void UUIStamina::NativeOnInitialized() {
     }
 }
 
+void UUIStamina::ResetVisibility()
+{
+    SetVisibility(ESlateVisibility::Hidden);
+}
+
 void UUIStamina::OnStaminaChanged(const FOnAttributeChangeData& Data)
 {
     //Get ASC stamina attribute, check if valid, get MaxStaminaAttribute
@@ -33,7 +38,7 @@ void UUIStamina::OnStaminaChanged(const FOnAttributeChangeData& Data)
         StaminaBar->SetPercent(NewPercent);
         BP_OnStaminaChanged();
         SetVisibility(ESlateVisibility::Visible);
-        GetWorld()->GetTimerManager().SetTimer(ResetVisibilityTimerHandle, FTimerDelegate::CreateLambda([&] { SetVisibility(ESlateVisibility::Hidden); }), 1.5f, false);// Posible problema de nullabilidad
+        GetWorld()->GetTimerManager().SetTimer(ResetVisibilityTimerHandle, this, &UUIStamina::ResetVisibility, 1.5f, false);
 
         if (Data.NewValue < Data.OldValue)
         {
