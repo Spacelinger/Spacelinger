@@ -74,6 +74,8 @@ public:
 	void PlayFirstIntuitionSFX();
 	UFUNCTION()
 	void ResetFirstIntuition();
+	UFUNCTION(BlueprintCallable)
+	void ResetSpiderKilledReaction();
 
 	// Individual multipliers
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Spacelinger", meta = (AllowPrivateAccess = "true"))

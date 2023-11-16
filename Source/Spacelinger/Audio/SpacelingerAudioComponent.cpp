@@ -134,7 +134,10 @@ void USpacelingerAudioComponent::Soldier_ResetStunnedState()
 
 void USpacelingerAudioComponent::PlayDetectionSound()
 {
-	CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, DetectionSoundVolumeMultiplier);
+	if (!CurrentDetectionSound)
+	{
+		CurrentDetectionSound = UGameplayStatics::SpawnSound2D(this, DetectionSound, DetectionSoundVolumeMultiplier);
+	}
 }
 
 
@@ -248,6 +251,14 @@ void USpacelingerAudioComponent::ResetFirstIntuition()
 	if (this != nullptr)
 	{
 		SoldierFirstIntuitionHasPlayed = false;
+	}
+}
+
+void USpacelingerAudioComponent::ResetSpiderKilledReaction()
+{
+	if (this != nullptr)
+	{
+		SpiderKilledReactionHasPlayed = false;
 	}
 }
 
