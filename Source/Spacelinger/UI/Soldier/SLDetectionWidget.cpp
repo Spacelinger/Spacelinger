@@ -121,10 +121,12 @@ void USLDetectionWidget::PlaySounds()
 		// Check if the biggest element from the SoldierAwarenessMap is bigger than .01f
 		if (it->second > .01f)
 		{
+			ActorRecentlySuspicious = true;
 			// And make sure that only the wanted actor will trigger sounds
 			if (Actor == OwningActor && !Actor->IsDead())
 			{
 				AudioManager = Actor->GetAudioManager();
+				AudioManager->PlayFirstIntuitionSFX();
 				//ASoldierAIController* ActorController = GetAIController(Actor);
 				
 				//if ((ActorController && ActorController->IsStunned()) || !IsActorAware(OwningActor))
@@ -154,6 +156,14 @@ void USLDetectionWidget::PlaySounds()
 		}
 		else
 		{
+			if (ActorRecentlySuspicious)
+			{
+				if (it->second == 0.0)
+				{
+					ActorRecentlySuspicious = false;
+					AudioManager->ResetFirstIntuition();
+				}
+			}
 			if (ActorRecentlyAware)
 			{
 				// AudioManager->StopBarFillingSound();

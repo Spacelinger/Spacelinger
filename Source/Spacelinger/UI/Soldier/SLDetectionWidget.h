@@ -72,6 +72,7 @@ public:
 private:
 	ASoldierAIController* GetAIController(AActor *Actor) const;
 	bool ActorRecentlyAware = false;
+	bool ActorRecentlySuspicious = false;
 
 	class ASlime_A* GetPlayerCharacter() const;
 
