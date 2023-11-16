@@ -140,7 +140,7 @@ void USpacelingerAudioComponent::PlayDetectionSound()
 
 void USpacelingerAudioComponent::PlayChaseMusic()
 {
-	if (!IsAnySoldierAlerted)
+	if (!IsAnySoldierAlerted && !CurrentChaseMusic)
 	{
 		StopBackgroundMusic();
 		IsAnySoldierAlerted = true;
