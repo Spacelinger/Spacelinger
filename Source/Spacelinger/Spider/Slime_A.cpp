@@ -1546,8 +1546,6 @@ void ASlime_A::OnDie(AActor* Killer) {
 		PostProcessComponent->Settings.ColorSaturation = FVector4(0, 0, 0,0);
 	}
 
-
-
 	// Unstick from walls
 	canTrace = false;
 	StopClimbing();
