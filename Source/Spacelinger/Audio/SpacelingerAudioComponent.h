@@ -32,7 +32,7 @@ public:
 	void Soldier_DeathAudioReaction(FVector Location, FRotator Rotation);
 	UFUNCTION()
 	void Soldier_ResumePatrol();
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void PlayBackgroundMusic();
 	UFUNCTION()
 	void StopBackgroundMusic();

@@ -276,6 +276,7 @@ void ASLSoldier::Die(AActor *Killer) {
 	GetMesh()->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	
 	SoldierHasDied(Killer);
+	AudioManager->StopChaseMusic();
 	AudioManager->Soldier_DeathAudioReaction(GetActorLocation(), GetActorRotation());
 }
 

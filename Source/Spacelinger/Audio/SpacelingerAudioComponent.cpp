@@ -23,7 +23,7 @@ void USpacelingerAudioComponent::BeginPlay(UWorld* world)
 {
 	if (IsInGameThread())
 	{
-		PlayBackgroundMusic();
+		// PlayBackgroundMusic();
 	}
 }
 

@@ -134,10 +134,10 @@ void USLDetectionWidget::PlaySounds()
 				//else
 				if (it->second >= 1.0f)
 				{
+					AudioManager->PlayChaseMusic();
 					if (!ActorRecentlyAware)
 					{
 						ActorRecentlyAware = true;
-						AudioManager->PlayChaseMusic();
 						AudioManager->Soldier_VoiceCue(Actor->GetActorLocation(), Actor->GetActorRotation());
 					}
 					// AudioManager -> StopBarFillingSound();
