@@ -7,6 +7,8 @@ The player has several spider-like abilities that will help them overcome the ch
 
 # Links:
 Trailer: https://www.youtube.com/watch?v=912rmySUQVY
+
 Download Game: https://spacegroup.itch.io/spacelinger
+
 Org: https://github.com/Spacelinger
 
