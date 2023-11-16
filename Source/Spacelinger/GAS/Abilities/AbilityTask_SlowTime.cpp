@@ -235,8 +235,9 @@ void UAbilityTask_SlowTime::OnDestroy(bool AbilityEnding)
 
 	}
 
-	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	Cast<ASlime_A>(Player)->GetCameraBoom()->TargetArmLength = CameraBoomDefaultArmLength;
+	if(ASlime_A* Player = Cast<ASlime_A>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))) {
+		Player->GetCameraBoom()->TargetArmLength = CameraBoomDefaultArmLength;
+	}
 
 	Super::OnDestroy(AbilityEnding);
 }

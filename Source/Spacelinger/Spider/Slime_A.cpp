@@ -1529,6 +1529,10 @@ void ASlime_A::SetStaminaRecoveryValue(float Value)
 // Life
 void ASlime_A::OnDie(AActor* Killer) {
 	bIsDead = true;
+
+	// We end the ability just in case we die while using it
+	FGameplayEventData Payload;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, FGameplayTag::RequestGameplayTag(TEXT("Input.SlowTime.Completed")), Payload);
 	
 	// Remove controls and only allow moving the camera
 	if (EnhancedInputComponent) {
@@ -1541,6 +1545,8 @@ void ASlime_A::OnDie(AActor* Killer) {
 		PostProcessComponent->Settings.bOverride_ColorSaturation = true;
 		PostProcessComponent->Settings.ColorSaturation = FVector4(0, 0, 0,0);
 	}
+
+
 
 	// Unstick from walls
 	canTrace = false;
